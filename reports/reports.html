@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reports - ABRAR Management System</title>
+    <link rel="icon" type="image/png" href="../icon.png">
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div class="app-container">
+    
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <img src="../logo.png" alt="ABRAR Logo" style="height: 32px; width: auto;">
+        </div>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <a href="../dashboard.html" class="nav-item">
+          <i data-lucide="layout-dashboard"></i> Dashboard
+        </a>
+        <a href="../students/students.html" class="nav-item">
+          <i data-lucide="users"></i> Students
+        </a>
+        <a href="../courses/classes.html" class="nav-item">
+          <i data-lucide="library"></i> Courses
+        </a>
+        <a href="../tutors/tutors.html" class="nav-item">
+          <i data-lucide="graduation-cap"></i> Tutors
+        </a>
+        <a href="../tutors/salary-control.html" class="nav-item" style="padding-left: 2.5rem; font-size: 0.875rem;">
+          Salary Control
+        </a>
+        <a href="../finance/accounts.html" class="nav-item">
+          <i data-lucide="wallet"></i> Finance
+        </a>
+        <a href="reports.html" class="nav-item active">
+          <i data-lucide="bar-chart-3"></i> Reports
+        </a>
+      </nav>
+    </aside>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <main class="main-content">
+      <header class="top-header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobileMenuBtn">
+            <i data-lucide="menu"></i>
+          </button>
+          <h1 class="page-title">Reports Engine</h1>
+        </div>
+        <div class="header-right">
+          <button class="btn btn-primary" id="exportCsvBtn" disabled>
+            <i data-lucide="download"></i> Export CSV
+          </button>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <div class="card" style="margin-bottom: 1.5rem;">
+          <h3 style="margin-bottom: 1rem;">Generate Report</h3>
+          <form id="reportForm">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; align-items: end;">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">Report Type</label>
+                <select id="reportType" class="form-control" required>
+                  <option value="financial">Financial Transactions (Income/Expense)</option>
+                  <option value="fees">Fee Collections</option>
+                  <option value="salaries">Salary Payouts</option>
+                  <option value="students">Active Students Roster</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">Start Date</label>
+                <input type="date" id="startDate" class="form-control">
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">End Date</label>
+                <input type="date" id="endDate" class="form-control">
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Generate</button>
+              </div>
+            </div>
+          </form>
+        </div>
+        
+        <div class="card" style="overflow-x: auto;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 id="reportTitle">Report Results</h3>
+            <div id="reportSummary" style="font-weight: 600; color: var(--color-primary);"></div>
+          </div>
+          
+          <table style="width: 100%; text-align: left; border-collapse: collapse;">
+            <thead id="reportThead">
+              <tr style="border-bottom: 1px solid var(--color-border);">
+                <th style="padding: 0.75rem; font-weight: 600; color: var(--color-text-secondary);">Please generate a report.</th>
+              </tr>
+            </thead>
+            <tbody id="reportTbody">
+              <tr><td style="text-align: center; padding: 2rem;">No data generated.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>lucide.createIcons();</script>
+  <script type="module" src="../js/firebase-config.js"></script>
+  <script type="module" src="../js/layout.js"></script>
+  <script type="module" src="../js/reports.js"></script>
+</body>
+</html>

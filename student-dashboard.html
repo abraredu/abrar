@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Dashboard - ABRAR Management System</title>
+  <link rel="icon" type="image/png" href="icon.png">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <img src="logo.png" alt="ABRAR Logo" style="height: 32px; width: auto;">
+        </div>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <a href="student-dashboard.html" class="nav-item active">
+          <i data-lucide="layout-dashboard"></i> My Dashboard
+        </a>
+        <a href="student-receipts.html" class="nav-item">
+          <i data-lucide="receipt"></i> Receipts
+        </a>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <a href="#" id="logoutBtn" class="nav-item text-danger">
+          <i data-lucide="log-out"></i> Logout
+        </a>
+      </div>
+    </aside>
+
+    <!-- Sidebar Overlay for Mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Header -->
+      <header class="top-header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobileMenuBtn">
+            <i data-lucide="menu"></i>
+          </button>
+          <h1 class="page-title">Student Portal</h1>
+        </div>
+        
+        <div class="header-right">
+          <div class="user-profile" style="display: flex; align-items: center; gap: 0.5rem;">
+            <img src="https://ui-avatars.com/api/?name=Student&background=random" alt="Profile" id="headerAvatar" style="width: 32px; height: 32px; border-radius: 50%;">
+            <span id="headerName" class="text-sm font-medium">Loading...</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <div class="page-content">
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+          <div class="card stat-card">
+            <div class="stat-icon" style="background: #E0F2FE; color: #0284C7;">
+              <i data-lucide="user"></i>
+            </div>
+            <div class="stat-info">
+              <div class="stat-title">Abrar ID</div>
+              <div class="stat-value" id="dashAbrarId" style="font-size: 1.25rem;">-</div>
+            </div>
+          </div>
+          
+          <div class="card stat-card">
+            <div class="stat-icon" style="background: #DCFCE7; color: #16A34A;">
+              <i data-lucide="book-open"></i>
+            </div>
+            <div class="stat-info">
+              <div class="stat-title">Course</div>
+              <div class="stat-value" id="dashCourse" style="font-size: 1.1rem; line-height: 1.2;">-</div>
+            </div>
+          </div>
+          
+          <div class="card stat-card">
+            <div class="stat-icon" style="background: #FEF3C7; color: #D97706;">
+              <i data-lucide="credit-card"></i>
+            </div>
+            <div class="stat-info">
+              <div class="stat-title">Monthly Fee</div>
+              <div class="stat-value" id="dashFee" style="font-size: 1.25rem;">-</div>
+            </div>
+          </div>
+          
+          <div class="card stat-card">
+            <div class="stat-icon" style="background: #F3E8FF; color: #7E22CE;">
+              <i data-lucide="shield-check"></i>
+            </div>
+            <div class="stat-info">
+              <div class="stat-title">Status</div>
+              <div class="stat-value" id="dashStatus" style="font-size: 1.25rem;">-</div>
+            </div>
+          </div>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 1.5rem;">
+          
+          <!-- My Details -->
+          <div class="card">
+            <h2 style="margin-bottom: 1rem; font-size: 1.125rem;">My Details</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
+              <div>
+                <div style="font-size: 0.75rem; color: var(--color-text-secondary); text-transform: uppercase;">Full Name</div>
+                <div style="font-weight: 500;" id="detailName">-</div>
+              </div>
+              <div>
+                <div style="font-size: 0.75rem; color: var(--color-text-secondary); text-transform: uppercase;">Parent Name</div>
+                <div style="font-weight: 500;" id="detailParent">-</div>
+              </div>
+              <div>
+                <div style="font-size: 0.75rem; color: var(--color-text-secondary); text-transform: uppercase;">Mobile Number</div>
+                <div style="font-weight: 500;" id="detailPhone">-</div>
+              </div>
+              <div>
+                <div style="font-size: 0.75rem; color: var(--color-text-secondary); text-transform: uppercase;">WhatsApp</div>
+                <div style="font-weight: 500;" id="detailWhatsapp">-</div>
+              </div>
+              <div>
+                <div style="font-size: 0.75rem; color: var(--color-text-secondary); text-transform: uppercase;">Admission Date</div>
+                <div style="font-weight: 500;" id="detailAdmission">-</div>
+              </div>
+              <div>
+                <div style="font-size: 0.75rem; color: var(--color-text-secondary); text-transform: uppercase;">Place</div>
+                <div style="font-weight: 500;" id="detailPlace">-</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Payment History -->
+          <div class="card" style="overflow: hidden; display: flex; flex-direction: column;">
+            <h2 style="margin-bottom: 1rem; font-size: 1.125rem;">Payment History</h2>
+            <div id="paymentHistoryContainer" style="flex: 1; overflow-x: auto;">
+              <p style="color: var(--color-text-secondary); font-size: 0.875rem;">Loading payment history...</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    lucide.createIcons();
+    
+    // Mobile menu toggle
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    
+    if (mobileMenuBtn && sidebar && overlay) {
+      mobileMenuBtn.addEventListener('click', () => {
+        sidebar.classList.add('active');
+        overlay.classList.add('active');
+      });
+      
+      overlay.addEventListener('click', () => {
+        sidebar.classList.remove('active');
+        overlay.classList.remove('active');
+      });
+    }
+  </script>
+  <script type="module" src="js/firebase-config.js"></script>
+  <script type="module" src="js/student-dashboard.js"></script>
+</body>
+</html>

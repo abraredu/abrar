@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tutors - ABRAR Management System</title>
+    <link rel="icon" type="image/png" href="../icon.png">
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div class="app-container">
+    
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <img src="../logo.png" alt="ABRAR Logo" style="height: 32px; width: auto;">
+        </div>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <a href="../dashboard.html" class="nav-item">
+          <i data-lucide="layout-dashboard"></i> Dashboard
+        </a>
+        <a href="../students/students.html" class="nav-item">
+          <i data-lucide="users"></i> Students
+        </a>
+        <a href="../courses/classes.html" class="nav-item">
+          <i data-lucide="library"></i> Courses
+        </a>
+        <a href="tutors.html" class="nav-item active">
+          <i data-lucide="graduation-cap"></i> Tutors
+        </a>
+        <a href="salary-control.html" class="nav-item" style="padding-left: 2.5rem; font-size: 0.875rem;">
+          Salary Control
+        </a>
+        <a href="../finance/accounts.html" class="nav-item">
+          <i data-lucide="wallet"></i> Finance
+        </a>
+        <a href="../reports/reports.html" class="nav-item">
+          <i data-lucide="bar-chart-3"></i> Reports
+        </a>
+        <a href="../notifications/notifications.html" class="nav-item">
+          <i data-lucide="bell"></i> Notifications
+        </a>
+      </nav>
+    </aside>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <main class="main-content">
+      <header class="top-header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobileMenuBtn">
+            <i data-lucide="menu"></i>
+          </button>
+          <h1 class="page-title">Tutors</h1>
+        </div>
+        <div class="header-right">
+          <a href="add-tutor.html" class="btn btn-primary">
+            <i data-lucide="plus"></i> Add Tutor
+          </a>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <!-- Stats -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+          <div class="card stat-card" style="padding: 1rem;">
+            <span class="stat-title">Total Tutors</span>
+            <span class="stat-value" id="statTotal">-</span>
+          </div>
+          <div class="card stat-card" style="padding: 1rem;">
+            <span class="stat-title">Active</span>
+            <span class="stat-value text-success" id="statActive">-</span>
+          </div>
+        </div>
+        
+        <!-- Filters & Search -->
+        <div class="card" style="margin-bottom: 1.5rem;">
+          <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 200px;">
+              <input type="text" id="searchInput" class="form-control" placeholder="Search by name, ID, phone...">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <select id="typeFilter" class="form-control">
+                <option value="">All Types</option>
+                <option value="madrasa_individual">Madrasa Individual</option>
+                <option value="madrasa_group">Madrasa Group</option>
+                <option value="quran_recitation">Qur'an Recitation</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <select id="statusFilter" class="form-control">
+                <option value="">All Statuses</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Table -->
+        <div class="card" style="overflow-x: auto;">
+          <table style="width: 100%; text-align: left; border-collapse: collapse;">
+            <thead>
+              <tr style="border-bottom: 1px solid var(--color-border);">
+                <th style="padding: 0.75rem; font-weight: 600; color: var(--color-text-secondary);">Tutor</th>
+                <th style="padding: 0.75rem; font-weight: 600; color: var(--color-text-secondary);">ID</th>
+                <th style="padding: 0.75rem; font-weight: 600; color: var(--color-text-secondary);">Type</th>
+                <th style="padding: 0.75rem; font-weight: 600; color: var(--color-text-secondary);">Phone</th>
+                <th style="padding: 0.75rem; font-weight: 600; color: var(--color-text-secondary);">Salary Model</th>
+                <th style="padding: 0.75rem; font-weight: 600; color: var(--color-text-secondary);">Status</th>
+                <th style="padding: 0.75rem; font-weight: 600; color: var(--color-text-secondary);">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="tutorsTableBody">
+              <tr><td colspan="7" style="text-align: center; padding: 2rem;">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>lucide.createIcons();</script>
+  <script type="module" src="../js/firebase-config.js"></script>
+  <script type="module" src="../js/layout.js"></script>
+  <script type="module" src="../js/tutors.js"></script>
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - ABRAR Management System</title>
+    <link rel="icon" type="image/png" href="icon.png">
+  <link rel="stylesheet" href="css/style.css">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <img src="logo.png" alt="ABRAR Logo" style="height: 32px; width: auto;">
+        </div>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <a href="dashboard.html" class="nav-item active">
+          <i data-lucide="layout-dashboard"></i> Dashboard
+        </a>
+        <a href="students/students.html" class="nav-item">
+          <i data-lucide="users"></i> Students
+        </a>
+        <a href="courses/classes.html" class="nav-item">
+          <i data-lucide="library"></i> Courses
+        </a>
+        <a href="tutors/tutors.html" class="nav-item">
+          <i data-lucide="graduation-cap"></i> Tutors
+        </a>
+        <a href="finance/accounts.html" class="nav-item">
+          <i data-lucide="wallet"></i> Finance
+        </a>
+        <a href="reports/reports.html" class="nav-item">
+          <i data-lucide="bar-chart-3"></i> Reports
+        </a>
+        <a href="notifications/notifications.html" class="nav-item">
+          <i data-lucide="bell"></i> Notifications
+        </a>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <a href="settings.html" class="nav-item">
+          <i data-lucide="settings"></i> Settings
+        </a>
+        <a href="#" id="logoutBtn" class="nav-item text-danger">
+          <i data-lucide="log-out"></i> Logout
+        </a>
+      </div>
+    </aside>
+
+    <!-- Sidebar Overlay for Mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Header -->
+      <header class="top-header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobileMenuBtn">
+            <i data-lucide="menu"></i>
+          </button>
+          <h1 class="page-title">Dashboard</h1>
+        </div>
+        
+        <div class="header-right">
+          <div class="user-profile">
+            <span id="userName" class="text-sm font-medium">Loading...</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <div class="page-content">
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+          <div class="card stat-card">
+            <div class="stat-icon" style="background: #E0F2FE; color: #0284C7;">
+              <i data-lucide="users"></i>
+            </div>
+            <div class="stat-info">
+              <div class="stat-title">Active Students</div>
+              <div class="stat-value" id="dashActiveStudents">...</div>
+            </div>
+          </div>
+          
+          <div class="card stat-card">
+            <div class="stat-icon" style="background: #DCFCE7; color: #16A34A;">
+              <i data-lucide="indian-rupee"></i>
+            </div>
+            <div class="stat-info">
+              <div class="stat-title">This Month Collection</div>
+              <div class="stat-value" id="dashMonthCollection">...</div>
+            </div>
+          </div>
+          
+          <div class="card stat-card">
+            <div class="stat-icon" style="background: #FEF3C7; color: #D97706;">
+              <i data-lucide="graduation-cap"></i>
+            </div>
+            <div class="stat-info">
+              <div class="stat-title">Active Tutors</div>
+              <div class="stat-value" id="dashActiveTutors">...</div>
+            </div>
+          </div>
+          
+          <div class="card stat-card">
+            <div class="stat-icon" style="background: #FEE2E2; color: #DC2626;">
+              <i data-lucide="trending-down"></i>
+            </div>
+            <div class="stat-info">
+              <div class="stat-title" id="dashPendingTitle">Pending Fees</div>
+              <div class="stat-value" id="dashPendingFees">...</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card">
+          <h2 style="margin-bottom: 1rem; font-size: 1.125rem;">Quick Actions</h2>
+          <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <a href="students/add-student.html" class="btn btn-primary">
+              <i data-lucide="user-plus"></i> Add Student
+            </a>
+            <a href="finance/fees.html" class="btn btn-outline">
+              <i data-lucide="receipt"></i> Record Fee
+            </a>
+            <a href="finance/salaries.html" class="btn btn-outline">
+              <i data-lucide="indian-rupee"></i> Pay Salary
+            </a>
+          </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="card" style="flex: 1;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2 style="font-size: 1.125rem; font-weight: 600;">Recent Financial Activity</h2>
+            <a href="finance/accounts.html" class="btn btn-outline" style="padding: 0.5rem 1rem; font-size: 0.875rem;">View All</a>
+          </div>
+          
+          <div id="recentActivitiesList">
+            <div style="padding: 1rem; text-align: center; color: var(--color-text-secondary);">Loading...</div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    lucide.createIcons();
+  </script>
+  <script type="module" src="js/firebase-config.js"></script>
+  <script type="module" src="js/layout.js"></script>
+  <script type="module" src="js/dashboard.js"></script>
+</body>
+</html>

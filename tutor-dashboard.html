@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tutor Dashboard - ABRAR Management System</title>
+  <link rel="icon" type="image/png" href="icon.png">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    /* Specific styles for tutor profile card */
+    .profile-card {
+      text-align: center;
+      padding: 2rem;
+    }
+    .profile-avatar {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, var(--color-primary), #10b981);
+      border-radius: 50%;
+      margin: 0 auto 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+    .profile-detail {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--color-border);
+      font-size: 0.875rem;
+    }
+    .profile-detail:last-child {
+      border-bottom: none;
+    }
+    .role-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      background: #f0fdf4;
+      color: var(--color-primary);
+      margin: 0.25rem;
+      border: 1px solid #bbf7d0;
+    }
+    /* Grid layout for Dashboard */
+    .tutor-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+    @media (min-width: 1024px) {
+      .tutor-grid {
+        grid-template-columns: 350px 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  
+  <div class="app-container">
+    
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <img src="logo.png" alt="ABRAR Logo" style="height: 32px; width: auto;">
+        </div>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <a href="tutor-dashboard.html" class="nav-item active">
+          <i data-lucide="layout-dashboard"></i> Dashboard
+        </a>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <a href="#" id="tutorLogoutBtn" class="nav-item text-danger">
+          <i data-lucide="log-out"></i> Logout
+        </a>
+      </div>
+    </aside>
+
+    <!-- Sidebar Overlay for Mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Header -->
+      <header class="top-header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobileMenuBtn">
+            <i data-lucide="menu"></i>
+          </button>
+          <h1 class="page-title">Tutor Portal</h1>
+        </div>
+        
+        <div class="header-right">
+          <div class="user-profile">
+            <span id="navTutorName" class="text-sm font-medium">Loading...</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <div class="page-content">
+        
+        <div class="tutor-grid">
+          <!-- Left Column: Profile -->
+          <div>
+            <div class="card profile-card">
+              <div class="profile-avatar">
+                <i data-lucide="user" style="width: 40px; height: 40px;"></i>
+              </div>
+              <h2 id="profileName" style="font-size: 1.25rem; margin-bottom: 0.25rem;">-</h2>
+              <p id="profileId" style="color: var(--color-text-secondary); font-size: 0.875rem; margin-bottom: 1.5rem;">-</p>
+              
+              <div style="text-align: left; margin-bottom: 1.5rem;">
+                <h3 style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-secondary); margin-bottom: 0.75rem;">Assigned Roles</h3>
+                <div id="profileRoles">
+                  <span style="color: var(--color-text-secondary); font-size: 0.875rem;">Loading roles...</span>
+                </div>
+              </div>
+
+              <div style="text-align: left;">
+                <div class="profile-detail">
+                  <span style="color: var(--color-text-secondary);">Phone</span>
+                  <span id="profilePhone" style="font-weight: 500;">-</span>
+                </div>
+                <div class="profile-detail">
+                  <span style="color: var(--color-text-secondary);">Join Date</span>
+                  <span id="profileJoinDate" style="font-weight: 500;">-</span>
+                </div>
+                <div class="profile-detail">
+                  <span style="color: var(--color-text-secondary);">Status</span>
+                  <span id="profileStatus" style="font-weight: 500;">-</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Content -->
+          <div>
+            <!-- Stats Row -->
+            <div class="stats-grid" style="margin-bottom: 1.5rem;">
+              <div class="card stat-card">
+                <div class="stat-icon" style="background: #E0F2FE; color: #0284C7;">
+                  <i data-lucide="users"></i>
+                </div>
+                <div class="stat-info">
+                  <div class="stat-title">Active Students</div>
+                  <div class="stat-value" id="statStudentsCount">0</div>
+                </div>
+              </div>
+              <div class="card stat-card">
+                <div class="stat-icon" style="background: #DCFCE7; color: #16A34A;">
+                  <i data-lucide="indian-rupee"></i>
+                </div>
+                <div class="stat-info">
+                  <div class="stat-title">Total Earnings (This Year)</div>
+                  <div class="stat-value" id="statTotalEarnings">₹0</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Assigned Students Table -->
+            <div class="card" style="margin-bottom: 1.5rem; padding: 0;">
+              <div style="padding: 1.5rem; border-bottom: 1px solid var(--color-border); background: #fafafa; display: flex; align-items: center; gap: 0.5rem; border-radius: 16px 16px 0 0;">
+                <i data-lucide="book-open" style="width: 20px; height: 20px; color: var(--color-text);"></i>
+                <h2 style="font-size: 1.125rem; font-weight: 600; margin: 0;">My Students</h2>
+              </div>
+              <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                  <thead style="background: var(--color-background); border-bottom: 2px solid var(--color-border);">
+                    <tr>
+                      <th style="padding: 1rem 1.5rem; font-weight: 600; color: var(--color-text-secondary);">Student Name</th>
+                      <th style="padding: 1rem 1.5rem; font-weight: 600; color: var(--color-text-secondary);">Reg No.</th>
+                      <th style="padding: 1rem 1.5rem; font-weight: 600; color: var(--color-text-secondary);">Course</th>
+                      <th style="padding: 1rem 1.5rem; font-weight: 600; color: var(--color-text-secondary);">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="studentsTableBody">
+                    <tr><td colspan="4" style="padding: 2rem; text-align: center; color: var(--color-text-secondary);">Loading students...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Payment History Table -->
+            <div class="card" style="padding: 0;">
+              <div style="padding: 1.5rem; border-bottom: 1px solid var(--color-border); background: #fafafa; display: flex; align-items: center; gap: 0.5rem; border-radius: 16px 16px 0 0;">
+                <i data-lucide="history" style="width: 20px; height: 20px; color: var(--color-text);"></i>
+                <h2 style="font-size: 1.125rem; font-weight: 600; margin: 0;">Payment History</h2>
+              </div>
+              <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                  <thead style="background: var(--color-background); border-bottom: 2px solid var(--color-border);">
+                    <tr>
+                      <th style="padding: 1rem 1.5rem; font-weight: 600; color: var(--color-text-secondary);">Date</th>
+                      <th style="padding: 1rem 1.5rem; font-weight: 600; color: var(--color-text-secondary);">Month</th>
+                      <th style="padding: 1rem 1.5rem; font-weight: 600; color: var(--color-text-secondary);">Role Paid</th>
+                      <th style="padding: 1rem 1.5rem; font-weight: 600; color: var(--color-text-secondary);">Amount</th>
+                      <th style="padding: 1rem 1.5rem; font-weight: 600; color: var(--color-text-secondary);">Method</th>
+                    </tr>
+                  </thead>
+                  <tbody id="paymentsTableBody">
+                    <tr><td colspan="5" style="padding: 2rem; text-align: center; color: var(--color-text-secondary);">Loading payment history...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script>lucide.createIcons();</script>
+  <script type="module" src="js/tutor-dashboard.js"></script>
+  
+  <script>
+    // Mobile menu toggle logic
+    document.addEventListener('DOMContentLoaded', () => {
+      const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+
+      if(mobileMenuBtn && sidebar && overlay) {
+        mobileMenuBtn.addEventListener('click', () => {
+          sidebar.classList.add('active');
+          overlay.classList.add('active');
+        });
+
+        overlay.addEventListener('click', () => {
+          sidebar.classList.remove('active');
+          overlay.classList.remove('active');
+        });
+      }
+    });
+  </script>
+</body>
+</html>

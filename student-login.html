@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Login - ABRAR Management System</title>
+  <link rel="icon" type="image/png" href="icon.png">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <img src="logo.png" alt="ABRAR Logo" style="height: 64px; width: auto; margin: 0 auto;">
+      </div>
+      <div class="auth-subtitle">Student Portal Login</div>
+      
+      <form id="studentLoginForm" class="auth-form">
+        <div class="form-group">
+          <label for="loginId" class="form-label">Abrar ID or Mobile Number</label>
+          <input type="text" id="loginId" class="form-control" required placeholder="e.g. ABR001 or 1234567890" autocomplete="username">
+        </div>
+
+        <div id="loginError" style="color: var(--color-danger); font-size: 0.875rem; text-align: center; margin-bottom: 1rem; display: none;">
+          Invalid Abrar ID or Mobile Number.
+        </div>
+        
+        <button type="submit" class="btn btn-primary" id="loginBtn">
+          <span>Sign In</span>
+        </button>
+      </form>
+      
+      <div style="margin-top: 1rem; font-size: 0.875rem; text-align: center;">
+        <a href="index.html" class="text-muted">Staff Login</a>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/firebase-config.js"></script>
+  <script type="module" src="js/student-login.js"></script>
+</body>
+</html>

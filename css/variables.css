@@ -1,0 +1,40 @@
+/* css/variables.css */
+:root {
+  /* Colors */
+  --color-primary: #087A42;
+  --color-primary-hover: #075B38;
+  --color-accent: #09A457;
+  --color-background: #F7F9F8;
+  --color-surface: #FFFFFF;
+  --color-border: #E5E7EB;
+  
+  --color-text-primary: #1F2937;
+  --color-text-secondary: #6B7280;
+  
+  --color-danger: #DC2626;
+  --color-warning: #D97706;
+  --color-success: #16A34A;
+  
+  --color-sidebar-bg: #FFFFFF;
+  --color-sidebar-hover: #F3F4F6;
+  --color-sidebar-active: #E6F4EA;
+  --color-sidebar-active-text: #087A42;
+
+  /* Typography */
+  --font-family-base: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  
+  /* Border Radius */
+  --radius-sm: 0.75rem;
+  --radius-md: 1.5rem;
+  --radius-lg: 2rem;
+  --radius-pill: 9999px;
+  
+  /* Transitions */
+  --transition-fast: 150ms ease-in-out;
+  --transition-normal: 250ms ease-in-out;
+}

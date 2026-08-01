@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Student - ABRAR Management System</title>
+    <link rel="icon" type="image/png" href="../icon.png">
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <img src="../logo.png" alt="ABRAR Logo" style="height: 32px; width: auto;">
+        </div>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <a href="../dashboard.html" class="nav-item">
+          <i data-lucide="layout-dashboard"></i> Dashboard
+        </a>
+        <a href="students.html" class="nav-item active">
+          <i data-lucide="users"></i> Students
+        </a>
+        <a href="../courses/classes.html" class="nav-item">
+          <i data-lucide="library"></i> Courses
+        </a>
+        <a href="../tutors/tutors.html" class="nav-item">
+          <i data-lucide="graduation-cap"></i> Tutors
+        </a>
+        <a href="../tutors/salary-control.html" class="nav-item" style="padding-left: 2.5rem; font-size: 0.875rem;">
+          Salary Control
+        </a>
+        <a href="../finance/accounts.html" class="nav-item">
+          <i data-lucide="wallet"></i> Finance
+        </a>
+        <a href="../reports/reports.html" class="nav-item">
+          <i data-lucide="bar-chart-3"></i> Reports
+        </a>
+        <a href="../notifications/notifications.html" class="nav-item">
+          <i data-lucide="bell"></i> Notifications
+        </a>
+      </nav>
+    </aside>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <main class="main-content">
+      <header class="top-header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobileMenuBtn">
+            <i data-lucide="menu"></i>
+          </button>
+          <div>
+            <div style="font-size: 0.875rem; color: var(--color-text-secondary); margin-bottom: 0.25rem;">
+              <a href="students.html" style="color: inherit;">Students</a> / Add Student
+            </div>
+            <h1 class="page-title">Add Student</h1>
+          </div>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <div class="card" style="max-width: 800px;">
+          <form id="addStudentForm">
+            
+            <h3 style="margin-bottom: 1rem; border-bottom: 1px solid var(--color-border); padding-bottom: 0.5rem;">Personal Information</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+              <div class="form-group">
+                <label class="form-label">Student Name *</label>
+                <input type="text" id="name" class="form-control" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Parent Name *</label>
+                <input type="text" id="parentName" class="form-control" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Phone *</label>
+                <input type="tel" id="phone" class="form-control" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">WhatsApp</label>
+                <input type="tel" id="whatsapp" class="form-control">
+              </div>
+              <div class="form-group" style="grid-column: span 2;">
+                <label class="form-label">Place/Address</label>
+                <input type="text" id="place" class="form-control">
+              </div>
+            </div>
+
+            <h3 style="margin-bottom: 1rem; border-bottom: 1px solid var(--color-border); padding-bottom: 0.5rem;">Academic Information</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+              <div class="form-group">
+                <label class="form-label">Course Type *</label>
+                <select id="courseType" class="form-control" required>
+                  <option value="">Select Course</option>
+                  <option value="madrasa_one_to_one">Madrasa One-to-One</option>
+                  <option value="madrasa_group">Madrasa Group</option>
+                  <option value="quran_one_to_one">Qur'an Recitation</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Tutor</label>
+                <!-- In a real app, populate this dynamically from Firestore -->
+                <select id="tutorId" class="form-control">
+                  <option value="">Select Tutor</option>
+                  <option value="tutor1">Tutor 1</option>
+                </select>
+              </div>
+              <div class="form-group" id="classGroup" style="display: none;">
+                <label class="form-label">Group Class *</label>
+                <select id="classId" class="form-control">
+                  <option value="">Select Class</option>
+                </select>
+              </div>
+              <div class="form-group" id="levelGroup" style="display: none;">
+                <label class="form-label">Level</label>
+                <input type="text" id="level" class="form-control" placeholder="e.g. 1, 2, Beginner">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Admission Date *</label>
+                <input type="date" id="admissionDate" class="form-control" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Class Starting Date</label>
+                <input type="date" id="classStartingDate" class="form-control">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Monthly Fee (₹) *</label>
+                <input type="number" id="monthlyFee" class="form-control" required min="0" step="0.01">
+              </div>
+            </div>
+
+            <h3 style="margin-bottom: 1rem; border-bottom: 1px solid var(--color-border); padding-bottom: 0.5rem;">Documents & Photo</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+              <div class="form-group">
+                <label class="form-label">Profile Photo (Optional)</label>
+                <input type="file" id="photo" class="form-control" accept="image/*">
+                <div style="font-size: 0.75rem; color: var(--color-text-secondary); margin-top: 0.25rem;">Max 5MB. Jpg, Png.</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">ID Document / Aadhaar (Optional)</label>
+                <input type="file" id="idDocument" class="form-control" accept="image/*,.pdf">
+                <div style="font-size: 0.75rem; color: var(--color-text-secondary); margin-top: 0.25rem;">Max 5MB. PDF or Image.</div>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 1rem; justify-content: flex-end; border-top: 1px solid var(--color-border); padding-top: 1.5rem;">
+              <a href="students.html" class="btn btn-outline">Cancel</a>
+              <button type="submit" class="btn btn-primary" id="submitBtn">Save Student</button>
+            </div>
+            
+          </form>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>lucide.createIcons();</script>
+  <script type="module" src="../js/cloudinary-config.js"></script>
+  <script type="module" src="../js/firebase-config.js"></script>
+  <script type="module" src="../js/layout.js"></script>
+  <script type="module" src="../js/add-student.js"></script>
+</body>
+</html>
