@@ -29,6 +29,44 @@ document.addEventListener('DOMContentLoaded', async () => {
   let currentReports = {};
   let editingReportId = null;
 
+  function openReportForm(student) {
+    const selectedMonth = monthSelect.value;
+    if (!selectedMonth) {
+      toast.error("Please select a month first!");
+      return;
+    }
+
+    progressForm.reset();
+
+    document.getElementById('studentIdHidden').value = student.id;
+    document.getElementById('studentName').value = student.name;
+    document.getElementById('reportMonth').value = selectedMonth;
+
+    const report = currentReports[student.id];
+    if (report) {
+      editingReportId = report.id;
+      document.getElementById('classesConducted').value = report.attendance?.conducted || '';
+      document.getElementById('classesAttended').value = report.attendance?.attended || '';
+      const setRadio = (name, val) => {
+        if (!val) return;
+        const r = document.querySelector(`input[name="${name}"][value="${val}"]`);
+        if (r) r.checked = true;
+      };
+      setRadio('liveClassPerf', report.ratings?.liveClassPerformance);
+      setRadio('lessonProgress', report.ratings?.lessonProgress);
+      setRadio('revisionHomework', report.ratings?.revisionHomework);
+      setRadio('classActivities', report.ratings?.classActivities);
+      document.getElementById('topicsCovered').value = report.remarks?.topicsCovered || '';
+      document.getElementById('mentorRemarks').value = report.remarks?.mentorRemarks || '';
+      document.getElementById('recommendations').value = report.remarks?.recommendations || '';
+    } else {
+      editingReportId = null;
+    }
+
+    selectionContainer.style.display = 'none';
+    reportContainer.style.display = 'block';
+  }
+
   const loadTableData = async () => {
     tableBody.innerHTML = '<tr><td colspan="3" style="padding: 2rem; text-align: center; color: var(--color-text-secondary);">Loading...</td></tr>';
 
@@ -36,20 +74,37 @@ document.addEventListener('DOMContentLoaded', async () => {
       try {
         let tutorRef = doc(db, "tutors", tutorId);
         let tutorSnap = await getDoc(tutorRef);
-        if (!tutorSnap.exists()) {
+        let tutorData = null;
+
+        if (tutorSnap.exists()) {
+          realTutorDocId = tutorSnap.id;
+          tutorData = tutorSnap.data();
+        } else {
           const fallbackQ = query(collection(db, "tutors"), where("tutorId", "==", tutorId));
           const fallbackSnap = await getDocs(fallbackQ);
           if (!fallbackSnap.empty) {
-            realTutorDocId = fallbackSnap.docs[0].id;
+            tutorSnap = fallbackSnap.docs[0];
+            realTutorDocId = tutorSnap.id;
+            tutorData = tutorSnap.data();
+            localStorage.setItem('tutorId', realTutorDocId);
           }
         }
 
-        const studentsQ = query(collection(db, "students"), where("tutorId", "==", realTutorDocId));
-        const studentsSnap = await getDocs(studentsQ);
-        studentsSnap.forEach(docSnap => {
+        const allStudentsSnap = await getDocs(collection(db, "students"));
+        myStudents = [];
+        allStudentsSnap.forEach(docSnap => {
           const student = docSnap.data();
           if (student.status === 'active') {
-            myStudents.push({ id: docSnap.id, ...student });
+            const sTutorId = student.tutorId || '';
+            const tutorDisplayId = tutorData ? tutorData.tutorId : '';
+            const tutorNameVal = tutorData ? tutorData.name : '';
+
+            if (sTutorId.includes(realTutorDocId) ||
+                sTutorId.includes(tutorId) ||
+                (tutorDisplayId && sTutorId.includes(tutorDisplayId)) ||
+                (tutorNameVal && sTutorId.toLowerCase().includes(tutorNameVal.toLowerCase()))) {
+              myStudents.push({ id: docSnap.id, ...student });
+            }
           }
         });
       } catch (error) {
@@ -70,13 +125,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     try {
       const reportsQ = query(collection(db, "progress_reports"),
-        where("tutorId", "==", realTutorDocId || tutorId),
         where("reportMonth", "==", selectedMonth)
       );
       const reportsSnap = await getDocs(reportsQ);
       reportsSnap.forEach(docSnap => {
         const rep = docSnap.data();
-        currentReports[rep.studentId] = { id: docSnap.id, ...rep };
+        if (rep.tutorId === realTutorDocId || rep.tutorId === tutorId) {
+          currentReports[rep.studentId] = { id: docSnap.id, ...rep };
+        }
       });
     } catch (error) {
       console.error("Error fetching reports", error);
@@ -119,6 +175,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     tableBody.innerHTML = html;
     if (window.lucide) window.lucide.createIcons();
+
+    // Check if we came from dashboard with a pre-filled student query param
+    const urlParams = new URLSearchParams(window.location.search);
+    const studentParam = urlParams.get('student');
+    if (studentParam) {
+      const targetStudent = myStudents.find(s => 
+        (s.name && s.name.toLowerCase() === studentParam.toLowerCase()) || 
+        s.id === studentParam || 
+        s.studentId === studentParam || 
+        s.regNo === studentParam
+      );
+      if (targetStudent) {
+        openReportForm(targetStudent);
+      }
+    }
   };
 
   await loadTableData();
@@ -151,45 +222,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (btnReg || btnEdit) {
       const btn = btnReg || btnEdit;
       const studentId = btn.getAttribute('data-id');
-      const studentName = btn.getAttribute('data-name');
-      const selectedMonth = monthSelect.value;
-
-      if (!selectedMonth) {
-        toast.error("Please select a month first!");
-        return;
+      const targetStudent = myStudents.find(s => s.id === studentId);
+      if (targetStudent) {
+        openReportForm(targetStudent);
       }
-
-      progressForm.reset();
-
-      document.getElementById('studentIdHidden').value = studentId;
-      document.getElementById('studentName').value = studentName;
-      document.getElementById('reportMonth').value = selectedMonth;
-
-      if (btnEdit) {
-        const report = currentReports[studentId];
-        if (report) {
-          editingReportId = report.id;
-          document.getElementById('classesConducted').value = report.attendance?.conducted || '';
-          document.getElementById('classesAttended').value = report.attendance?.attended || '';
-          const setRadio = (name, val) => {
-            if (!val) return;
-            const r = document.querySelector(`input[name="${name}"][value="${val}"]`);
-            if (r) r.checked = true;
-          };
-          setRadio('liveClassPerf', report.ratings?.liveClassPerformance);
-          setRadio('lessonProgress', report.ratings?.lessonProgress);
-          setRadio('revisionHomework', report.ratings?.revisionHomework);
-          setRadio('classActivities', report.ratings?.classActivities);
-          document.getElementById('topicsCovered').value = report.remarks?.topicsCovered || '';
-          document.getElementById('mentorRemarks').value = report.remarks?.mentorRemarks || '';
-          document.getElementById('recommendations').value = report.remarks?.recommendations || '';
-        }
-      } else {
-        editingReportId = null;
-      }
-
-      selectionContainer.style.display = 'none';
-      reportContainer.style.display = 'block';
     }
   });
 
@@ -198,15 +234,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     reportContainer.style.display = 'none';
     selectionContainer.style.display = 'block';
   });
-
-  // Also check if we came from dashboard with a pre-filled student
-  const urlParams = new URLSearchParams(window.location.search);
-  const studentParam = urlParams.get('student');
-  if (studentParam && myStudents.length > 0) {
-    // If they clicked 'Report Due' from dashboard, we might want to automatically open the form.
-    // For now, they can just use the table, or we can auto-trigger it.
-    // Let's keep it simple: the table is easy enough.
-  }
 
   // Handle Form Submit
   progressForm.addEventListener('submit', async (e) => {
