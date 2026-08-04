@@ -62,15 +62,23 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const formatter = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' });
 
+  let tutorsData = {};
   // Load tutors for the dropdown
   async function loadTutors() {
     try {
       const q = query(collection(db, "tutors"));
       const snapshot = await getDocs(q);
+      tutorsData = {};
+      
       if(classTutorSelect) {
         classTutorSelect.innerHTML = '<option value="">Select Tutor</option>';
-        snapshot.forEach(docSnap => {
-          const data = docSnap.data();
+      }
+      
+      snapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        tutorsData[docSnap.id] = data; // store for resolving names later
+        
+        if (classTutorSelect) {
           const isMadrasaGroup = Array.isArray(data.tutorType) ? data.tutorType.includes('madrasa_group') : data.tutorType === 'madrasa_group';
           if (isMadrasaGroup && data.status === 'active') {
             const option = document.createElement('option');
@@ -78,8 +86,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             option.textContent = `${data.name} (${data.tutorId})`;
             classTutorSelect.appendChild(option);
           }
-        });
-      }
+        }
+      });
     } catch (error) {
       console.error("Error loading tutors:", error);
     }
@@ -207,7 +215,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         statIconTotal.setAttribute('data-lucide', 'users');
         tableHeader.innerHTML = headers.students;
         addClassBtn.style.display = 'none';
-        await loadStudents('madrasa_one_to_one');
+        await loadStudents('madrasa_individual');
       } else if (currentTab === 'quran') {
         tableTitle.textContent = "Manage Qur'an Recitation";
         tableDesc.textContent = "View and manage students enrolled in Qur'an Recitation sessions.";
@@ -244,11 +252,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         total++;
         if (data.status === 'active') active++;
 
+        let tutorName = data.tutorId || '-';
+        if (data.tutorId && tutorsData[data.tutorId]) {
+          tutorName = tutorsData[data.tutorId].name || data.tutorId;
+        }
+
         const tr = createRow(data.status);
         tr.innerHTML = `
           <td style="padding: 1rem 1.5rem; font-weight: 500; color: #0f172a;">${data.className || '-'}</td>
           <td style="padding: 1rem 1.5rem; color: #475569;">${data.level || '-'}</td>
-          <td style="padding: 1rem 1.5rem; color: #475569;">${data.tutorId || '-'}</td>
+          <td style="padding: 1rem 1.5rem; color: #475569;">${tutorName}</td>
           <td style="padding: 1rem 1.5rem; color: #475569;">${data.schedule || '-'}</td>
           <td style="padding: 1rem 1.5rem; color: #475569; font-weight: 500;">${data.defaultMonthlyFee ? formatter.format(data.defaultMonthlyFee) : '-'}</td>
           <td style="padding: 1rem 1.5rem;">${getStatusBadge(data.status)}</td>
@@ -272,27 +285,49 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Load Students in a specific class
   async function loadGroupStudents(classId) {
     try {
-      // Querying only by classId avoids the need for a composite index in Firestore
-      const q = query(collection(db, "students"), where("classId", "==", classId));
+      const cls = allClasses.find(c => c.id === classId);
+      const q = query(collection(db, "students"), where("courseType", "==", "madrasa_group"));
       const snapshot = await getDocs(q);
       
       tbody.innerHTML = '';
       let total = 0;
       let active = 0;
+      const docs = [];
 
-      if (snapshot.empty) {
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        let isMatch = false;
+        if (data.classId === classId) {
+          isMatch = true;
+        } else if (data.level && cls) {
+          const studentLevel = data.level.toLowerCase().trim();
+          const cName = (cls.className || '').toLowerCase().trim();
+          const cLevel = (cls.level || '').toLowerCase().trim();
+          if (studentLevel === cName || studentLevel === cLevel) {
+             isMatch = true;
+          }
+        }
+        if (isMatch) {
+          docs.push({ id: doc.id, ...data });
+        }
+      });
+
+      if (docs.length === 0) {
         renderEmptyState('No students found', 'No students are assigned to this class.');
         updateStats(0, 0);
         return;
       }
       
-      const docs = [];
-      snapshot.forEach(doc => docs.push({ id: doc.id, ...doc.data() }));
       docs.sort((a, b) => b.createdAt?.toMillis() - a.createdAt?.toMillis());
 
       docs.forEach((data) => {
         total++;
         if (data.status === 'active') active++;
+
+        let tutorName = data.tutorId || '-';
+        if (data.tutorId && tutorsData[data.tutorId]) {
+          tutorName = tutorsData[data.tutorId].name || data.tutorId;
+        }
 
         const tr = createRow(data.status);
         tr.innerHTML = `
@@ -302,7 +337,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           </td>
           <td style="padding: 1rem 1.5rem; color: #475569;">${data.studentId || '-'}</td>
           <td style="padding: 1rem 1.5rem; color: #475569;">${data.phone || '-'}</td>
-          <td style="padding: 1rem 1.5rem; color: #475569;">${data.tutorId || '-'}</td>
+          <td style="padding: 1rem 1.5rem; color: #475569;">${tutorName}</td>
           <td style="padding: 1rem 1.5rem; color: #475569; font-weight: 500;">${data.monthlyFee ? formatter.format(data.monthlyFee) : '-'}</td>
           <td style="padding: 1rem 1.5rem;">${getStatusBadge(data.status)}</td>
           <td style="padding: 1rem 1.5rem; text-align: right;">
@@ -342,6 +377,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         total++;
         if (data.status === 'active') active++;
 
+        let tutorName = data.tutorId || '-';
+        if (data.tutorId && tutorsData[data.tutorId]) {
+          tutorName = tutorsData[data.tutorId].name || data.tutorId;
+        }
+
         const tr = createRow(data.status);
         tr.innerHTML = `
           <td style="padding: 1rem 1.5rem;">
@@ -350,7 +390,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           </td>
           <td style="padding: 1rem 1.5rem; color: #475569;">${data.studentId || '-'}</td>
           <td style="padding: 1rem 1.5rem; color: #475569;">${data.phone || '-'}</td>
-          <td style="padding: 1rem 1.5rem; color: #475569;">${data.tutorId || '-'}</td>
+          <td style="padding: 1rem 1.5rem; color: #475569;">${tutorName}</td>
           <td style="padding: 1rem 1.5rem; color: #475569; font-weight: 500;">${data.monthlyFee ? formatter.format(data.monthlyFee) : '-'}</td>
           <td style="padding: 1rem 1.5rem;">${getStatusBadge(data.status)}</td>
           <td style="padding: 1rem 1.5rem; text-align: right;">

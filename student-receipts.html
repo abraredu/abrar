@@ -7,8 +7,9 @@
   <link rel="icon" type="image/png" href="icon.png">
   <link rel="stylesheet" href="css/style.css">
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- html2canvas for downloading receipt as image -->
+  <!-- html2canvas + jsPDF for downloading receipt as PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     .receipt-grid {
       display: grid;
@@ -94,7 +95,10 @@
       
       <nav class="sidebar-nav">
         <a href="student-dashboard.html" class="nav-item">
-          <i data-lucide="layout-dashboard"></i> My Dashboard
+          <i data-lucide="layout-dashboard"></i> Dashboard
+        </a>
+        <a href="student-progress.html" class="nav-item">
+          <i data-lucide="line-chart"></i> Progress of Month
         </a>
         <a href="student-receipts.html" class="nav-item active">
           <i data-lucide="receipt"></i> Receipts
@@ -119,13 +123,13 @@
           <button class="mobile-menu-btn" id="mobileMenuBtn">
             <i data-lucide="menu"></i>
           </button>
-          <h1 class="page-title">My Receipts</h1>
+          <h2>My Receipts</h2>
         </div>
         
         <div class="header-right">
-          <div class="user-profile">
+          <div class="user-profile" style="display: flex; align-items: center; gap: 0.5rem;">
             <img src="https://ui-avatars.com/api/?name=Student&background=random" alt="Profile" id="headerAvatar" style="width: 32px; height: 32px; border-radius: 50%;">
-            <span id="headerName" class="text-sm font-medium">Loading...</span>
+            <span id="headerName" class="text-sm font-medium">Student</span>
           </div>
         </div>
       </header>

@@ -25,12 +25,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   const tutorDocId = localStorage.getItem('tutorId'); // This is the Firestore document ID
   
   // Logout handler
-  document.getElementById('tutorLogoutBtn').addEventListener('click', () => {
-    localStorage.removeItem('tutorLoggedIn');
-    localStorage.removeItem('tutorId');
-    localStorage.removeItem('tutorName');
-    window.location.href = 'index.html';
-  });
+  const logoutBtn = document.getElementById('tutorLogoutBtn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      localStorage.removeItem('tutorLoggedIn');
+      localStorage.removeItem('tutorId');
+      localStorage.removeItem('tutorName');
+      window.location.href = 'index.html';
+    });
+  }
 
   try {
     // 1. Fetch Tutor Profile
@@ -57,12 +60,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // Update Profile UI
     document.getElementById('navTutorName').textContent = tutorData.name;
+    const headerAvatar = document.getElementById('headerAvatar');
+    if (headerAvatar) {
+      headerAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(tutorData.name)}&background=random`;
+    }
     document.getElementById('profileName').textContent = tutorData.name;
     document.getElementById('profileId').textContent = tutorData.tutorId;
     document.getElementById('profilePhone').textContent = tutorData.phone || '-';
     
     // Format Join Date
-    const joinDate = tutorData.joinDate ? new Date(tutorData.joinDate).toLocaleDateString() : '-';
+    const joinDate = tutorData.joiningDate ? new Date(tutorData.joiningDate).toLocaleDateString() : '-';
     document.getElementById('profileJoinDate').textContent = joinDate;
     
     // Status Badge
@@ -80,34 +87,81 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // 2. Fetch Assigned Students
-    const studentsQ = query(collection(db, "students"), where("tutorId", "==", realTutorDocId));
-    const studentsSnap = await getDocs(studentsQ);
+    // Fetch all students and filter locally to handle comma-separated names/IDs from bulk uploads
+    const allStudentsSnap = await getDocs(collection(db, "students"));
+    const assignedStudents = [];
+    
+    allStudentsSnap.forEach(docSnap => {
+      const student = docSnap.data();
+      const sTutorId = student.tutorId || '';
+      // Match by exact doc ID, or display ID, or name (in case of bulk upload raw text)
+      if (sTutorId.includes(realTutorDocId) || 
+          sTutorId.includes(tutorData.tutorId) || 
+          (tutorData.name && sTutorId.toLowerCase().includes(tutorData.name.toLowerCase()))) {
+        assignedStudents.push(student);
+      }
+    });
     
     let activeStudentsCount = 0;
     let studentsHtml = '';
     
-    if (studentsSnap.empty) {
+    if (assignedStudents.length === 0) {
       studentsHtml = '<tr><td colspan="4" style="padding: 1.5rem; text-align: center; color: var(--color-text-secondary);">No students assigned to you yet.</td></tr>';
     } else {
-      studentsSnap.forEach(docSnap => {
-        const student = docSnap.data();
+      
+      const today = new Date();
+      // Set to start of day for accurate day-only comparisons
+      today.setHours(0, 0, 0, 0);
+
+      assignedStudents.forEach(student => {
         if (student.status === 'active') activeStudentsCount++;
         
         const statusColor = student.status === 'active' ? 'var(--color-primary)' : 'var(--color-text-secondary)';
         
+        let actionHtml = '-';
+        if (student.status === 'active' && (student.classStartingDate || student.admissionDate)) {
+          const startDateStr = student.classStartingDate || student.admissionDate;
+          const startDate = new Date(startDateStr);
+          
+          if (!isNaN(startDate.getTime())) {
+            const startDay = startDate.getDate();
+            const currentMonth = today.getMonth();
+            const currentYear = today.getFullYear();
+            
+            // Calculate anniversary for this current month
+            let anniversaryDate = new Date(currentYear, currentMonth, startDay);
+            
+            // If the start date day is e.g. 31, but this month only has 28 days, JS Date handles it by rolling over to next month.
+            // We could prevent that, but JS rollover is generally acceptable here.
+            
+            // Difference in days between today and the anniversary
+            const diffTime = anniversaryDate.getTime() - today.getTime();
+            const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+            
+            // If it is 3 days before, on the day, or up to 3 days after
+            if (diffDays >= -3 && diffDays <= 3) {
+              const urlParams = new URLSearchParams();
+              urlParams.set('student', student.name || '');
+              
+              const reportLink = `reports/tutor-progress.html?${urlParams.toString()}`;
+              actionHtml = `<a href="${reportLink}" style="background: var(--color-primary); color: white; padding: 0.35rem 0.75rem; border-radius: 4px; font-size: 0.75rem; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 0.25rem;"><i data-lucide="file-text" style="width: 14px; height: 14px;"></i> Report Due</a>`;
+            }
+          }
+        }
+        
         studentsHtml += `
           <tr style="border-bottom: 1px solid var(--color-border);">
             <td style="padding: 1rem; font-weight: 500;">${student.name}</td>
-            <td style="padding: 1rem; color: var(--color-text-secondary);">${student.regNo || '-'}</td>
-            <td style="padding: 1rem;">${student.course || '-'}</td>
+            <td style="padding: 1rem; color: var(--color-text-secondary);">${student.studentId || student.regNo || '-'}</td>
+            <td style="padding: 1rem;">${student.courseType || student.course || '-'}</td>
             <td style="padding: 1rem; color: ${statusColor}; font-weight: 500;">
               ${student.status ? student.status.charAt(0).toUpperCase() + student.status.slice(1) : '-'}
             </td>
+            <td style="padding: 1rem;">${actionHtml}</td>
           </tr>
         `;
       });
     }
-    
     document.getElementById('studentsTableBody').innerHTML = studentsHtml;
     document.getElementById('statStudentsCount').textContent = activeStudentsCount;
 

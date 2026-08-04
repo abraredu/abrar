@@ -22,7 +22,7 @@
         <a href="../dashboard.html" class="nav-item">
           <i data-lucide="layout-dashboard"></i> Dashboard
         </a>
-        <a href="students.html" class="nav-item active">
+        <a href="../students/students.html" class="nav-item active">
           <i data-lucide="users"></i> Students
         </a>
         <a href="../courses/classes.html" class="nav-item">
@@ -31,19 +31,31 @@
         <a href="../tutors/tutors.html" class="nav-item">
           <i data-lucide="graduation-cap"></i> Tutors
         </a>
-        <a href="../tutors/salary-control.html" class="nav-item" style="padding-left: 2.5rem; font-size: 0.875rem;">
-          Salary Control
-        </a>
         <a href="../finance/accounts.html" class="nav-item">
           <i data-lucide="wallet"></i> Finance
         </a>
+          <a href="../reports/progress.html" class="nav-item">
+            <i data-lucide="line-chart"></i> Progress
+          </a>
         <a href="../reports/reports.html" class="nav-item">
           <i data-lucide="bar-chart-3"></i> Reports
         </a>
         <a href="../notifications/notifications.html" class="nav-item">
           <i data-lucide="bell"></i> Notifications
         </a>
+        <a href="../messages/messages.html" class="nav-item">
+          <i data-lucide="mail"></i> Messages
+        </a>
       </nav>
+      
+      <div class="sidebar-footer">
+        <a href="../settings.html" class="nav-item">
+          <i data-lucide="settings"></i> Settings
+        </a>
+        <a href="#" id="logoutBtn" class="nav-item text-danger">
+          <i data-lucide="log-out"></i> Logout
+        </a>
+      </div>
     </aside>
 
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
@@ -125,6 +137,7 @@
               <h3 style="margin-bottom: 1rem; border-bottom: 1px solid var(--color-border); padding-bottom: 0.5rem;">Fee Summary</h3>
               <div style="display: flex; flex-direction: column; gap: 0.75rem;">
                 <div><strong style="color: var(--color-text-secondary); display: block;">Monthly Fee:</strong> <span id="monthlyFeeVal" style="font-weight: 600;">-</span></div>
+                <div><strong style="color: var(--color-text-secondary); display: block;">Current Month Status:</strong> <div id="feeStatusVal" style="margin-top: 0.25rem;"><span style="font-size: 0.875rem; color: var(--color-text-secondary);">Loading...</span></div></div>
               </div>
             </div>
             

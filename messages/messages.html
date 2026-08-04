@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Messages - ABRAR Management System</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .message-status-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.75rem;
+      border-radius: var(--radius-pill);
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: capitalize;
+    }
+    .status-unread {
+      background: #fef3c7;
+      color: #d97706;
+      border: 1px solid #fde68a;
+    }
+    .status-read {
+      background: #d1fae5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+    }
+    .message-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: rgba(0,0,0,0.5);
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      backdrop-filter: blur(4px);
+    }
+    .message-modal.open {
+      display: flex;
+    }
+    .modal-content {
+      background: #ffffff;
+      border-radius: 1rem;
+      width: 100%;
+      max-width: 600px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      max-height: 90vh;
+      animation: modalSlide 0.3s ease;
+    }
+    @keyframes modalSlide {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .modal-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid #f3f4f6;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-header h3 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 0;
+    }
+    .modal-body {
+      padding: 1.5rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+    .modal-field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.375rem;
+    }
+    .modal-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .modal-value {
+      font-size: 0.95rem;
+      color: #1e293b;
+      line-height: 1.5;
+    }
+    .modal-footer {
+      padding: 1.25rem 1.5rem;
+      border-top: 1px solid #f3f4f6;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.75rem;
+    }
+    
+    /* Table Styling */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+    .data-table thead tr {
+      border-bottom: 1px solid var(--color-border);
+      background-color: #f8fafc;
+    }
+    .data-table th {
+      padding: 1rem 1.5rem;
+      font-weight: 600;
+      color: #475569;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .data-table td {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--color-border);
+      font-size: 0.875rem;
+      vertical-align: middle;
+    }
+    .data-table tbody tr {
+      transition: background-color var(--transition-fast);
+    }
+    .data-table tbody tr:hover {
+      background-color: #f8fafc;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <img src="../logo.png" alt="ABRAR Logo" style="height: 32px; width: auto;">
+        </div>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <a href="../dashboard.html" class="nav-item">
+          <i data-lucide="layout-dashboard"></i> Dashboard
+        </a>
+        <a href="../students/students.html" class="nav-item">
+          <i data-lucide="users"></i> Students
+        </a>
+        <a href="../courses/classes.html" class="nav-item">
+          <i data-lucide="library"></i> Courses
+        </a>
+        <a href="../tutors/tutors.html" class="nav-item">
+          <i data-lucide="graduation-cap"></i> Tutors
+        </a>
+        <a href="../finance/accounts.html" class="nav-item">
+          <i data-lucide="wallet"></i> Finance
+        </a>
+          <a href="../reports/progress.html" class="nav-item">
+            <i data-lucide="line-chart"></i> Progress
+          </a>
+        <a href="../reports/reports.html" class="nav-item">
+          <i data-lucide="bar-chart-3"></i> Reports
+        </a>
+        <a href="../notifications/notifications.html" class="nav-item">
+          <i data-lucide="bell"></i> Notifications
+        </a>
+        <a href="../messages/messages.html" class="nav-item active">
+          <i data-lucide="mail"></i> Messages
+        </a>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <a href="../settings.html" class="nav-item">
+          <i data-lucide="settings"></i> Settings
+        </a>
+        <a href="#" id="logoutBtn" class="nav-item text-danger">
+          <i data-lucide="log-out"></i> Logout
+        </a>
+      </div>
+    </aside>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <main class="main-content">
+      <header class="top-header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobileMenuBtn">
+            <i data-lucide="menu"></i>
+          </button>
+          <h1 class="page-title">Contact Messages</h1>
+        </div>
+      </header>
+
+      <div class="page-content">
+        
+        <!-- Status Filter Toggle -->
+        <div style="margin-bottom: 2rem; display: flex; justify-content: flex-start;">
+          <div style="background: #ffffff; padding: 0.5rem; border-radius: var(--radius-pill); box-shadow: var(--shadow-sm); display: inline-flex; gap: 0.5rem; border: 1px solid var(--color-border);">
+            <button class="filter-btn active" data-filter="all" style="padding: 0.5rem 1.5rem; border: none; border-radius: var(--radius-pill); background: var(--color-sidebar-active); color: var(--color-primary); font-weight: 500; font-size: 0.875rem; cursor: pointer; transition: all var(--transition-fast);">All</button>
+            <button class="filter-btn" data-filter="unread" style="padding: 0.5rem 1.5rem; border: none; border-radius: var(--radius-pill); background: transparent; color: var(--color-text-secondary); font-weight: 500; font-size: 0.875rem; cursor: pointer; transition: all var(--transition-fast);">Unread</button>
+            <button class="filter-btn" data-filter="read" style="padding: 0.5rem 1.5rem; border: none; border-radius: var(--radius-pill); background: transparent; color: var(--color-text-secondary); font-weight: 500; font-size: 0.875rem; cursor: pointer; transition: all var(--transition-fast);">Read</button>
+          </div>
+        </div>
+
+        <!-- Messages Table -->
+        <div class="card" style="padding: 0; overflow-x: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid #f1f5f9;">
+          <div class="table-responsive">
+<table class="data-table">
+            <thead>
+              <tr>
+                <th style="padding-left: 1.5rem;">Sender Name</th>
+                <th>Subject</th>
+                <th>Phone</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th style="width: 140px; text-align: right; padding-right: 1.5rem;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="messagesTbody">
+              <tr>
+                <td colspan="6" style="text-align: center; padding: 3rem; color: #64748b;">
+                  <div style="display:flex; flex-direction:column; align-items:center; gap:0.5rem;">
+                    <i data-lucide="loader" class="spin" style="width: 24px; height: 24px;"></i>
+                    <span>Loading messages...</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+</div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Detail Modal -->
+  <div class="message-modal" id="messageModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Message Details</h3>
+        <button id="closeModalBtn" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #64748b;"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body" id="modalBody">
+        <!-- Filled dynamically -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="modalCloseBtn">Close</button>
+        <button class="btn btn-primary" id="modalReadBtn" style="background: #10b981; border-color: #10b981;">Mark as Read</button>
+      </div>
+    </div>
+  </div>
+
+  <script>lucide.createIcons();</script>
+  <script type="module" src="../js/firebase-config.js"></script>
+  <script type="module" src="../js/layout.js"></script>
+  <script type="module" src="../js/messages.js"></script>
+</body>
+</html>

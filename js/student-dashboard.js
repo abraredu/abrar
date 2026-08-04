@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       // Update Dashboard Stats
       document.getElementById('dashAbrarId').textContent = data.studentId || '-';
 
-      const courseLabel = data.courseType === 'madrasa_one_to_one' ? 'Madrasa One-to-One' :
+      const courseLabel = data.courseType === 'madrasa_individual' ? 'Madrasa One-to-One' :
         data.courseType === 'madrasa_group' ? 'Madrasa Group' :
           data.courseType === 'quran_one_to_one' ? 'Qur\'an Recitation' : (data.courseType || '-');
       document.getElementById('dashCourse').textContent = courseLabel;

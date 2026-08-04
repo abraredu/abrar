@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Fix Database</title>
+</head>
+<body>
+  <h1>Fixing Database... Please wait.</h1>
+  <div id="status"></div>
+  <script type="module">
+    import { db } from './js/firebase-config.js';
+    import { collection, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    
+    async function fix() {
+      const status = document.getElementById('status');
+      status.innerHTML += "<p>Fetching classes...</p>";
+      const classesSnap = await getDocs(collection(db, 'classes'));
+      const classesMap = {};
+      classesSnap.forEach(d => {
+        const data = d.data();
+        if (data.className) classesMap[data.className.toLowerCase().trim()] = d.id;
+        if (data.level) classesMap[data.level.toLowerCase().trim()] = d.id;
+      });
+
+      status.innerHTML += "<p>Fetching students...</p>";
+      const studentsSnap = await getDocs(collection(db, 'students'));
+      let count = 0;
+      const updates = [];
+
+      studentsSnap.forEach((d) => {
+        const data = d.data();
+        if (data.courseType === 'madrasa_group' && !data.classId && data.level) {
+          const search = data.level.toLowerCase().trim();
+          if (classesMap[search]) {
+            updates.push(updateDoc(doc(db, 'students', d.id), { classId: classesMap[search] }));
+            count++;
+          }
+        }
+      });
+
+      status.innerHTML += `<p>Found ${count} students to fix. Updating...</p>`;
+      await Promise.all(updates);
+      status.innerHTML += `<p style="color: green; font-weight: bold;">Successfully fixed ${count} students! You can close this page.</p>`;
+    }
+    
+    fix().catch(err => {
+      document.getElementById('status').innerHTML += `<p style="color: red;">Error: ${err.message}</p>`;
+    });
+  </script>
+</body>
+</html>

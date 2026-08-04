@@ -34,10 +34,30 @@ document.addEventListener('DOMContentLoaded', async () => {
       const docsContainer = document.getElementById('documentsContainer');
       if (data.idDocumentUrl) {
         docsContainer.innerHTML = `
-          <a href="${data.idDocumentUrl}" target="_blank" class="btn btn-outline" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; display: inline-flex; align-items: center; gap: 0.25rem;">
-            <i data-lucide="file-text" style="width: 14px; height: 14px;"></i> View ID Document
-          </a>
+          <button id="downloadIdBtn" class="btn btn-outline" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; display: inline-flex; align-items: center; gap: 0.25rem;">
+            <i data-lucide="download" style="width: 14px; height: 14px;"></i> Download ID Document
+          </button>
         `;
+        // Delay adding event listener until DOM updates
+        setTimeout(() => {
+          document.getElementById('downloadIdBtn').addEventListener('click', async (e) => {
+            e.preventDefault();
+            const btn = e.currentTarget;
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i data-lucide="loader" class="animate-spin" style="width: 14px; height: 14px;"></i> Downloading...';
+            lucide.createIcons();
+            
+            try {
+              const { downloadFile } = await import('./download-helper.js');
+              await downloadFile(data.idDocumentUrl, `${data.name || 'Student'}_ID`);
+            } catch (err) {
+              console.error("Failed to load download helper:", err);
+            } finally {
+              btn.innerHTML = originalHTML;
+              lucide.createIcons();
+            }
+          });
+        }, 0);
       }
       document.getElementById('studentIdVal').textContent = data.studentId || '-';
       document.getElementById('parentVal').textContent = data.parentName || '-';
@@ -45,7 +65,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('whatsappVal').textContent = data.whatsapp || '-';
       document.getElementById('placeVal').textContent = data.place || '-';
       
-      const courseLabel = data.courseType === 'madrasa_one_to_one' ? 'Madrasa One-to-One' : 
+      const courseLabel = data.courseType === 'madrasa_individual' ? 'Madrasa One-to-One' : 
                           data.courseType === 'madrasa_group' ? 'Madrasa Group' : 
                           data.courseType === 'quran_one_to_one' ? 'Qur\'an Recitation' : data.courseType;
                           
@@ -124,6 +144,55 @@ document.addEventListener('DOMContentLoaded', async () => {
         tableHTML += `</tbody></table>`;
         historyContainer.innerHTML = tableHTML;
       }
+
+      // Fee Status Calculation for Current Month
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const currMonthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+      
+      const currentMonthPayments = payments.filter(p => p.billingMonth === currMonthStr);
+      const actualPaid = currentMonthPayments.reduce((sum, p) => sum + (p.paidAmount || 0), 0);
+      const waived = currentMonthPayments.reduce((sum, p) => sum + (p.waivedAmount || 0), 0);
+      const totalCredited = actualPaid + waived;
+      
+      const monthlyFee = data.monthlyFee || 0;
+      const balance = Math.max(0, monthlyFee - totalCredited);
+      
+      let feeStatusHTML = '';
+      if (balance > 0) {
+        let isOverdue = false;
+        const baseDateStr = data.classStartingDate || data.admissionDate;
+        if (baseDateStr) {
+          const baseDate = new Date(baseDateStr);
+          if (!isNaN(baseDate.getTime())) {
+            const daysSinceJoined = (today.getTime() - baseDate.getTime()) / (1000 * 3600 * 24);
+            if (daysSinceJoined >= 28) {
+              const dueDay = baseDate.getDate();
+              const currentMonthDueDate = new Date(today.getFullYear(), today.getMonth(), dueDay);
+              const diffTime = currentMonthDueDate.getTime() - today.getTime();
+              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+              
+              if (diffDays < 0) {
+                isOverdue = true;
+              }
+            }
+          }
+        }
+        
+        if (isOverdue) {
+          feeStatusHTML = `<span style="background: #FEF2F2; color: var(--color-danger); padding: 0.25rem 0.5rem; border-radius: 99px; font-size: 0.75rem; font-weight: 500;">Overdue (${formatter.format(balance)})</span>`;
+        } else {
+          feeStatusHTML = `<span style="background: #FEF3C7; color: var(--color-warning); padding: 0.25rem 0.5rem; border-radius: 99px; font-size: 0.75rem; font-weight: 500;">Pending (${formatter.format(balance)})</span>`;
+        }
+      } else {
+        feeStatusHTML = `<span style="background: var(--color-sidebar-active); color: var(--color-success); padding: 0.25rem 0.5rem; border-radius: 99px; font-size: 0.75rem; font-weight: 500;">Paid</span>`;
+      }
+      
+      const feeStatusValEl = document.getElementById('feeStatusVal');
+      if(feeStatusValEl) {
+        feeStatusValEl.innerHTML = feeStatusHTML;
+      }
+
 
     } else {
       document.getElementById('studentNameTitle').textContent = 'Student Not Found';

@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Progress Reports - ABRAR Management System</title>
+  <link rel="icon" type="image/png" href="../icon.png">
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .report-header {
+      text-align: center;
+      margin-bottom: 2rem;
+      border-bottom: 2px solid var(--color-primary);
+      padding-bottom: 1rem;
+    }
+    .report-header img {
+      height: 60px;
+      margin-bottom: 1rem;
+    }
+    .report-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--color-primary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .report-section {
+      margin-bottom: 2rem;
+      background: #f8fafc;
+      padding: 1.5rem;
+      border-radius: 8px;
+      border: 1px solid var(--color-border);
+    }
+    .report-section h4 {
+      margin-top: 0;
+      margin-bottom: 1rem;
+      color: var(--color-primary);
+      font-size: 1.1rem;
+      border-bottom: 1px solid var(--color-border);
+      padding-bottom: 0.5rem;
+    }
+    .rating-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .rating-label {
+      font-weight: 600;
+      color: var(--color-text-primary);
+    }
+    .rating-desc {
+      font-size: 0.85rem;
+      color: var(--color-text-secondary);
+      margin-bottom: 0.5rem;
+    }
+    textarea.form-control {
+      min-height: 80px;
+      resize: vertical;
+    }
+    
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #reportContainer, #reportContainer * {
+        visibility: visible;
+      }
+      #reportContainer {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        border: none;
+        box-shadow: none;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <img src="../logo.png" alt="ABRAR Logo" style="height: 32px; width: auto;">
+        </div>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <a href="../tutor-dashboard.html" class="nav-item">
+          <i data-lucide="layout-dashboard"></i> Dashboard
+        </a>
+        <a href="tutor-progress.html" class="nav-item active">
+          <i data-lucide="line-chart"></i> Progress Report
+        </a>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <a href="#" id="tutorLogoutBtnSidebar" class="nav-item text-danger">
+          <i data-lucide="log-out"></i> Logout
+        </a>
+      </div>
+    </aside>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <main class="main-content">
+      <header class="top-header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobileMenuBtn">
+            <i data-lucide="menu"></i>
+          </button>
+          <h1 class="page-title">Progress Reports</h1>
+        </div>
+      </header>
+
+      
+      <div class="page-content">
+        
+        <!-- Selection Container (Table) -->
+        <div id="selectionContainer" class="card" style="margin-bottom: 2rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h3>Select Student to Report</h3>
+            <div class="form-group" style="margin-bottom: 0; min-width: 200px;">
+              <input type="month" id="reportMonthSelect" class="form-control" title="Select Month for Report">
+            </div>
+          </div>
+          
+          <div style="overflow-x: auto;">
+            <div class="table-responsive">
+<table style="width: 100%; border-collapse: collapse; text-align: left;">
+              <thead style="background: var(--color-background); border-bottom: 2px solid var(--color-border);">
+                <tr>
+                  <th style="padding: 1rem; font-weight: 600; color: var(--color-text-secondary);">Student Name</th>
+                  <th style="padding: 1rem; font-weight: 600; color: var(--color-text-secondary);">Reg No.</th>
+                  <th style="padding: 1rem; font-weight: 600; color: var(--color-text-secondary);">Action</th>
+                </tr>
+              </thead>
+              <tbody id="tutorStudentsTableBody">
+                <tr><td colspan="3" style="padding: 2rem; text-align: center; color: var(--color-text-secondary);">Loading students...</td></tr>
+              </tbody>
+            </table>
+</div>
+          </div>
+        </div>
+
+        <!-- Report Container (Form) -->
+        <div id="reportContainer" class="card" style="display: none;">
+          <button type="button" id="backToTableBtn" class="btn btn-outline no-print" style="margin-bottom: 1rem;">
+            <i data-lucide="arrow-left"></i> Back to List
+          </button>
+          
+          <div class="report-header">
+            <img src="../logo.png" alt="ABRAR Logo">
+            <div class="report-title">ABRAR MONTHLY PROGRESS REPORT</div>
+          </div>
+
+          <form id="progressForm">
+            
+            <div class="report-section">
+              <h4>Student Details</h4>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                  <label class="form-label">Student Name</label>
+                  <input type="text" id="studentName" class="form-control" readonly style="background: var(--color-background);">
+                  <input type="hidden" id="studentIdHidden">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Report Month</label>
+                  <input type="month" id="reportMonth" class="form-control" readonly style="background: var(--color-background);">
+                </div>
+              </div>
+            </div>
+
+            <div class="report-section">
+              <h4>1. Attendance</h4>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                  <label class="form-label">Classes Conducted</label>
+                  <input type="number" id="classesConducted" class="form-control" min="0" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Classes Attended</label>
+                  <input type="number" id="classesAttended" class="form-control" min="0" required>
+                </div>
+              </div>
+            </div>
+
+            <div class="report-section">
+              <h4>2. Performance & Progress Ratings</h4>
+              
+              <div class="rating-group">
+                <div class="rating-label">Live Class Performance</div>
+                <div class="rating-desc">Overall participation, confidence, attentiveness, and response during live classes.</div>
+                <div style="display: flex; gap: 1rem; margin-top: 0.5rem; flex-wrap: wrap;">
+                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="liveClassPerf" value="Excellent" required> Excellent</label>
+                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="liveClassPerf" value="Very Good"> Very Good</label>
+                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="liveClassPerf" value="Good"> Good</label>
+                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="liveClassPerf" value="Needs Improvement"> Needs Improvement</label>
+                </div>
+              </div>
+
+              <div class="rating-group">
+                <div class="rating-label">Lesson Progress</div>
+                <div class="rating-desc">Progress made according to the monthly syllabus and learning objectives.</div>
+                <div style="display: flex; gap: 1rem; margin-top: 0.5rem; flex-wrap: wrap;">
+                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="lessonProgress" value="Excellent" required> Excellent</label>
+                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="lessonProgress" value="Very Good"> Very Good</label>
+                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="lessonProgress" value="Good"> Good</label>
+                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="lessonProgress" value="Needs Improvement"> Needs Improvement</label>
+                </div>
+              </div>
+
+              <div class="rating-group">
+                <div class="rating-label">Revision & Homework</div>
+                <div class="rating-desc">Regularity in revision and completion of assigned work.</div>
+                <div style="display: flex; gap: 1rem; margin-top: 0.5rem; flex-wrap: wrap;">
+                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="revisionHomework" value="Excellent" required> Excellent</label>
+                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="revisionHomework" value="Very Good"> Very Good</label>
+                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="revisionHomework" value="Good"> Good</label>
+                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="revisionHomework" value="Needs Improvement"> Needs Improvement</label>
+                </div>
+              </div>
+
+              <div class="rating-group">
+                <div class="rating-label">Classroom Activities & Participation</div>
+                <div class="rating-desc">Participation in discussions, oral responses, classroom activities, and practical tasks.</div>
+                <div style="display: flex; gap: 1rem; margin-top: 0.5rem; flex-wrap: wrap;">
+                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="classActivities" value="Excellent" required> Excellent</label>
+                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="classActivities" value="Very Good"> Very Good</label>
+                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="classActivities" value="Good"> Good</label>
+                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="classActivities" value="Needs Improvement"> Needs Improvement</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="report-section">
+              <h4>3. Topics & Remarks</h4>
+              
+              <div class="form-group">
+                <label class="form-label">Topics Covered This Month</label>
+                <div class="rating-desc">The mentor manually enters the lessons or chapters completed during the month. (e.g. Surah Al-Mulk, Fiqh - Lesson 3, etc.)</div>
+                <textarea id="topicsCovered" class="form-control" required placeholder="Enter topics covered..."></textarea>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Mentor's Remarks</label>
+                <div class="rating-desc">A brief summary (2-3 sentences) highlighting the student's overall progress, strengths, and areas for improvement.</div>
+                <textarea id="mentorRemarks" class="form-control" required placeholder="Enter remarks..."></textarea>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Recommendation to Parents</label>
+                <div class="rating-desc">A short and practical suggestion to help support the student's learning at home.</div>
+                <textarea id="recommendations" class="form-control" required placeholder="Enter recommendations..."></textarea>
+              </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 1rem;" class="no-print">
+              <button type="submit" class="btn btn-primary" id="saveBtn">
+                <i data-lucide="save"></i> Submit & Save Report
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+</main>
+  </div>
+
+  <script>lucide.createIcons();</script>
+  
+  <script type="module" src="../js/toast.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+      const sidebar = document.getElementById('sidebar');
+      const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+      if (mobileMenuBtn && sidebar && sidebarOverlay) {
+        mobileMenuBtn.addEventListener('click', () => {
+          sidebar.classList.add('open', 'active');
+          sidebarOverlay.classList.add('active');
+        });
+
+        sidebarOverlay.addEventListener('click', () => {
+          sidebar.classList.remove('open', 'active');
+          sidebarOverlay.classList.remove('active');
+        });
+      }
+
+      // Logout handler
+      const logoutBtn = document.getElementById('tutorLogoutBtnSidebar');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+          localStorage.removeItem('tutorLoggedIn');
+          localStorage.removeItem('tutorId');
+          localStorage.removeItem('tutorName');
+          window.location.href = '../index.html';
+        });
+      }
+    });
+  </script>
+  <script type="module" src="../js/firebase-config.js"></script>
+  <script type="module" src="../js/tutor-progress.js"></script>
+</body>
+</html>

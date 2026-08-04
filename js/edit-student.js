@@ -58,14 +58,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function populateTutorDropdown(selectedCourse, preselectedTutorId = null) {
     let targetTutorType = '';
-    if (selectedCourse === 'madrasa_one_to_one') targetTutorType = 'madrasa_individual';
+    if (selectedCourse === 'madrasa_individual') targetTutorType = 'madrasa_individual';
     else if (selectedCourse === 'madrasa_group') targetTutorType = 'madrasa_group';
-    else if (selectedCourse === 'quran_one_to_one') targetTutorType = 'quran_recitation';
+    else if (selectedCourse === 'quran_recitation') targetTutorType = 'quran_recitation';
 
     tutorSelect.innerHTML = '<option value="">Select Tutor</option>';
 
     if (targetTutorType) {
-      const matchingTutors = allActiveTutors.filter(t => t.tutorType === targetTutorType);
+      const matchingTutors = allActiveTutors.filter(t => Array.isArray(t.tutorType) ? t.tutorType.includes(targetTutorType) : t.tutorType === targetTutorType);
       matchingTutors.forEach(tutor => {
         const option = document.createElement('option');
         option.value = tutor.id;
@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         option.textContent = cls.className;
         classIdSelect.appendChild(option);
       });
-    } else if (selectedCourse === 'madrasa_one_to_one' || selectedCourse === 'quran_one_to_one') {
+    } else if (selectedCourse === 'madrasa_individual' || selectedCourse === 'quran_recitation') {
       if (classGroup) classGroup.style.display = 'none';
       if (classIdSelect) classIdSelect.required = false;
       if (levelGroup) levelGroup.style.display = 'block';
@@ -146,16 +146,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         const courseType = data.courseType || '';
         courseTypeSelect.value = courseType;
 
-        populateTutorDropdown(courseType);
-        setTimeout(() => {
-          tutorSelect.value = data.tutorId || '';
-        }, 100);
+        populateTutorDropdown(courseType, data.tutorId);
 
         if (courseType === 'madrasa_group') {
           classGroup.style.display = 'block';
           if (classSelect) classSelect.value = data.classId || '';
           if (document.getElementById('levelGroup')) document.getElementById('levelGroup').style.display = 'none';
-        } else if (courseType === 'madrasa_one_to_one' || courseType === 'quran_one_to_one') {
+        } else if (courseType === 'madrasa_individual' || courseType === 'quran_recitation') {
           if (document.getElementById('levelGroup')) {
             document.getElementById('levelGroup').style.display = 'block';
             document.getElementById('level').value = data.level || '';
@@ -196,7 +193,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         courseType: courseType,
         tutorId: tutorSelect.value,
         classId: isGroup ? classSelect.value : '',
-        level: (courseType === 'madrasa_one_to_one' || courseType === 'quran_one_to_one') ? document.getElementById('level').value : '',
+        level: (courseType === 'madrasa_individual' || courseType === 'quran_recitation') ? document.getElementById('level').value : '',
         admissionDate: document.getElementById('admissionDate').value,
         classStartingDate: document.getElementById('classStartingDate') ? document.getElementById('classStartingDate').value : '',
         monthlyFee: parseFloat(document.getElementById('monthlyFee').value),

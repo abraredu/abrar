@@ -28,22 +28,34 @@
         <a href="../courses/classes.html" class="nav-item">
           <i data-lucide="library"></i> Courses
         </a>
-        <a href="tutors.html" class="nav-item active">
+        <a href="../tutors/tutors.html" class="nav-item active">
           <i data-lucide="graduation-cap"></i> Tutors
-        </a>
-        <a href="salary-control.html" class="nav-item" style="padding-left: 2.5rem; font-size: 0.875rem;">
-          Salary Control
         </a>
         <a href="../finance/accounts.html" class="nav-item">
           <i data-lucide="wallet"></i> Finance
         </a>
+          <a href="../reports/progress.html" class="nav-item">
+            <i data-lucide="line-chart"></i> Progress
+          </a>
         <a href="../reports/reports.html" class="nav-item">
           <i data-lucide="bar-chart-3"></i> Reports
         </a>
         <a href="../notifications/notifications.html" class="nav-item">
           <i data-lucide="bell"></i> Notifications
         </a>
+        <a href="../messages/messages.html" class="nav-item">
+          <i data-lucide="mail"></i> Messages
+        </a>
       </nav>
+      
+      <div class="sidebar-footer">
+        <a href="../settings.html" class="nav-item">
+          <i data-lucide="settings"></i> Settings
+        </a>
+        <a href="#" id="logoutBtn" class="nav-item text-danger">
+          <i data-lucide="log-out"></i> Logout
+        </a>
+      </div>
     </aside>
 
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
@@ -56,7 +68,13 @@
           </button>
           <h1 class="page-title">Tutors</h1>
         </div>
-        <div class="header-right">
+        <div class="header-right" style="display:flex;gap:0.75rem;align-items:center;">
+          <button id="exportTutorsBtn" class="btn" style="border:1.5px solid var(--color-border);background:#fff;color:#475569;display:flex;align-items:center;gap:0.4rem;padding:0.5rem 1rem;border-radius:8px;font-weight:500;font-size:0.875rem;cursor:pointer;">
+            <i data-lucide="download" style="width:16px;height:16px;"></i> Export CSV
+          </button>
+          <a href="bulk-upload-tutors.html" class="btn" style="border:1.5px solid var(--color-border);background:#fff;color:#475569;display:flex;align-items:center;gap:0.4rem;padding:0.5rem 1rem;border-radius:8px;font-weight:500;font-size:0.875rem;text-decoration:none;">
+            <i data-lucide="upload-cloud" style="width:16px;height:16px;"></i> Bulk Upload
+          </a>
           <a href="add-tutor.html" class="btn btn-primary">
             <i data-lucide="plus"></i> Add Tutor
           </a>
@@ -102,7 +120,8 @@
         
         <!-- Table -->
         <div class="card" style="overflow-x: auto;">
-          <table style="width: 100%; text-align: left; border-collapse: collapse;">
+          <div class="table-responsive">
+<table style="width: 100%; text-align: left; border-collapse: collapse;">
             <thead>
               <tr style="border-bottom: 1px solid var(--color-border);">
                 <th style="padding: 0.75rem; font-weight: 600; color: var(--color-text-secondary);">Tutor</th>
@@ -118,6 +137,7 @@
               <tr><td colspan="7" style="text-align: center; padding: 2rem;">Loading...</td></tr>
             </tbody>
           </table>
+</div>
         </div>
       </div>
     </main>

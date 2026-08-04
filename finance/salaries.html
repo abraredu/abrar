@@ -31,19 +31,31 @@
         <a href="../tutors/tutors.html" class="nav-item">
           <i data-lucide="graduation-cap"></i> Tutors
         </a>
-        <a href="../tutors/salary-control.html" class="nav-item" style="padding-left: 2.5rem; font-size: 0.875rem;">
-          Salary Control
-        </a>
-        <a href="accounts.html" class="nav-item active">
+        <a href="../finance/accounts.html" class="nav-item active">
           <i data-lucide="wallet"></i> Finance
         </a>
+          <a href="../reports/progress.html" class="nav-item">
+            <i data-lucide="line-chart"></i> Progress
+          </a>
         <a href="../reports/reports.html" class="nav-item">
           <i data-lucide="bar-chart-3"></i> Reports
         </a>
         <a href="../notifications/notifications.html" class="nav-item">
           <i data-lucide="bell"></i> Notifications
         </a>
+        <a href="../messages/messages.html" class="nav-item">
+          <i data-lucide="mail"></i> Messages
+        </a>
       </nav>
+      
+      <div class="sidebar-footer">
+        <a href="../settings.html" class="nav-item">
+          <i data-lucide="settings"></i> Settings
+        </a>
+        <a href="#" id="logoutBtn" class="nav-item text-danger">
+          <i data-lucide="log-out"></i> Logout
+        </a>
+      </div>
     </aside>
 
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
@@ -57,6 +69,7 @@
           <h1 class="page-title">Tutor Salaries</h1>
         </div>
         <div class="header-right">
+          <a href="../tutors/salary-control.html" class="btn btn-outline" style="font-size: 0.75rem;">Salary Control</a>
           <a href="accounts.html" class="btn btn-outline" style="font-size: 0.75rem;">Accounts</a>
           <a href="fees.html" class="btn btn-outline" style="font-size: 0.75rem;">Fees</a>
           <input type="month" id="monthSelector" class="form-control" style="width: auto;">
@@ -95,7 +108,8 @@
         
         <!-- Table -->
         <div class="card" style="overflow-x: auto;">
-          <table style="width: 100%; text-align: left; border-collapse: collapse;">
+          <div class="table-responsive">
+<table style="width: 100%; text-align: left; border-collapse: collapse;">
             <thead>
               <tr style="border-bottom: 1px solid var(--color-border);">
                 <th style="padding: 0.75rem; font-weight: 600; color: var(--color-text-secondary);">Tutor</th>
@@ -112,6 +126,7 @@
               <tr><td colspan="8" style="text-align: center; padding: 2rem;">Loading...</td></tr>
             </tbody>
           </table>
+</div>
         </div>
       </div>
     </main>
@@ -144,7 +159,7 @@
 
         <div class="form-group">
           <label class="form-label">Payment Amount (₹) *</label>
-          <input type="number" id="payAmount" class="form-control" required min="1" step="0.01">
+          <input type="number" id="payAmount" class="form-control" required min="0.01" step="0.01">
         </div>
         <div class="form-group">
           <label class="form-label">Payment Method *</label>

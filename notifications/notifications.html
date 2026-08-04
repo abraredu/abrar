@@ -14,7 +14,7 @@
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <div class="sidebar-logo">
-          <i data-lucide="book-open"></i> ABRAR
+          <img src="../logo.png" alt="ABRAR Logo" style="height: 32px; width: auto;">
         </div>
       </div>
       
@@ -31,19 +31,31 @@
         <a href="../tutors/tutors.html" class="nav-item">
           <i data-lucide="graduation-cap"></i> Tutors
         </a>
-        <a href="../tutors/salary-control.html" class="nav-item" style="padding-left: 2.5rem; font-size: 0.875rem;">
-          Salary Control
-        </a>
         <a href="../finance/accounts.html" class="nav-item">
           <i data-lucide="wallet"></i> Finance
         </a>
+          <a href="../reports/progress.html" class="nav-item">
+            <i data-lucide="line-chart"></i> Progress
+          </a>
         <a href="../reports/reports.html" class="nav-item">
           <i data-lucide="bar-chart-3"></i> Reports
         </a>
-        <a href="notifications.html" class="nav-item active">
+        <a href="../notifications/notifications.html" class="nav-item active">
           <i data-lucide="bell"></i> Notifications
         </a>
+        <a href="../messages/messages.html" class="nav-item">
+          <i data-lucide="mail"></i> Messages
+        </a>
       </nav>
+      
+      <div class="sidebar-footer">
+        <a href="../settings.html" class="nav-item">
+          <i data-lucide="settings"></i> Settings
+        </a>
+        <a href="#" id="logoutBtn" class="nav-item text-danger">
+          <i data-lucide="log-out"></i> Logout
+        </a>
+      </div>
     </aside>
 
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
@@ -64,8 +76,8 @@
         <div style="margin-bottom: 2rem; display: flex; justify-content: flex-start;">
           <div style="background: #ffffff; padding: 0.5rem; border-radius: var(--radius-pill); box-shadow: var(--shadow-sm); display: inline-flex; gap: 0.5rem; border: 1px solid var(--color-border);">
             <button class="filter-btn active" data-filter="all" style="padding: 0.5rem 1.5rem; border: none; border-radius: var(--radius-pill); background: var(--color-sidebar-active); color: var(--color-primary); font-weight: 500; font-size: 0.875rem; cursor: pointer; transition: all var(--transition-fast);">All</button>
-            <button class="filter-btn" data-filter="madrasa_one_to_one" style="padding: 0.5rem 1.5rem; border: none; border-radius: var(--radius-pill); background: transparent; color: var(--color-text-secondary); font-weight: 500; font-size: 0.875rem; cursor: pointer; transition: all var(--transition-fast);">One-to-One</button>
-            <button class="filter-btn" data-filter="quran_one_to_one" style="padding: 0.5rem 1.5rem; border: none; border-radius: var(--radius-pill); background: transparent; color: var(--color-text-secondary); font-weight: 500; font-size: 0.875rem; cursor: pointer; transition: all var(--transition-fast);">Qur'an</button>
+            <button class="filter-btn" data-filter="madrasa_individual" style="padding: 0.5rem 1.5rem; border: none; border-radius: var(--radius-pill); background: transparent; color: var(--color-text-secondary); font-weight: 500; font-size: 0.875rem; cursor: pointer; transition: all var(--transition-fast);">One-to-One</button>
+            <button class="filter-btn" data-filter="quran_recitation" style="padding: 0.5rem 1.5rem; border: none; border-radius: var(--radius-pill); background: transparent; color: var(--color-text-secondary); font-weight: 500; font-size: 0.875rem; cursor: pointer; transition: all var(--transition-fast);">Qur'an</button>
             <button class="filter-btn" data-filter="madrasa_group" style="padding: 0.5rem 1.5rem; border: none; border-radius: var(--radius-pill); background: transparent; color: var(--color-text-secondary); font-weight: 500; font-size: 0.875rem; cursor: pointer; transition: all var(--transition-fast);">Group Tuition</button>
           </div>
         </div>
@@ -113,7 +125,8 @@
               <p style="font-size: 0.875rem; color: #b91c1c; margin-top: 0.25rem;">These students have passed their monthly payment due date.</p>
             </div>
             <div style="overflow-x: auto;">
-              <table style="width: 100%; text-align: left; border-collapse: collapse;">
+              <div class="table-responsive">
+<table style="width: 100%; text-align: left; border-collapse: collapse;">
                 <thead>
                   <tr style="border-bottom: 1px solid #fca5a5; background-color: #fff1f2;">
                     <th style="padding: 1rem 1.5rem; font-weight: 600; color: #991b1b; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Student Name</th>
@@ -127,6 +140,7 @@
                   <tr><td colspan="5" style="text-align: center; padding: 2rem; color: #64748b;">Loading...</td></tr>
                 </tbody>
               </table>
+</div>
             </div>
           </div>
 
@@ -140,7 +154,8 @@
               <p style="font-size: 0.875rem; color: #64748b; margin-top: 0.25rem;">These students have a payment coming due soon.</p>
             </div>
             <div style="overflow-x: auto;">
-              <table style="width: 100%; text-align: left; border-collapse: collapse;">
+              <div class="table-responsive">
+<table style="width: 100%; text-align: left; border-collapse: collapse;">
                 <thead>
                   <tr style="border-bottom: 1px solid #e2e8f0; background-color: #f1f5f9;">
                     <th style="padding: 1rem 1.5rem; font-weight: 600; color: #475569; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Student Name</th>
@@ -154,6 +169,7 @@
                   <tr><td colspan="5" style="text-align: center; padding: 2rem; color: #64748b;">Loading...</td></tr>
                 </tbody>
               </table>
+</div>
             </div>
           </div>
           

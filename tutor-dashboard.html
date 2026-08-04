@@ -74,6 +74,9 @@
         <a href="tutor-dashboard.html" class="nav-item active">
           <i data-lucide="layout-dashboard"></i> Dashboard
         </a>
+        <a href="reports/tutor-progress.html" class="nav-item">
+          <i data-lucide="line-chart"></i> Progress Report
+        </a>
       </nav>
       
       <div class="sidebar-footer">
@@ -98,8 +101,9 @@
         </div>
         
         <div class="header-right">
-          <div class="user-profile">
-            <span id="navTutorName" class="text-sm font-medium">Loading...</span>
+          <div class="user-profile" style="display: flex; align-items: center; gap: 0.5rem;">
+            <img src="https://ui-avatars.com/api/?name=Tutor&background=random" alt="Profile" id="headerAvatar" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+            <span class="user-name" id="navTutorName" style="font-weight: 500;">Loading...</span>
           </div>
         </div>
       </header>
@@ -114,7 +118,7 @@
               <div class="profile-avatar">
                 <i data-lucide="user" style="width: 40px; height: 40px;"></i>
               </div>
-              <h2 id="profileName" style="font-size: 1.25rem; margin-bottom: 0.25rem;">-</h2>
+              <h2 id="profileName" style="font-size: 1.25rem; margin-bottom: 0.25rem; word-break: break-word; hyphens: auto;">-</h2>
               <p id="profileId" style="color: var(--color-text-secondary); font-size: 0.875rem; margin-bottom: 1.5rem;">-</p>
               
               <div style="text-align: left; margin-bottom: 1.5rem;">
@@ -172,19 +176,22 @@
                 <h2 style="font-size: 1.125rem; font-weight: 600; margin: 0;">My Students</h2>
               </div>
               <div style="overflow-x: auto;">
-                <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                <div class="table-responsive">
+<table style="width: 100%; border-collapse: collapse; text-align: left;">
                   <thead style="background: var(--color-background); border-bottom: 2px solid var(--color-border);">
                     <tr>
                       <th style="padding: 1rem 1.5rem; font-weight: 600; color: var(--color-text-secondary);">Student Name</th>
                       <th style="padding: 1rem 1.5rem; font-weight: 600; color: var(--color-text-secondary);">Reg No.</th>
                       <th style="padding: 1rem 1.5rem; font-weight: 600; color: var(--color-text-secondary);">Course</th>
                       <th style="padding: 1rem 1.5rem; font-weight: 600; color: var(--color-text-secondary);">Status</th>
+                      <th style="padding: 1rem 1.5rem; font-weight: 600; color: var(--color-text-secondary);">Action</th>
                     </tr>
                   </thead>
                   <tbody id="studentsTableBody">
-                    <tr><td colspan="4" style="padding: 2rem; text-align: center; color: var(--color-text-secondary);">Loading students...</td></tr>
+                    <tr><td colspan="5" style="padding: 2rem; text-align: center; color: var(--color-text-secondary);">Loading students...</td></tr>
                   </tbody>
                 </table>
+</div>
               </div>
             </div>
 
@@ -195,7 +202,8 @@
                 <h2 style="font-size: 1.125rem; font-weight: 600; margin: 0;">Payment History</h2>
               </div>
               <div style="overflow-x: auto;">
-                <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                <div class="table-responsive">
+<table style="width: 100%; border-collapse: collapse; text-align: left;">
                   <thead style="background: var(--color-background); border-bottom: 2px solid var(--color-border);">
                     <tr>
                       <th style="padding: 1rem 1.5rem; font-weight: 600; color: var(--color-text-secondary);">Date</th>
@@ -209,6 +217,7 @@
                     <tr><td colspan="5" style="padding: 2rem; text-align: center; color: var(--color-text-secondary);">Loading payment history...</td></tr>
                   </tbody>
                 </table>
+</div>
               </div>
             </div>
 
@@ -231,12 +240,12 @@
 
       if(mobileMenuBtn && sidebar && overlay) {
         mobileMenuBtn.addEventListener('click', () => {
-          sidebar.classList.add('active');
+          sidebar.classList.add('open');
           overlay.classList.add('active');
         });
 
         overlay.addEventListener('click', () => {
-          sidebar.classList.remove('active');
+          sidebar.classList.remove('open');
           overlay.classList.remove('active');
         });
       }

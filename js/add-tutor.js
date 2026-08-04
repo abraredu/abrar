@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
           address: document.getElementById('address').value,
           tutorType: tutorType,
           joiningDate: document.getElementById('joiningDate').value,
-          loginUsername: document.getElementById('loginUsername') ? document.getElementById('loginUsername').value : '',
+          loginUsername: (document.getElementById('loginUsername') && document.getElementById('loginUsername').value.trim()) ? document.getElementById('loginUsername').value.trim() : formattedId,
           loginPassword: document.getElementById('loginPassword') ? document.getElementById('loginPassword').value : '',
           status: 'active',
           photoUrl: photoUrl,

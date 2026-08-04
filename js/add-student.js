@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         option.textContent = cls.className;
         classIdSelect.appendChild(option);
       });
-    } else if (selectedCourse === 'madrasa_one_to_one' || selectedCourse === 'quran_one_to_one') {
+    } else if (selectedCourse === 'madrasa_individual' || selectedCourse === 'quran_recitation') {
       if (classGroup) classGroup.style.display = 'none';
       if (classIdSelect) classIdSelect.required = false;
       if (levelGroup) levelGroup.style.display = 'block';
@@ -67,15 +67,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Map student course type to tutor type
     let targetTutorType = '';
-    if (selectedCourse === 'madrasa_one_to_one') targetTutorType = 'madrasa_individual';
+    if (selectedCourse === 'madrasa_individual') targetTutorType = 'madrasa_individual';
     else if (selectedCourse === 'madrasa_group') targetTutorType = 'madrasa_group';
-    else if (selectedCourse === 'quran_one_to_one') targetTutorType = 'quran_recitation';
+    else if (selectedCourse === 'quran_recitation') targetTutorType = 'quran_recitation';
 
     // Clear and populate tutor dropdown
     tutorSelect.innerHTML = '<option value="">Select Tutor</option>';
 
     if (targetTutorType) {
-      const matchingTutors = allActiveTutors.filter(t => t.tutorType === targetTutorType);
+      const matchingTutors = allActiveTutors.filter(t => Array.isArray(t.tutorType) ? t.tutorType.includes(targetTutorType) : t.tutorType === targetTutorType);
       matchingTutors.forEach(tutor => {
         const option = document.createElement('option');
         option.value = tutor.id;
@@ -96,9 +96,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Determine prefix based on courseType
     let prefix = 'ABR';
-    if (courseType === 'madrasa_one_to_one') prefix = 'ABRMO';
-    else if (courseType === 'madrasa_group') prefix = 'ABRMG';
-    else if (courseType === 'quran_one_to_one') prefix = 'ABRQR';
+    if (courseType === 'madrasa_individual') prefix = 'AMO';
+    else if (courseType === 'quran_recitation') prefix = 'AQO';
+    else if (courseType === 'madrasa_group') prefix = 'AMG';
 
     try {
       // 1. Generate ID and create student document within a transaction to ensure uniqueness
@@ -148,7 +148,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           courseType: courseType,
           tutorId: document.getElementById('tutorId').value,
           classId: document.getElementById('classId') ? document.getElementById('classId').value : '',
-          level: (courseType === 'madrasa_one_to_one' || courseType === 'quran_one_to_one') ? (document.getElementById('level') ? document.getElementById('level').value : '') : '',
+          level: (courseType === 'madrasa_individual' || courseType === 'quran_recitation') ? (document.getElementById('level') ? document.getElementById('level').value : '') : '',
           admissionDate: document.getElementById('admissionDate').value,
           classStartingDate: document.getElementById('classStartingDate') ? document.getElementById('classStartingDate').value : '',
           monthlyFee: parseFloat(document.getElementById('monthlyFee').value),

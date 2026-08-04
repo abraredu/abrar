@@ -25,25 +25,37 @@
         <a href="../students/students.html" class="nav-item">
           <i data-lucide="users"></i> Students
         </a>
-        <a href="classes.html" class="nav-item active">
+        <a href="../courses/classes.html" class="nav-item active">
           <i data-lucide="library"></i> Courses
         </a>
         <a href="../tutors/tutors.html" class="nav-item">
           <i data-lucide="graduation-cap"></i> Tutors
         </a>
-        <a href="../tutors/salary-control.html" class="nav-item" style="padding-left: 2.5rem; font-size: 0.875rem;">
-          Salary Control
-        </a>
         <a href="../finance/accounts.html" class="nav-item">
           <i data-lucide="wallet"></i> Finance
         </a>
+          <a href="../reports/progress.html" class="nav-item">
+            <i data-lucide="line-chart"></i> Progress
+          </a>
         <a href="../reports/reports.html" class="nav-item">
           <i data-lucide="bar-chart-3"></i> Reports
         </a>
         <a href="../notifications/notifications.html" class="nav-item">
           <i data-lucide="bell"></i> Notifications
         </a>
+        <a href="../messages/messages.html" class="nav-item">
+          <i data-lucide="mail"></i> Messages
+        </a>
       </nav>
+      
+      <div class="sidebar-footer">
+        <a href="../settings.html" class="nav-item">
+          <i data-lucide="settings"></i> Settings
+        </a>
+        <a href="#" id="logoutBtn" class="nav-item text-danger">
+          <i data-lucide="log-out"></i> Logout
+        </a>
+      </div>
     </aside>
 
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
@@ -96,7 +108,8 @@
             <p class="text-muted" style="font-size: 0.875rem; margin-top: 0.25rem;">View and manage students enrolled in Qur'an Recitation sessions.</p>
           </div>
           <div style="overflow-x: auto;">
-            <table style="width: 100%; text-align: left; border-collapse: collapse; min-width: 900px; background: #ffffff;">
+            <div class="table-responsive">
+<table style="width: 100%; text-align: left; border-collapse: collapse; min-width: 900px; background: #ffffff;">
               <thead>
                 <tr style="background-color: #f8fafc; border-bottom: 2px solid #e2e8f0;">
                   <th style="padding: 1rem 1.5rem; font-weight: 600; color: #475569; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Student</th>
@@ -117,6 +130,7 @@
                 </td></tr>
               </tbody>
             </table>
+</div>
           </div>
         </div>
       </div>

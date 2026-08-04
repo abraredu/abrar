@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   let currentStudents = []; // Needed for per_student calculation
   let currentSalaryPayments = [];
   let currentMonthlyClasses = {};
+  let currentRoleSalaries = [];
 
   // Initialize Month Selector to Current Month
   const now = new Date();
@@ -60,6 +61,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         currentMonthlyClasses[data.tutorId] = data;
       });
 
+      // Fetch Tutor Role Salaries configured in Salary Control for this month
+      const roleSalariesQ = query(collection(db, "tutorRoleSalaries"), where("month", "==", selectedMonth));
+      const roleSalariesSnap = await getDocs(roleSalariesQ);
+      currentRoleSalaries = [];
+      roleSalariesSnap.forEach(doc => currentRoleSalaries.push({ id: doc.id, ...doc.data() }));
+
       renderTable();
     } catch (error) {
       console.error("Error loading salary data:", error);
@@ -75,19 +82,42 @@ document.addEventListener('DOMContentLoaded', async () => {
     let pendingTutorsCount = 0;
 
     const rowsHtml = currentTutors.map(tutor => {
-      // Determine base calculated amount
+      // Determine base calculated amount and salary model display
       let calculatedAmount = 0;
-      
-      if (tutor.salaryType === 'fixed_monthly') {
-        calculatedAmount = tutor.salaryRate || 0;
-      } else if (tutor.salaryType === 'per_student') {
-        // Count active students assigned to this tutor
-        const studentCount = currentStudents.filter(s => s.tutorId === tutor.id).length;
-        calculatedAmount = studentCount * (tutor.salaryRate || 0);
-      } else if (tutor.salaryType === 'per_class') {
-        const classData = currentMonthlyClasses[tutor.id];
-        const classCount = classData ? classData.classCount : 0;
-        calculatedAmount = classCount * (tutor.salaryRate || 0);
+      let salaryModelStr = '';
+
+      const tutorRoleConfigs = currentRoleSalaries.filter(r => r.tutorId === tutor.id);
+
+      if (tutorRoleConfigs.length > 0) {
+        const modelParts = tutorRoleConfigs.map(r => {
+          let rAmount = 0;
+          if (r.salaryType === 'fixed_monthly') {
+            rAmount = r.rate || 0;
+          } else if (r.salaryType === 'per_student') {
+            const studentCount = currentStudents.filter(s => s.tutorId === tutor.id).length;
+            rAmount = (studentCount > 0 ? studentCount : 1) * (r.rate || 0);
+          } else if (r.salaryType === 'per_class') {
+            const classData = currentMonthlyClasses[tutor.id];
+            const classCount = classData && classData.classCount > 0 ? classData.classCount : 1;
+            rAmount = classCount * (r.rate || 0);
+          }
+          calculatedAmount += rAmount;
+          const typeName = (r.salaryType || 'unspecified').replace('_', ' ');
+          return `${typeName} (₹${r.rate || 0})`;
+        });
+        salaryModelStr = modelParts.join(', ');
+      } else {
+        if (tutor.salaryType === 'fixed_monthly') {
+          calculatedAmount = tutor.salaryRate || 0;
+        } else if (tutor.salaryType === 'per_student') {
+          const studentCount = currentStudents.filter(s => s.tutorId === tutor.id).length;
+          calculatedAmount = studentCount * (tutor.salaryRate || 0);
+        } else if (tutor.salaryType === 'per_class') {
+          const classData = currentMonthlyClasses[tutor.id];
+          const classCount = classData ? classData.classCount : 0;
+          calculatedAmount = classCount * (tutor.salaryRate || 0);
+        }
+        salaryModelStr = `${(tutor.salaryType || 'unspecified').replace('_', ' ')} (₹${tutor.salaryRate || 0})`;
       }
       
       // Look for existing salary payment records for this month
@@ -96,7 +126,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       // Total paid so far
       const alreadyPaid = tutorPayments.reduce((sum, p) => sum + (p.paidAmount || 0), 0);
       
-      // Fetch latest adjustment (if multiple, sum them or just take latest for display)
+      // Fetch latest adjustment
       const adjustment = tutorPayments.reduce((sum, p) => sum + (p.adjustment || 0), 0);
       
       const finalAmount = calculatedAmount + adjustment;
@@ -105,7 +135,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       let status = 'Pending';
       if (alreadyPaid >= finalAmount && finalAmount > 0) status = 'Paid';
       else if (alreadyPaid > 0) status = 'Partial';
-      else if (finalAmount === 0 && tutor.salaryType !== 'per_class') status = 'Zero';
+      else if (finalAmount === 0 && tutor.salaryType !== 'per_class' && tutorRoleConfigs.length === 0) status = 'Zero';
 
       if (status !== 'Paid' && status !== 'Zero') {
         pendingTutorsCount++;
@@ -124,20 +154,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         ? `<span style="background: var(--color-sidebar-hover); color: var(--color-text-secondary); padding: 0.25rem 0.5rem; border-radius: 99px; font-size: 0.75rem; font-weight: 500;">None</span>`
         : `<span style="background: #FEF2F2; color: var(--color-danger); padding: 0.25rem 0.5rem; border-radius: 99px; font-size: 0.75rem; font-weight: 500;">Pending</span>`;
 
+      const payBtnClass = status === 'Paid' ? 'btn-outline' : 'btn-primary';
+      const payBtnText = status === 'Paid' ? 'Pay More' : 'Pay';
+
       return `
         <tr style="border-bottom: 1px solid var(--color-border);">
           <td style="padding: 0.75rem;">
             <div style="font-weight: 500;">${tutor.name}</div>
             <div style="font-size: 0.75rem; color: var(--color-text-secondary);">${tutor.tutorId}</div>
           </td>
-          <td style="padding: 0.75rem;">${tutor.salaryType.replace('_', ' ')} (₹${tutor.salaryRate})</td>
+          <td style="padding: 0.75rem;">${salaryModelStr}</td>
           <td style="padding: 0.75rem;">${formatter.format(calculatedAmount)}</td>
           <td style="padding: 0.75rem;">${adjustment !== 0 ? formatter.format(adjustment) : '-'}</td>
           <td style="padding: 0.75rem; font-weight:600;">${formatter.format(finalAmount)}</td>
           <td style="padding: 0.75rem; color: ${alreadyPaid > 0 ? 'var(--color-success)' : 'inherit'};">${formatter.format(alreadyPaid)}</td>
           <td style="padding: 0.75rem;">${statusBadge}</td>
           <td style="padding: 0.75rem;">
-            ${balance > 0 || (tutor.salaryType === 'per_class' && status !== 'Paid') ? `<button class="btn btn-outline pay-btn" data-id="${tutor.id}" data-calc="${calculatedAmount}" data-paid="${alreadyPaid}" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">Pay</button>` : `<span style="font-size:0.75rem; color: var(--color-text-secondary);">Settled</span>`}
+            <button class="btn ${payBtnClass} pay-btn" data-id="${tutor.id}" data-calc="${calculatedAmount}" data-paid="${alreadyPaid}" style="font-size: 0.75rem; padding: 0.25rem 0.6rem;">${payBtnText}</button>
           </td>
         </tr>
       `;
@@ -159,24 +192,40 @@ document.addEventListener('DOMContentLoaded', async () => {
   let currentPayAlreadyPaid = 0;
 
   tbody.addEventListener('click', (e) => {
-    if (e.target.classList.contains('pay-btn')) {
-      const tutorId = e.target.getAttribute('data-id');
-      currentPayCalcAmount = parseFloat(e.target.getAttribute('data-calc')) || 0;
-      currentPayAlreadyPaid = parseFloat(e.target.getAttribute('data-paid')) || 0;
+    const payBtn = e.target.closest('.pay-btn');
+    if (payBtn) {
+      const tutorId = payBtn.getAttribute('data-id');
+      currentPayCalcAmount = parseFloat(payBtn.getAttribute('data-calc')) || 0;
+      currentPayAlreadyPaid = parseFloat(payBtn.getAttribute('data-paid')) || 0;
       openSalaryModal(tutorId);
     }
   });
 
-  function updateFinalAmount() {
-    const adjustment = parseFloat(payAdjustmentInput.value) || 0;
+  const payAmountInput = document.getElementById('payAmount');
+
+  function updateFinalAmount(fromPayAmount = false) {
+    let adjustment = parseFloat(payAdjustmentInput.value) || 0;
+    
+    if (fromPayAmount) {
+      const payAmount = parseFloat(payAmountInput.value) || 0;
+      adjustment = (payAmount + currentPayAlreadyPaid) - currentPayCalcAmount;
+      payAdjustmentInput.value = adjustment;
+    }
+    
     const finalAmount = currentPayCalcAmount + adjustment;
     const balance = finalAmount - currentPayAlreadyPaid;
+    
     payFinalAmountDisplay.textContent = formatter.format(finalAmount);
-    document.getElementById('payAmount').value = Math.max(0, balance);
-    document.getElementById('payAmount').max = Math.max(0, balance);
+    
+    if (!fromPayAmount) {
+      payAmountInput.value = Math.max(0, balance) || '';
+    }
   }
 
-  payAdjustmentInput.addEventListener('input', updateFinalAmount);
+  payAdjustmentInput.addEventListener('input', () => updateFinalAmount(false));
+  if (payAmountInput) {
+    payAmountInput.addEventListener('input', () => updateFinalAmount(true));
+  }
 
   function openSalaryModal(tutorDocId) {
     const tutor = currentTutors.find(t => t.id === tutorDocId);
@@ -188,7 +237,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('payCalculated').textContent = formatter.format(currentPayCalcAmount);
     
     document.getElementById('payAdjustment').value = 0;
-    updateFinalAmount();
+    if (payAmountInput) {
+      payAmountInput.removeAttribute('max');
+    }
+    
+    updateFinalAmount(false);
 
     salaryModal.style.display = 'flex';
   }
@@ -220,16 +273,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 1. Create Salary Payment Record
         const salaryPaymentRef = doc(collection(db, 'salaryPayments'));
         const salaryData = {
-          tutorId: tutorDocId,
-          month: month,
-          salaryType: tutor.salaryType,
-          rate: tutor.salaryRate,
-          calculatedAmount: currentPayCalcAmount,
-          adjustment: adjustment,
-          finalAmount: finalAmount,
-          paidAmount: payAmount,
-          paymentMethod: payMethod,
-          paymentDate: payDate,
+          tutorId: tutorDocId || '',
+          month: month || '',
+          salaryType: (tutor && tutor.salaryType) || 'unspecified',
+          rate: (tutor && tutor.salaryRate) !== undefined ? tutor.salaryRate : 0,
+          calculatedAmount: currentPayCalcAmount || 0,
+          adjustment: adjustment || 0,
+          finalAmount: finalAmount || 0,
+          paidAmount: payAmount || 0,
+          paymentMethod: payMethod || 'UPI',
+          paymentDate: payDate || '',
           status: 'paid', // Record status is paid, overall tutor month status computed
           createdAt: serverTimestamp(),
           createdBy: auth.currentUser ? auth.currentUser.uid : 'system'

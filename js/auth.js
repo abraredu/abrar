@@ -20,19 +20,37 @@ if (loginForm) {
 
       // First check if it's a tutor login
       try {
-        const q = query(collection(db, 'tutors'), where('loginUsername', '==', email));
-        const querySnapshot = await getDocs(q);
-        
         let tutorMatched = false;
-        querySnapshot.forEach((doc) => {
+        
+        // Match by tutorId (e.g., AM025, AQR27)
+        const qId = query(collection(db, 'tutors'), where('tutorId', '==', email));
+        const snapId = await getDocs(qId);
+        
+        snapId.forEach((doc) => {
           const tutorData = doc.data();
-          if (tutorData.loginPassword === password && tutorData.status === 'active') {
+          if (tutorData.phone === password && tutorData.status === 'active') {
             tutorMatched = true;
             localStorage.setItem('tutorLoggedIn', 'true');
             localStorage.setItem('tutorId', doc.id);
             localStorage.setItem('tutorName', tutorData.name);
           }
         });
+        
+        // Fallback: match by custom loginUsername
+        if (!tutorMatched) {
+          const qUser = query(collection(db, 'tutors'), where('loginUsername', '==', email));
+          const snapUser = await getDocs(qUser);
+          
+          snapUser.forEach((doc) => {
+            const tutorData = doc.data();
+            if (tutorData.phone === password && tutorData.status === 'active') {
+              tutorMatched = true;
+              localStorage.setItem('tutorLoggedIn', 'true');
+              localStorage.setItem('tutorId', doc.id);
+              localStorage.setItem('tutorName', tutorData.name);
+            }
+          });
+        }
         
         if (tutorMatched) {
           window.location.href = 'tutor-dashboard.html';
@@ -64,7 +82,7 @@ if (loginForm) {
 // Only redirect to index.html if we are NOT already on it
 onAuthStateChanged(auth, (user) => {
   const isLoginPage = window.location.pathname.endsWith('index.html') || window.location.pathname === '/' || window.location.pathname.endsWith('abrar-main/');
-  const isTutorDashboard = window.location.pathname.endsWith('tutor-dashboard.html');
+  const isTutorPage = window.location.pathname.endsWith('tutor-dashboard.html') || window.location.pathname.endsWith('tutor-progress.html');
   
   if (user) {
     // If user is logged in and on login page, redirect to dashboard
@@ -80,8 +98,8 @@ onAuthStateChanged(auth, (user) => {
   } else {
     // If user is not logged in and NOT on login page, redirect to login
     if (!isLoginPage) {
-      if (isTutorDashboard && localStorage.getItem('tutorLoggedIn')) {
-        // Allow tutor to stay on tutor dashboard
+      if (isTutorPage && localStorage.getItem('tutorLoggedIn')) {
+        // Allow tutor to stay on tutor pages
       } else {
         // Use relative path back to root index.html depending on current depth
         const depth = window.location.pathname.split('/').length - 2;

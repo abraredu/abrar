@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Progress Reports - ABRAR Management System</title>
+  <link rel="icon" type="image/png" href="../icon.png">
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    /* Colorful Report Formatting Styles for LKG/UKG */
+    .report-header {
+      text-align: center;
+      margin-bottom: 2rem;
+      border-bottom: 4px dashed #f472b6; /* playful pink */
+      padding-bottom: 1rem;
+    }
+    .report-header img {
+      height: 70px;
+      margin-bottom: 1rem;
+    }
+    .report-title {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #0284c7; /* bright blue */
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+    .report-section {
+      margin-bottom: 1.5rem;
+      padding: 1.5rem;
+      border-radius: 16px;
+      border-width: 3px;
+      border-style: solid;
+    }
+    
+    /* Alternating section colors */
+    .report-section:nth-of-type(1) {
+      background-color: #fffbeb;
+      border-color: #fcd34d;
+    }
+    .report-section:nth-of-type(1) h4 { color: #d97706; border-bottom-color: #fde68a; }
+    
+    .report-section:nth-of-type(2) {
+      background-color: #eff6ff;
+      border-color: #93c5fd;
+    }
+    .report-section:nth-of-type(2) h4 { color: #2563eb; border-bottom-color: #bfdbfe; }
+    
+    .report-section:nth-of-type(3) {
+      background-color: #f0fdf4;
+      border-color: #86efac;
+    }
+    .report-section:nth-of-type(3) h4 { color: #16a34a; border-bottom-color: #bbf7d0; }
+    
+    .report-section h4 {
+      margin-top: 0;
+      margin-bottom: 1rem;
+      font-size: 1.25rem;
+      font-weight: 700;
+      border-bottom-width: 2px;
+      border-bottom-style: dashed;
+      padding-bottom: 0.5rem;
+    }
+    
+    .rating-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .rating-label {
+      font-weight: 700;
+      color: #475569;
+    }
+    .rating-desc {
+      font-size: 0.85rem;
+      color: #64748b;
+      margin-bottom: 0.5rem;
+    }
+    textarea.form-control {
+      min-height: 80px;
+      resize: vertical;
+      border-radius: 12px;
+      border: 2px dashed #cbd5e1;
+    }
+    input.form-control {
+      border-radius: 12px;
+    }
+    
+    /* Remove borders from inputs and textareas when exporting to PDF */
+    .exporting-pdf input, 
+    .exporting-pdf textarea,
+    .exporting-pdf select {
+      border: none !important;
+      background: transparent !important;
+      padding: 0 !important;
+      box-shadow: none !important;
+      color: #0f172a !important;
+      font-weight: 500;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      pointer-events: none;
+    }
+    
+    .exporting-pdf .rating-group {
+      border-bottom: none;
+      margin-bottom: 0.5rem;
+      padding-bottom: 0.5rem;
+    }
+    .exporting-pdf .rating-desc { display: none; } /* Hide descriptions on PDF to save space */
+    .exporting-pdf input[type="radio"]:not(:checked) + label,
+    .exporting-pdf input[type="radio"]:not(:checked) {
+      display: none !important; /* Hide unselected radios */
+    }
+    
+    @media print {
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      body * {
+        visibility: hidden;
+      }
+      #printableReport, #printableReport * {
+        visibility: visible;
+      }
+      #printableReport {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        border: none;
+        box-shadow: none;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+
+    /* Modern Report Design CSS */
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+
+    /* ── Minimal Report Card ── */
+    .modern-report {
+      background-color: #ffffff;
+      color: #1F2937;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      position: relative;
+      overflow: hidden;
+      padding: 0;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(8,122,66,0.10);
+      border: 1.5px solid #E6F4EA;
+    }
+
+    .modern-report-header {
+      background-color: #087A42;
+      color: white;
+      padding: 1.75rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      border-radius: 10px 10px 0 0;
+    }
+    .modern-report-header img {
+      height: 44px;
+      width: auto;
+      background: white;
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+    .modern-report-header-text {
+      display: flex;
+      flex-direction: column;
+    }
+    .modern-report-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin: 0;
+      letter-spacing: 0.5px;
+    }
+    .modern-report-subtitle {
+      font-size: 0.8rem;
+      color: #B9F5D0;
+      font-weight: 400;
+      margin-top: 2px;
+    }
+
+    .modern-report-body {
+      padding: 1.75rem 2rem;
+    }
+
+    /* Info grid */
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      border: 1.5px solid #E5E7EB;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+    .info-cell {
+      padding: 0.65rem 1rem;
+      border-right: 1.5px solid #E5E7EB;
+      border-bottom: 1.5px solid #E5E7EB;
+    }
+    .info-cell:nth-child(2n) { border-right: none; }
+    .info-cell:nth-last-child(-n+2) { border-bottom: none; }
+    .info-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #6B7280;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 2px;
+    }
+    .info-value {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #1F2937;
+    }
+
+    /* Section heading */
+    .section-heading {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #087A42;
+      margin-bottom: 0.5rem;
+      padding-bottom: 0.35rem;
+      border-bottom: 2px solid #E6F4EA;
+    }
+
+    /* Ratings table */
+    .modern-table-container {
+      margin-bottom: 1.5rem;
+    }
+    .modern-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .modern-table th {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #6B7280;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 0.5rem 0.75rem;
+      background: #F9FAFB;
+      border-bottom: 1.5px solid #E5E7EB;
+      text-align: left;
+    }
+    .modern-table td {
+      padding: 0.65rem 0.75rem;
+      border-bottom: 1px solid #F3F4F6;
+      font-size: 0.9rem;
+      color: #374151;
+      font-weight: 500;
+    }
+    .modern-table tr:last-child td { border-bottom: none; }
+    .modern-table td:last-child {
+      font-weight: 700;
+      color: #087A42;
+    }
+
+    /* Remarks blocks */
+    .remarks-block {
+      margin-bottom: 1rem;
+      padding: 0.75rem 1rem;
+      background: #F9FAFB;
+      border-left: 3px solid #087A42;
+      border-radius: 0 6px 6px 0;
+    }
+    .remarks-block .info-label { margin-bottom: 4px; }
+    .remarks-block .info-value {
+      font-size: 0.9rem;
+      font-weight: 400;
+      color: #374151;
+      line-height: 1.5;
+    }
+
+    /* Footer */
+    .report-footer {
+      margin-top: 1.5rem;
+      padding-top: 1rem;
+      border-top: 1.5px solid #E6F4EA;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .report-footer-brand {
+      font-size: 0.75rem;
+      color: #9CA3AF;
+      font-weight: 500;
+    }
+    .report-footer-sign {
+      font-size: 0.75rem;
+      color: #9CA3AF;
+      text-align: right;
+    }
+    .report-footer-sign span {
+      display: block;
+      width: 100px;
+      border-top: 1px solid #D1D5DB;
+      padding-top: 4px;
+      margin-top: 24px;
+    }
+
+    @media print {
+      .modern-report { box-shadow: none; border-radius: 0; border: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <img src="../logo.png" alt="ABRAR Logo" style="height: 32px; width: auto;">
+        </div>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <a href="../dashboard.html" class="nav-item">
+          <i data-lucide="layout-dashboard"></i> Dashboard
+        </a>
+        <a href="../students/students.html" class="nav-item">
+          <i data-lucide="users"></i> Students
+        </a>
+        <a href="../courses/classes.html" class="nav-item">
+          <i data-lucide="library"></i> Courses
+        </a>
+        <a href="../tutors/tutors.html" class="nav-item">
+          <i data-lucide="graduation-cap"></i> Tutors
+        </a>
+        <a href="../finance/accounts.html" class="nav-item">
+          <i data-lucide="wallet"></i> Finance
+        </a>
+          <a href="../reports/progress.html" class="nav-item">
+            <i data-lucide="line-chart"></i> Progress
+          </a>
+        <a href="../reports/reports.html" class="nav-item active">
+          <i data-lucide="bar-chart-3"></i> Reports
+        </a>
+        <a href="../notifications/notifications.html" class="nav-item">
+          <i data-lucide="bell"></i> Notifications
+        </a>
+        <a href="../messages/messages.html" class="nav-item">
+          <i data-lucide="mail"></i> Messages
+        </a>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <a href="../settings.html" class="nav-item">
+          <i data-lucide="settings"></i> Settings
+        </a>
+        <a href="#" id="logoutBtn" class="nav-item text-danger">
+          <i data-lucide="log-out"></i> Logout
+        </a>
+      </div>
+    </aside>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <main class="main-content">
+      <header class="top-header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobileMenuBtn">
+            <i data-lucide="menu"></i>
+          </button>
+          <h1 class="page-title">Progress Reports</h1>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <div id="reportContainer" class="card">
+          <div class="report-header">
+            <img src="../logo.png" alt="ABRAR Logo">
+            <div class="report-title">Monthly Progress Report</div>
+          </div>
+
+          <form id="progressForm">
+            
+            <div class="report-section">
+              <h4><i data-lucide="smile"></i> Student Details</h4>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                  <label class="form-label">Student Name</label>
+                  <input type="text" id="studentName" class="form-control" required placeholder="Enter student name...">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Report Month</label>
+                  <input type="month" id="reportMonth" class="form-control" required>
+                </div>
+              </div>
+            </div>
+
+            <div class="report-section">
+              <h4><i data-lucide="calendar"></i> 1. Attendance</h4>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                  <label class="form-label">Classes Conducted</label>
+                  <input type="number" id="classesConducted" class="form-control" min="0" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Classes Attended</label>
+                  <input type="number" id="classesAttended" class="form-control" min="0" required>
+                </div>
+              </div>
+            </div>
+
+            <div class="report-section">
+              <h4><i data-lucide="star"></i> 2. Performance & Progress Ratings</h4>
+              
+              <div class="rating-group">
+                <div class="rating-label">Live Class Performance</div>
+                <div class="rating-desc">Overall participation, confidence, attentiveness, and response during live classes.</div>
+                <div style="display: flex; gap: 1rem; margin-top: 0.5rem; flex-wrap: wrap;">
+                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="liveClassPerf" value="Excellent" required> Excellent</label>
+                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="liveClassPerf" value="Very Good"> Very Good</label>
+                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="liveClassPerf" value="Good"> Good</label>
+                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="liveClassPerf" value="Needs Improvement"> Needs Improvement</label>
+                </div>
+              </div>
+
+              <div class="rating-group">
+                <div class="rating-label">Lesson Progress</div>
+                <div class="rating-desc">Progress made according to the monthly syllabus and learning objectives.</div>
+                <div style="display: flex; gap: 1rem; margin-top: 0.5rem; flex-wrap: wrap;">
+                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="lessonProgress" value="Excellent" required> Excellent</label>
+                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="lessonProgress" value="Very Good"> Very Good</label>
+                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="lessonProgress" value="Good"> Good</label>
+                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="lessonProgress" value="Needs Improvement"> Needs Improvement</label>
+                </div>
+              </div>
+
+              <div class="rating-group">
+                <div class="rating-label">Revision & Homework</div>
+                <div class="rating-desc">Regularity in revision and completion of assigned work.</div>
+                <div style="display: flex; gap: 1rem; margin-top: 0.5rem; flex-wrap: wrap;">
+                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="revisionHomework" value="Excellent" required> Excellent</label>
+                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="revisionHomework" value="Very Good"> Very Good</label>
+                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="revisionHomework" value="Good"> Good</label>
+                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="revisionHomework" value="Needs Improvement"> Needs Improvement</label>
+                </div>
+              </div>
+
+              <div class="rating-group">
+                <div class="rating-label">Classroom Activities & Participation</div>
+                <div class="rating-desc">Participation in discussions, oral responses, classroom activities, and practical tasks.</div>
+                <div style="display: flex; gap: 1rem; margin-top: 0.5rem; flex-wrap: wrap;">
+                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="classActivities" value="Excellent" required> Excellent</label>
+                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="classActivities" value="Very Good"> Very Good</label>
+                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="classActivities" value="Good"> Good</label>
+                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="classActivities" value="Needs Improvement"> Needs Improvement</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="report-section">
+              <h4><i data-lucide="award"></i> 3. Topics & Remarks</h4>
+              
+              <div class="form-group">
+                <label class="form-label">Topics Covered This Month</label>
+                <div class="rating-desc">The mentor manually enters the lessons or chapters completed during the month. (e.g. Surah Al-Mulk, Fiqh - Lesson 3, etc.)</div>
+                <textarea id="topicsCovered" class="form-control" required placeholder="Enter topics covered..."></textarea>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Mentor's Remarks</label>
+                <div class="rating-desc">A brief summary (2-3 sentences) highlighting the student's overall progress, strengths, and areas for improvement.</div>
+                <textarea id="mentorRemarks" class="form-control" required placeholder="Enter remarks..."></textarea>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Recommendation to Parents</label>
+                <div class="rating-desc">A short and practical suggestion to help support the student's learning at home.</div>
+                <textarea id="recommendations" class="form-control" required placeholder="Enter recommendations..."></textarea>
+              </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 1rem;" class="no-print">
+              <button type="button" id="printBtn" class="btn btn-primary">
+                <i data-lucide="download"></i> Download PDF
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Hidden report layout for printing -->
+        <div class="modern-report" id="printableReport" style="display: none;">
+
+          <div class="modern-report-header">
+            <img src="../logo.png" alt="ABRAR Logo">
+            <div class="modern-report-header-text">
+              <h2 class="modern-report-title">Student Report Card</h2>
+              <div class="modern-report-subtitle">ABRAR Online Islamic School &mdash; Monthly Progress Report</div>
+            </div>
+          </div>
+
+          <div class="modern-report-body">
+
+            <div class="info-grid">
+              <div class="info-cell">
+                <div class="info-label">Student Name</div>
+                <div class="info-value" id="vStudentName">&mdash;</div>
+              </div>
+              <div class="info-cell">
+                <div class="info-label">Report Month</div>
+                <div class="info-value" id="vReportMonth">&mdash;</div>
+              </div>
+              <div class="info-cell">
+                <div class="info-label">Classes Conducted</div>
+                <div class="info-value" id="vClassesConducted">&mdash;</div>
+              </div>
+              <div class="info-cell">
+                <div class="info-label">Classes Attended</div>
+                <div class="info-value" id="vClassesAttended">&mdash;</div>
+              </div>
+            </div>
+
+            <div class="section-heading">Performance Ratings</div>
+            <div class="modern-table-container">
+              <div class="table-responsive">
+<table class="modern-table">
+                <thead>
+                  <tr>
+                    <th>Area</th>
+                    <th>Rating</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>Live Class Performance</td><td id="vLiveClass">&mdash;</td></tr>
+                  <tr><td>Lesson Progress</td><td id="vLessonProgress">&mdash;</td></tr>
+                  <tr><td>Revision &amp; Homework</td><td id="vRevision">&mdash;</td></tr>
+                  <tr><td>Classroom Activities</td><td id="vActivities">&mdash;</td></tr>
+                </tbody>
+              </table>
+</div>
+            </div>
+
+            <div class="section-heading">Remarks</div>
+            <div class="remarks-block">
+              <div class="info-label">Topics Covered This Month</div>
+              <div class="info-value" id="vTopics">&mdash;</div>
+            </div>
+            <div class="remarks-block">
+              <div class="info-label">Mentor's Remarks</div>
+              <div class="info-value" id="vRemarks">&mdash;</div>
+            </div>
+            <div class="remarks-block">
+              <div class="info-label">Recommendations to Parents</div>
+              <div class="info-value" id="vRecommendations">&mdash;</div>
+            </div>
+
+            <div class="report-footer">
+              <div class="report-footer-brand">ABRAR Online Islamic School</div>
+              <div class="report-footer-sign">
+                <span>Authorised Signature</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script type="module" src="../js/firebase-config.js"></script>
+  <script type="module" src="../js/toast.js"></script>
+  <script type="module" src="../js/layout.js"></script>
+  <script type="module" src="../js/progress.js"></script>
+  <script>
+    document.getElementById('printBtn').addEventListener('click', async (e) => {
+      e.preventDefault();
+
+      const btn = document.getElementById('printBtn');
+
+      const form = document.getElementById('progressForm');
+      if (form && !form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Generating PDF...';
+
+      // Populate printableReport with form values
+      document.getElementById('vStudentName').innerText = document.getElementById('studentName').value || '-';
+      document.getElementById('vReportMonth').innerText = document.getElementById('reportMonth').value || '-';
+      document.getElementById('vClassesConducted').innerText = document.getElementById('classesConducted').value || '-';
+      document.getElementById('vClassesAttended').innerText = document.getElementById('classesAttended').value || '-';
+      
+      const liveClass = document.querySelector('input[name="liveClassPerf"]:checked');
+      document.getElementById('vLiveClass').innerText = liveClass ? liveClass.value : '-';
+      
+      const lessonProgress = document.querySelector('input[name="lessonProgress"]:checked');
+      document.getElementById('vLessonProgress').innerText = lessonProgress ? lessonProgress.value : '-';
+      
+      const revision = document.querySelector('input[name="revisionHomework"]:checked');
+      document.getElementById('vRevision').innerText = revision ? revision.value : '-';
+      
+      const activities = document.querySelector('input[name="classActivities"]:checked');
+      document.getElementById('vActivities').innerText = activities ? activities.value : '-';
+      
+      document.getElementById('vTopics').innerText = document.getElementById('topicsCovered').value || '-';
+      document.getElementById('vRemarks').innerText = document.getElementById('mentorRemarks').value || '-';
+      document.getElementById('vRecommendations').innerText = document.getElementById('recommendations').value || '-';
+
+      if (window.lucide) window.lucide.createIcons();
+
+      const reportEl = document.getElementById('printableReport');
+      
+      const noPrintEls = reportEl.querySelectorAll('.no-print');
+      noPrintEls.forEach(el => el.style.display = 'none');
+
+      // Temporarily show the report off-screen
+      reportEl.style.display = 'block';
+      reportEl.style.position = 'absolute';
+      reportEl.style.left = '-9999px';
+      reportEl.style.width = '794px'; // A4 pixel width at 96dpi
+
+      try {
+        const canvas = await html2canvas(reportEl, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#E6F4EA',
+          logging: false
+        });
+
+        const imgData = canvas.toDataURL('image/png');
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const margin = 10;
+        const contentWidth = pageWidth - margin * 2;
+        const contentHeight = (canvas.height * contentWidth) / canvas.width;
+
+        let yOffset = 0;
+        let remainingHeight = contentHeight;
+        let isFirstPage = true;
+
+        while (remainingHeight > 0) {
+          if (!isFirstPage) pdf.addPage();
+          pdf.addImage(
+            imgData, 'PNG',
+            margin,
+            margin - yOffset,
+            contentWidth,
+            contentHeight
+          );
+          yOffset += (pageHeight - margin * 2);
+          remainingHeight -= (pageHeight - margin * 2);
+          isFirstPage = false;
+        }
+
+        const studentName = document.getElementById('studentName').value || 'Student';
+        pdf.save(`Progress_Report_${studentName}.pdf`);
+      } catch (error) {
+        console.error('PDF generation failed:', error);
+        alert('Failed to generate PDF. Please try again.');
+      } finally {
+        // Hide the report again
+        reportEl.style.display = 'none';
+        reportEl.style.position = '';
+        reportEl.style.left = '';
+        reportEl.style.width = '';
+        noPrintEls.forEach(el => el.style.display = '');
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="download"></i> Download PDF';
+        if (window.lucide) lucide.createIcons();
+      }
+    });
+  </script>
+</body>
+</html>

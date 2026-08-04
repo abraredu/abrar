@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             </div>
             <div style="font-size: 0.75rem; line-height: 1.4; text-align: right;">
               <div><i data-lucide="phone" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 0.25rem;"></i> 7907 517 463</div>
-              <div><i data-lucide="instagram" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 0.25rem;"></i> abraredu</div>
+              <div><i data-lucide="hash" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 0.25rem;"></i> abraredu</div>
               <div><i data-lucide="mail" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 0.25rem;"></i> abrareduu@gmail.com</div>
             </div>
           </div>
@@ -163,23 +163,42 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // Expose download function globally
-window.downloadReceipt = function(id, receiptNum) {
-  const element = document.getElementById(`receipt-${id}`);
-  // Hide the download section before taking screenshot
-  const btnSection = element.querySelector('.download-section');
-  if (btnSection) btnSection.style.display = 'none';
-  
-  html2canvas(element, {
-    backgroundColor: '#ffffff',
-    scale: 2 // Higher resolution
-  }).then(canvas => {
-    // Restore button section
-    if (btnSection) btnSection.style.display = 'block';
-    
-    // Download image
-    const link = document.createElement('a');
-    link.download = `Abrar-${receiptNum}.png`;
-    link.href = canvas.toDataURL('image/png');
-    link.click();
-  });
+window.downloadReceipt = async function(id, receiptNum) {
+  const receiptEl = document.getElementById(`receipt-${id}`);
+  if (!receiptEl) return;
+
+  // Hide the download button inside this receipt during capture
+  const downloadSection = receiptEl.querySelector('.download-section');
+  if (downloadSection) downloadSection.style.display = 'none';
+
+  try {
+    const canvas = await html2canvas(receiptEl, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      logging: false
+    });
+
+    const imgData = canvas.toDataURL('image/png');
+    const { jsPDF } = window.jspdf;
+
+    // Calculate dimensions to fit receipt on a PDF page
+    const imgWidthMm = 190; // fit in A4 width with margins
+    const imgHeightMm = (canvas.height * imgWidthMm) / canvas.width;
+
+    const pdf = new jsPDF({
+      orientation: imgHeightMm > imgWidthMm ? 'portrait' : 'landscape',
+      unit: 'mm',
+      format: [imgWidthMm + 20, imgHeightMm + 20]
+    });
+
+    pdf.addImage(imgData, 'PNG', 10, 10, imgWidthMm, imgHeightMm);
+    pdf.save(`Receipt_${receiptNum || id}.pdf`);
+  } catch (error) {
+    console.error('PDF generation failed:', error);
+    alert('Failed to generate PDF. Please try again.');
+  } finally {
+    if (downloadSection) downloadSection.style.display = '';
+  }
 };
+

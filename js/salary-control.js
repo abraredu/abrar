@@ -350,19 +350,31 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  function updateFinalAmount() {
+  const amountInput = document.getElementById('payAmount');
+
+  function updateFinalAmount(fromPayAmount = false) {
     if (!currentPayEntry) return;
-    const adjustment = parseFloat(payAdjustmentInput.value) || 0;
+    let adjustment = parseFloat(payAdjustmentInput.value) || 0;
+    
+    if (fromPayAmount) {
+      const payAmount = parseFloat(amountInput.value) || 0;
+      adjustment = (payAmount + currentPayEntry.alreadyPaid) - currentPayEntry.calcAmount;
+      payAdjustmentInput.value = adjustment;
+    }
+    
     const finalAmount = currentPayEntry.calcAmount + adjustment;
     const balance = finalAmount - currentPayEntry.alreadyPaid;
     
     payFinalAmountDisplay.textContent = formatter.format(finalAmount);
-    const amountInput = document.getElementById('payAmount');
-    amountInput.value = Math.max(0, balance);
-    amountInput.max = Math.max(0, balance);
+    if (!fromPayAmount) {
+      amountInput.value = Math.max(0, balance) || '';
+    }
   }
 
-  payAdjustmentInput.addEventListener('input', updateFinalAmount);
+  payAdjustmentInput.addEventListener('input', () => updateFinalAmount(false));
+  if (amountInput) {
+    amountInput.addEventListener('input', () => updateFinalAmount(true));
+  }
 
   function openSalaryModal() {
     document.getElementById('payTutorId').value = currentPayEntry.tutorId;
@@ -372,8 +384,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     document.getElementById('payAdjustment').value = 0;
     document.getElementById('payDateModal').value = currentPayEntry.date || new Date().toISOString().split('T')[0];
+    if (amountInput) {
+      amountInput.removeAttribute('max');
+    }
     
-    updateFinalAmount();
+    updateFinalAmount(false);
     salaryModal.style.display = 'flex';
   }
 
@@ -400,18 +415,18 @@ document.addEventListener('DOMContentLoaded', async () => {
       await runTransaction(db, async (transaction) => {
         const salaryPaymentRef = doc(collection(db, 'salaryPayments'));
         const salaryData = {
-          tutorId: currentPayEntry.tutorId,
-          tutorRole: currentPayEntry.tutorRole,
-          salaryEntryId: currentPayEntry.id, // Link to the specific role configuration
-          month: currentPayEntry.month,
-          salaryType: currentPayEntry.salaryType,
-          rate: currentPayEntry.rate,
-          calculatedAmount: currentPayEntry.calcAmount,
-          adjustment: adjustment,
-          finalAmount: finalAmount,
-          paidAmount: payAmount,
-          paymentMethod: payMethod,
-          paymentDate: payDate,
+          tutorId: currentPayEntry.tutorId || '',
+          tutorRole: currentPayEntry.tutorRole || '',
+          salaryEntryId: currentPayEntry.id || '', // Link to the specific role configuration
+          month: currentPayEntry.month || '',
+          salaryType: currentPayEntry.salaryType || 'unspecified',
+          rate: currentPayEntry.rate !== undefined ? currentPayEntry.rate : 0,
+          calculatedAmount: currentPayEntry.calcAmount || 0,
+          adjustment: adjustment || 0,
+          finalAmount: finalAmount || 0,
+          paidAmount: payAmount || 0,
+          paymentMethod: payMethod || 'UPI',
+          paymentDate: payDate || '',
           status: 'paid',
           createdAt: serverTimestamp(),
           createdBy: auth.currentUser ? auth.currentUser.uid : 'system'

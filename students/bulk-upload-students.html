@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bulk Upload Students - ABRAR Management System</title>
+  <link rel="icon" type="image/png" href="../icon.png">
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    /* ── Bulk Upload Specific Styles ── */
+    .bulk-page { max-width: 1200px; }
+
+    /* Steps banner */
+    .steps-bar {
+      display: flex;
+      gap: 0;
+      margin-bottom: 2rem;
+      background: #fff;
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    }
+    .step {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 1rem 1.25rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #94a3b8;
+      position: relative;
+      transition: all 0.3s;
+    }
+    .step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 0;
+      height: 0;
+      border-top: 20px solid transparent;
+      border-bottom: 20px solid transparent;
+      border-left: 12px solid #e2e8f0;
+      z-index: 2;
+    }
+    .step.active { color: #0f172a; background: #f0fdf4; }
+    .step.done   { color: #16a34a; background: #f0fdf4; }
+    .step-num {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 700;
+      background: #e2e8f0; color: #64748b;
+      flex-shrink: 0;
+    }
+    .step.active .step-num { background: #16a34a; color: #fff; }
+    .step.done   .step-num { background: #16a34a; color: #fff; }
+
+    /* Upload zone */
+    .upload-zone {
+      border: 2px dashed #cbd5e1;
+      border-radius: 12px;
+      padding: 3rem 2rem;
+      text-align: center;
+      transition: all 0.3s;
+      cursor: pointer;
+      background: #f8fafc;
+    }
+    .upload-zone:hover, .upload-zone.drag-over {
+      border-color: #16a34a;
+      background: #f0fdf4;
+    }
+    .upload-zone .upload-icon { color: #94a3b8; margin-bottom: 1rem; }
+    .upload-zone:hover .upload-icon { color: #16a34a; }
+    .upload-zone h3 { font-size: 1.1rem; font-weight: 600; color: #0f172a; margin-bottom: 0.5rem; }
+    .upload-zone p { color: #64748b; font-size: 0.875rem; }
+
+    /* Preview Panel */
+    .preview-section { display: none; }
+    .preview-section.visible { display: block; }
+
+    .preview-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .preview-stats {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .preview-stat {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+    .preview-stat .badge {
+      padding: 0.2rem 0.6rem;
+      border-radius: 99px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .badge-total   { background: #e0f2fe; color: #0369a1; }
+    .badge-valid   { background: #dcfce7; color: #16a34a; }
+    .badge-error   { background: #fee2e2; color: #dc2626; }
+
+    /* Editable preview table */
+    .preview-table-wrap {
+      overflow-x: auto;
+      border-radius: 10px;
+      border: 1px solid var(--color-border);
+    }
+    .preview-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+      min-width: 900px;
+    }
+    .preview-table thead tr {
+      background: #f8fafc;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    .preview-table th {
+      padding: 0.75rem 0.6rem;
+      font-weight: 600;
+      color: #475569;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+    .preview-table tbody tr {
+      border-bottom: 1px solid #f1f5f9;
+      transition: background 0.15s;
+    }
+    .preview-table tbody tr:hover { background: #f8fafc; }
+    .preview-table tbody tr.row-error { background: #fff5f5; }
+    .preview-table td {
+      padding: 0.4rem 0.5rem;
+    }
+    .preview-table td input, .preview-table td select {
+      width: 100%;
+      border: 1px solid transparent;
+      background: transparent;
+      padding: 0.3rem 0.4rem;
+      border-radius: 5px;
+      font-size: 0.82rem;
+      color: #0f172a;
+      font-family: inherit;
+      transition: border-color 0.2s, background 0.2s;
+      min-width: 90px;
+    }
+    .preview-table td input:focus, .preview-table td select:focus {
+      outline: none;
+      border-color: #16a34a;
+      background: #fff;
+    }
+    .preview-table td input.field-error {
+      border-color: #f87171 !important;
+      background: #fff5f5 !important;
+    }
+    .row-actions { display: flex; gap: 0.3rem; align-items: center; }
+    .row-delete-btn {
+      background: none; border: none; cursor: pointer;
+      color: #94a3b8; padding: 0.2rem; border-radius: 4px;
+      transition: color 0.2s;
+    }
+    .row-delete-btn:hover { color: #dc2626; }
+    .row-status-icon { width: 16px; height: 16px; flex-shrink: 0; }
+
+    /* Action bar */
+    .action-bar {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 1.5rem;
+    }
+    .btn-outline-danger {
+      padding: 0.5rem 1.25rem;
+      border: 1.5px solid #f87171;
+      border-radius: 8px;
+      background: transparent;
+      color: #dc2626;
+      font-weight: 500;
+      font-size: 0.875rem;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 0.4rem;
+      transition: all 0.2s;
+    }
+    .btn-outline-danger:hover { background: #fee2e2; }
+
+    /* Template download card */
+    .template-card {
+      background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+      border: 1px solid #bbf7d0;
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+    }
+    .template-card-icon {
+      width: 44px; height: 44px;
+      background: #16a34a;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .template-card-text { flex: 1; }
+    .template-card-text h4 { font-size: 0.95rem; font-weight: 600; color: #14532d; margin-bottom: 0.25rem; }
+    .template-card-text p  { font-size: 0.8rem; color: #166534; margin: 0; }
+
+    /* Success overlay */
+    .success-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+    }
+    .success-overlay.visible { display: flex; }
+    .success-box {
+      background: #fff;
+      border-radius: 16px;
+      padding: 2.5rem;
+      text-align: center;
+      max-width: 380px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0,0,0,.2);
+      animation: popIn 0.35s cubic-bezier(.34,1.56,.64,1);
+    }
+    @keyframes popIn {
+      from { transform: scale(0.75); opacity: 0; }
+      to   { transform: scale(1);    opacity: 1; }
+    }
+    .success-icon {
+      width: 64px; height: 64px;
+      background: #dcfce7;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1.25rem;
+      color: #16a34a;
+    }
+    .success-box h3 { font-size: 1.25rem; font-weight: 700; color: #0f172a; margin-bottom: 0.5rem; }
+    .success-box p  { color: #64748b; font-size: 0.9rem; margin-bottom: 1.5rem; }
+
+    /* Progress bar for submit */
+    .submit-progress {
+      display: none;
+      margin-top: 1rem;
+    }
+    .submit-progress.visible { display: block; }
+    .progress-bar-wrap {
+      height: 8px;
+      background: #e2e8f0;
+      border-radius: 99px;
+      overflow: hidden;
+      margin-bottom: 0.5rem;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #16a34a, #4ade80);
+      border-radius: 99px;
+      transition: width 0.3s ease;
+      width: 0%;
+    }
+    .progress-label { font-size: 0.8rem; color: #64748b; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <img src="../logo.png" alt="ABRAR Logo" style="height: 32px; width: auto;">
+        </div>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <a href="../dashboard.html" class="nav-item">
+          <i data-lucide="layout-dashboard"></i> Dashboard
+        </a>
+        <a href="../students/students.html" class="nav-item active">
+          <i data-lucide="users"></i> Students
+        </a>
+        <a href="../courses/classes.html" class="nav-item">
+          <i data-lucide="library"></i> Courses
+        </a>
+        <a href="../tutors/tutors.html" class="nav-item">
+          <i data-lucide="graduation-cap"></i> Tutors
+        </a>
+        <a href="../finance/accounts.html" class="nav-item">
+          <i data-lucide="wallet"></i> Finance
+        </a>
+          <a href="../reports/progress.html" class="nav-item">
+            <i data-lucide="line-chart"></i> Progress
+          </a>
+        <a href="../reports/reports.html" class="nav-item">
+          <i data-lucide="bar-chart-3"></i> Reports
+        </a>
+        <a href="../notifications/notifications.html" class="nav-item">
+          <i data-lucide="bell"></i> Notifications
+        </a>
+        <a href="../messages/messages.html" class="nav-item">
+          <i data-lucide="mail"></i> Messages
+        </a>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <a href="../settings.html" class="nav-item">
+          <i data-lucide="settings"></i> Settings
+        </a>
+        <a href="#" id="logoutBtn" class="nav-item text-danger">
+          <i data-lucide="log-out"></i> Logout
+        </a>
+      </div>
+    </aside>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <main class="main-content">
+      <header class="top-header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobileMenuBtn"><i data-lucide="menu"></i></button>
+          <h1 class="page-title">Bulk Upload Students</h1>
+        </div>
+        <div class="header-right">
+          <a href="students.html" class="btn" style="border:1.5px solid var(--color-border); background:#fff; color:#475569; display:flex; align-items:center; gap:0.4rem; padding:0.5rem 1rem; border-radius:8px; font-weight:500; font-size:0.875rem; text-decoration:none;">
+            <i data-lucide="arrow-left" style="width:16px;height:16px;"></i> Back to Students
+          </a>
+        </div>
+      </header>
+
+      <div class="page-content bulk-page">
+
+        <!-- Steps -->
+        <div class="steps-bar" id="stepsBar">
+          <div class="step active" id="step1">
+            <div class="step-num">1</div>
+            <span>Download Template</span>
+          </div>
+          <div class="step" id="step2">
+            <div class="step-num">2</div>
+            <span>Upload CSV</span>
+          </div>
+          <div class="step" id="step3">
+            <div class="step-num">3</div>
+            <span>Review &amp; Edit</span>
+          </div>
+          <div class="step" id="step4">
+            <div class="step-num">4</div>
+            <span>Submit</span>
+          </div>
+        </div>
+
+        <!-- Step 1: Download template -->
+        <div class="template-card">
+          <div class="template-card-icon">
+            <i data-lucide="file-spreadsheet" style="width:22px;height:22px;"></i>
+          </div>
+          <div class="template-card-text">
+            <h4>Step 1 — Download the CSV Template</h4>
+            <p>Fill in student data in the template, then upload it below. All column headers must remain unchanged.</p>
+          </div>
+          <button id="downloadTemplateBtn" class="btn btn-primary" style="display:flex;align-items:center;gap:0.5rem;white-space:nowrap;">
+            <i data-lucide="download" style="width:16px;height:16px;"></i>
+            Download Template
+          </button>
+        </div>
+
+        <!-- Step 2: Upload CSV -->
+        <div class="card" style="margin-bottom:1.5rem;" id="uploadCard">
+          <h3 style="font-size:1rem;font-weight:600;margin-bottom:1rem;color:#0f172a;">
+            <i data-lucide="upload-cloud" style="width:18px;height:18px;vertical-align:middle;margin-right:6px;"></i>
+            Step 2 — Upload Your CSV File
+          </h3>
+          <div class="upload-zone" id="uploadZone">
+            <div class="upload-icon"><i data-lucide="file-up" style="width:48px;height:48px;"></i></div>
+            <h3>Drag &amp; drop your CSV here</h3>
+            <p>or <span style="color:#16a34a;font-weight:600;cursor:pointer;" id="browseLink">click to browse</span></p>
+            <p style="margin-top:0.5rem;font-size:0.78rem;color:#94a3b8;">Supports .csv files only · Max 5 MB</p>
+          </div>
+          <input type="file" id="csvFileInput" accept=".csv" style="display:none;">
+          <div id="fileNameDisplay" style="margin-top:0.75rem;font-size:0.85rem;color:#16a34a;display:none;"></div>
+        </div>
+
+        <!-- Step 3 & 4: Preview + Edit + Submit -->
+        <div class="preview-section card" id="previewSection">
+          <div class="preview-toolbar">
+            <div>
+              <h3 style="font-size:1rem;font-weight:600;color:#0f172a;margin-bottom:0.25rem;">
+                <i data-lucide="table" style="width:18px;height:18px;vertical-align:middle;margin-right:6px;"></i>
+                Step 3 — Review &amp; Edit
+              </h3>
+              <p style="font-size:0.8rem;color:#64748b;margin:0;">Click any cell to edit. Fix errors highlighted in red before submitting.</p>
+            </div>
+            <div class="preview-stats" id="previewStats"></div>
+          </div>
+
+          <div class="preview-table-wrap">
+            <div class="table-responsive">
+<table class="preview-table" id="previewTable">
+              <thead>
+                <tr>
+                  <th style="width:32px;">#</th>
+                  <th>Name <span style="color:#dc2626">*</span></th>
+                  <th>Parent Name</th>
+                  <th>Phone <span style="color:#dc2626">*</span></th>
+                  <th>WhatsApp</th>
+                  <th>Place</th>
+                  <th>Course Type <span style="color:#dc2626">*</span></th>
+                  <th>Tutors</th>
+                  <th>Level</th>
+                  <th>Admission Date</th>
+                  <th>Class Start Date</th>
+                  <th>Monthly Fee <span style="color:#dc2626">*</span></th>
+                  <th>Status</th>
+                  <th style="width:40px;"></th>
+                </tr>
+              </thead>
+              <tbody id="previewTbody"></tbody>
+            </table>
+</div>
+          </div>
+
+          <!-- Submit progress -->
+          <div class="submit-progress" id="submitProgress">
+            <div class="progress-bar-wrap">
+              <div class="progress-bar-fill" id="progressFill"></div>
+            </div>
+            <p class="progress-label" id="progressLabel">Uploading 0 / 0...</p>
+          </div>
+
+          <div class="action-bar">
+            <button id="addRowBtn" class="btn" style="border:1.5px solid var(--color-border);background:#fff;color:#475569;display:flex;align-items:center;gap:0.4rem;padding:0.5rem 1rem;border-radius:8px;font-weight:500;font-size:0.875rem;">
+              <i data-lucide="plus" style="width:16px;height:16px;"></i> Add Row
+            </button>
+            <button id="clearAllBtn" class="btn-outline-danger">
+              <i data-lucide="trash-2" style="width:14px;height:14px;"></i> Clear All
+            </button>
+            <div style="flex:1;"></div>
+            <span id="errorWarning" style="font-size:0.8rem;color:#dc2626;display:none;">
+              <i data-lucide="alert-circle" style="width:14px;height:14px;vertical-align:middle;"></i>
+              Fix errors before submitting
+            </span>
+            <button id="submitBulkBtn" class="btn btn-primary" style="display:flex;align-items:center;gap:0.5rem;">
+              <i data-lucide="send" style="width:16px;height:16px;"></i>
+              Submit All Students
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Success Overlay -->
+  <div class="success-overlay" id="successOverlay">
+    <div class="success-box">
+      <div class="success-icon"><i data-lucide="check-circle" style="width:32px;height:32px;"></i></div>
+      <h3>Upload Successful!</h3>
+      <p id="successMsg">0 students have been added to the system successfully.</p>
+      <a href="students.html" class="btn btn-primary" style="display:inline-flex;align-items:center;gap:0.5rem;text-decoration:none;">
+        <i data-lucide="users" style="width:16px;height:16px;"></i> View All Students
+      </a>
+    </div>
+  </div>
+
+  <script>lucide.createIcons();</script>
+  <script type="module" src="../js/firebase-config.js"></script>
+  <script type="module" src="../js/layout.js"></script>
+  <script type="module" src="../js/bulk-upload-students.js?v=2"></script>
+</body>
+</html>

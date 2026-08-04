@@ -19,7 +19,7 @@
           <img src="../logo.png" alt="ABRAR Logo" style="height: 32px; width: auto;">
         </div>
       </div>
-
+      
       <nav class="sidebar-nav">
         <a href="../dashboard.html" class="nav-item">
           <i data-lucide="layout-dashboard"></i> Dashboard
@@ -30,22 +30,34 @@
         <a href="../courses/classes.html" class="nav-item">
           <i data-lucide="library"></i> Courses
         </a>
-        <a href="tutors.html" class="nav-item active">
+        <a href="../tutors/tutors.html" class="nav-item active">
           <i data-lucide="graduation-cap"></i> Tutors
-        </a>
-        <a href="salary-control.html" class="nav-item" style="padding-left: 2.5rem; font-size: 0.875rem;">
-          Salary Control
         </a>
         <a href="../finance/accounts.html" class="nav-item">
           <i data-lucide="wallet"></i> Finance
         </a>
+          <a href="../reports/progress.html" class="nav-item">
+            <i data-lucide="line-chart"></i> Progress
+          </a>
         <a href="../reports/reports.html" class="nav-item">
           <i data-lucide="bar-chart-3"></i> Reports
         </a>
         <a href="../notifications/notifications.html" class="nav-item">
           <i data-lucide="bell"></i> Notifications
         </a>
+        <a href="../messages/messages.html" class="nav-item">
+          <i data-lucide="mail"></i> Messages
+        </a>
       </nav>
+      
+      <div class="sidebar-footer">
+        <a href="../settings.html" class="nav-item">
+          <i data-lucide="settings"></i> Settings
+        </a>
+        <a href="#" id="logoutBtn" class="nav-item text-danger">
+          <i data-lucide="log-out"></i> Logout
+        </a>
+      </div>
     </aside>
 
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
@@ -126,8 +138,8 @@
               Credentials (Optional)</h3>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
               <div class="form-group">
-                <label class="form-label">Login Username</label>
-                <input type="text" id="loginUsername" class="form-control" placeholder="Enter username for tutor">
+                <label class="form-label">userId</label>
+                <input type="text" id="loginUsername" class="form-control" placeholder="Enter userId (defaults to Tutor ID)">
               </div>
               <div class="form-group">
                 <label class="form-label">Login Password</label>
