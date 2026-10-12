@@ -1,13 +1,14 @@
 // js/notifications.js
 import { db } from './firebase-config.js';
 import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { loadManagedCourses, valueMatchesCourse, legacyLabel, escapeHtml } from './course-types.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const upcomingTableBody = document.getElementById('upcomingTableBody');
   const overdueTableBody = document.getElementById('overdueTableBody');
   const statUpcoming = document.getElementById('statUpcoming');
   const statOverdue = document.getElementById('statOverdue');
-  const filterBtns = document.querySelectorAll('.filter-btn');
+  const filterBar = document.getElementById('courseFilterBar');
   
   if (!upcomingTableBody || !overdueTableBody) return;
 
@@ -16,9 +17,41 @@ document.addEventListener('DOMContentLoaded', async () => {
   let allUpcoming = [];
   let allOverdue = [];
   let currentFilter = 'all';
+  let allCourses = [];
+
+  // Resolve a student's course key: managed course id, or raw type if no course matches
+  function resolveCourseKey(data) {
+    const course = allCourses.find(c =>
+      data.courseId === c.id ||
+      [data.courseType, data.course].some(v => valueMatchesCourse(v, c) || valueMatchesCourse(legacyLabel(v), c))
+    );
+    return course ? course.id : (data.courseType || data.course || 'other');
+  }
+
+  // Build filter tabs from Manage Courses (+ any unmatched types present in data)
+  function renderFilterTabs() {
+    if (!filterBar) return;
+    const tabs = allCourses.map(c => ({ key: c.id, label: c.courseName || c.serialNo || 'Course' }));
+    const extraKeys = new Set([...allUpcoming, ...allOverdue].map(s => s.courseKey).filter(k => !tabs.some(t => t.key === k)));
+    extraKeys.forEach(k => tabs.push({ key: k, label: k === 'other' ? 'Other' : legacyLabel(k) }));
+
+    const baseStyle = 'padding: 0.5rem 1.5rem; border: none; border-radius: var(--radius-pill); font-weight: 500; font-size: 0.875rem; cursor: pointer; transition: all var(--transition-fast);';
+    const styleFor = key => key === currentFilter
+      ? `${baseStyle} background: var(--color-sidebar-active); color: var(--color-primary);`
+      : `${baseStyle} background: transparent; color: var(--color-text-secondary);`;
+
+    filterBar.innerHTML = [{ key: 'all', label: 'All' }, ...tabs].map(t =>
+      `<button class="filter-btn ${t.key === currentFilter ? 'active' : ''}" data-filter="${escapeHtml(t.key)}" style="${styleFor(t.key)}">${escapeHtml(t.label)}</button>`
+    ).join('');
+  }
 
   async function loadNotifications() {
     try {
+      try {
+        allCourses = await loadManagedCourses();
+      } catch (err) {
+        console.error('Error loading courses:', err);
+      }
       const q = query(collection(db, "students"), where("status", "==", "active"));
       const snapshot = await getDocs(q);
       
@@ -97,6 +130,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           phone: data.whatsapp || data.phone || '-',
           fee: balance, // show remaining balance instead of total fee
           courseType: data.courseType || '',
+          courseKey: resolveCourseKey(data),
           dueDate: currentMonthDueDate,
           daysAway: diffDays
         };
@@ -112,6 +146,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       allUpcoming.sort((a, b) => a.daysAway - b.daysAway);
       allOverdue.sort((a, b) => a.daysAway - b.daysAway);
       
+      renderFilterTabs();
       applyFilter();
       
     } catch (error) {
@@ -126,8 +161,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     let filteredOverdue = allOverdue;
 
     if (currentFilter !== 'all') {
-      filteredUpcoming = allUpcoming.filter(s => s.courseType === currentFilter);
-      filteredOverdue = allOverdue.filter(s => s.courseType === currentFilter);
+      filteredUpcoming = allUpcoming.filter(s => s.courseKey === currentFilter);
+      filteredOverdue = allOverdue.filter(s => s.courseKey === currentFilter);
     }
 
     renderTable(upcomingTableBody, filteredUpcoming, 'upcoming');
@@ -181,26 +216,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // Filter Button Listeners
-  filterBtns.forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      // Update active state
-      filterBtns.forEach(b => {
-        b.classList.remove('active');
-        b.style.background = 'transparent';
-        b.style.color = 'var(--color-text-secondary)';
-      });
-      
-      const target = e.target;
-      target.classList.add('active');
-      target.style.background = 'var(--color-sidebar-active)';
-      target.style.color = 'var(--color-primary)';
-      
-      // Update Filter and re-render
+  // Filter Button Listeners (delegated, since tabs are rendered dynamically)
+  if (filterBar) {
+    filterBar.addEventListener('click', (e) => {
+      const target = e.target.closest('.filter-btn');
+      if (!target) return;
       currentFilter = target.getAttribute('data-filter');
+      renderFilterTabs();
       applyFilter();
     });
-  });
+  }
 
   loadNotifications();
 });

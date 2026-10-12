@@ -2,6 +2,7 @@ import { toast } from './toast.js';
 // js/edit-tutor.js
 import { db } from './firebase-config.js';
 import { doc, getDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { loadManagedCourses, renderTutorTypeCheckboxes, valueMatchesCourse, legacyLabel } from './course-types.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const urlParams = new URLSearchParams(window.location.search);
@@ -31,15 +32,26 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('whatsapp').value = data.whatsapp || '';
       document.getElementById('email').value = data.email || '';
       document.getElementById('address').value = data.address || '';
-      if (data.tutorType) {
-        const types = Array.isArray(data.tutorType) ? data.tutorType : [data.tutorType];
-        const tutorTypeCheckboxes = document.querySelectorAll('.tutor-type-checkbox');
-        Array.from(tutorTypeCheckboxes).forEach(cb => {
-          if (types.includes(cb.value)) {
-            cb.checked = true;
-          }
-        });
+      // Render Tutor Type checkboxes from Manage Courses and pre-check saved values
+      let allCourses = [];
+      try {
+        allCourses = await loadManagedCourses();
+      } catch (err) {
+        console.error('Error loading courses:', err);
       }
+      const savedTypes = data.tutorType ? (Array.isArray(data.tutorType) ? data.tutorType : [data.tutorType]) : [];
+      // Map each saved value to a course name (direct match, or old key -> label match)
+      const toCheck = [];
+      const unmatched = [];
+      savedTypes.forEach(t => {
+        const course = allCourses.find(c => valueMatchesCourse(t, c) || valueMatchesCourse(legacyLabel(t), c));
+        if (course) toCheck.push(course.courseName);
+        else { unmatched.push(t); toCheck.push(t); }
+      });
+      renderTutorTypeCheckboxes(document.getElementById('tutorTypeCheckboxes'), allCourses, unmatched);
+      document.querySelectorAll('.tutor-type-checkbox').forEach(cb => {
+        if (toCheck.includes(cb.value)) cb.checked = true;
+      });
       document.getElementById('joiningDate').value = data.joiningDate || '';
       if (document.getElementById('loginUsername')) document.getElementById('loginUsername').value = data.loginUsername || '';
       if (document.getElementById('loginPassword')) document.getElementById('loginPassword').value = data.loginPassword || '';
@@ -82,8 +94,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         address: document.getElementById('address').value,
         tutorType: tutorType,
         joiningDate: document.getElementById('joiningDate').value,
-        loginUsername: document.getElementById('loginUsername') ? document.getElementById('loginUsername').value : '',
-        loginPassword: document.getElementById('loginPassword') ? document.getElementById('loginPassword').value : '',
+        loginUsername: (document.getElementById('loginUsername') && document.getElementById('loginUsername').value.trim()) ? document.getElementById('loginUsername').value.trim() : 'AGM',
+        loginPassword: (document.getElementById('loginPassword') && document.getElementById('loginPassword').value) ? document.getElementById('loginPassword').value : document.getElementById('phone').value,
         status: document.getElementById('status').value,
         updatedAt: serverTimestamp()
       };

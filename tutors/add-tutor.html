@@ -27,18 +27,37 @@
         <a href="../students/students.html" class="nav-item">
           <i data-lucide="users"></i> Students
         </a>
+        <div class="submenu">
+          <a href="../students/admission.html" class="submenu-item">Admission</a>
+        </div>
         <a href="../courses/classes.html" class="nav-item">
           <i data-lucide="library"></i> Courses
         </a>
+        <div class="submenu">
+          <a href="../courses/manage.html" class="submenu-item">Manage</a>
+          <a href="../courses/upgrade.html" class="submenu-item">Upgrade</a>
+        </div>
         <a href="../tutors/tutors.html" class="nav-item active">
           <i data-lucide="graduation-cap"></i> Tutors
         </a>
         <a href="../finance/accounts.html" class="nav-item">
           <i data-lucide="wallet"></i> Finance
         </a>
+        <div class="submenu">
+          <a href="../finance/fees.html" class="submenu-item">Fees</a>
+          <a href="../finance/salaries.html" class="submenu-item">Salary</a>
+          <a href="../finance/accounts.html" class="submenu-item">Account</a>
+        </div>
           <a href="../reports/progress.html" class="nav-item">
             <i data-lucide="line-chart"></i> Progress
           </a>
+        <div class="submenu">
+          <a href="../reports/data.html" class="submenu-item">Data</a>
+        </div>
+        
+        <a href="../assessments/assessments.html" class="nav-item">
+          <i data-lucide="clipboard-check"></i> Assessments
+        </a>
         <a href="../reports/reports.html" class="nav-item">
           <i data-lucide="bar-chart-3"></i> Reports
         </a>
@@ -113,18 +132,7 @@
                 <label class="form-label">Tutor Type *</label>
                 <div id="tutorTypeCheckboxes"
                   style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;">
-                  <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; cursor: pointer;">
-                    <input type="checkbox" name="tutorType" value="madrasa_individual" class="tutor-type-checkbox">
-                    Madrasa Individual
-                  </label>
-                  <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; cursor: pointer;">
-                    <input type="checkbox" name="tutorType" value="madrasa_group" class="tutor-type-checkbox"> Madrasa
-                    Group
-                  </label>
-                  <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; cursor: pointer;">
-                    <input type="checkbox" name="tutorType" value="quran_recitation" class="tutor-type-checkbox"> Qur'an
-                    Recitation
-                  </label>
+                  <span style="font-size: 0.8125rem; color: var(--color-text-secondary);">Loading courses...</span>
                 </div>
               </div>
               <div class="form-group">
@@ -139,11 +147,11 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
               <div class="form-group">
                 <label class="form-label">userId</label>
-                <input type="text" id="loginUsername" class="form-control" placeholder="Enter userId (defaults to Tutor ID)">
+                <input type="text" id="loginUsername" class="form-control" placeholder="Enter userId (defaults to AGM)">
               </div>
               <div class="form-group">
                 <label class="form-label">Login Password</label>
-                <input type="password" id="loginPassword" class="form-control" placeholder="Enter password for tutor">
+                <input type="password" id="loginPassword" class="form-control" placeholder="Enter password (defaults to phone number)">
               </div>
             </div>
 

@@ -25,6 +25,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (docSnap.exists()) {
       const data = docSnap.data();
 
+      // Guard: Admission must be accepted to access the portal
+      const admissionStatus = (data.admissionStatus || '').toLowerCase();
+      const hasAdmissionDate = data.admissionDate && data.admissionDate.trim() !== '' && data.admissionDate !== '-';
+      const isAccepted = admissionStatus === 'accepted' || (!data.admissionStatus && hasAdmissionDate);
+
+      if (!isAccepted) {
+        alert("Access Denied: Your admission has not been accepted yet. You can only enter the portal once approved by administration.");
+        sessionStorage.removeItem('currentStudentId');
+        window.location.href = 'student-login.html';
+        return;
+      }
+
+      if (data.status === 'inactive' || data.status === 'suspended') {
+        alert("Your account is currently inactive. Please contact administration.");
+        sessionStorage.removeItem('currentStudentId');
+        window.location.href = 'student-login.html';
+        return;
+      }
+
       // Update UI Header
       document.getElementById('headerName').textContent = data.name || 'Student';
       if (data.photoUrl) {

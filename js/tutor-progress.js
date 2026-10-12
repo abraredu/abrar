@@ -29,44 +29,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   let currentReports = {};
   let editingReportId = null;
 
-  function openReportForm(student) {
-    const selectedMonth = monthSelect.value;
-    if (!selectedMonth) {
-      toast.error("Please select a month first!");
-      return;
-    }
-
-    progressForm.reset();
-
-    document.getElementById('studentIdHidden').value = student.id;
-    document.getElementById('studentName').value = student.name;
-    document.getElementById('reportMonth').value = selectedMonth;
-
-    const report = currentReports[student.id];
-    if (report) {
-      editingReportId = report.id;
-      document.getElementById('classesConducted').value = report.attendance?.conducted || '';
-      document.getElementById('classesAttended').value = report.attendance?.attended || '';
-      const setRadio = (name, val) => {
-        if (!val) return;
-        const r = document.querySelector(`input[name="${name}"][value="${val}"]`);
-        if (r) r.checked = true;
-      };
-      setRadio('liveClassPerf', report.ratings?.liveClassPerformance);
-      setRadio('lessonProgress', report.ratings?.lessonProgress);
-      setRadio('revisionHomework', report.ratings?.revisionHomework);
-      setRadio('classActivities', report.ratings?.classActivities);
-      document.getElementById('topicsCovered').value = report.remarks?.topicsCovered || '';
-      document.getElementById('mentorRemarks').value = report.remarks?.mentorRemarks || '';
-      document.getElementById('recommendations').value = report.remarks?.recommendations || '';
-    } else {
-      editingReportId = null;
-    }
-
-    selectionContainer.style.display = 'none';
-    reportContainer.style.display = 'block';
-  }
-
   const loadTableData = async () => {
     tableBody.innerHTML = '<tr><td colspan="3" style="padding: 2rem; text-align: center; color: var(--color-text-secondary);">Loading...</td></tr>';
 
@@ -74,37 +36,23 @@ document.addEventListener('DOMContentLoaded', async () => {
       try {
         let tutorRef = doc(db, "tutors", tutorId);
         let tutorSnap = await getDoc(tutorRef);
-        let tutorData = null;
-
-        if (tutorSnap.exists()) {
-          realTutorDocId = tutorSnap.id;
-          tutorData = tutorSnap.data();
-        } else {
+        if (!tutorSnap.exists()) {
           const fallbackQ = query(collection(db, "tutors"), where("tutorId", "==", tutorId));
           const fallbackSnap = await getDocs(fallbackQ);
           if (!fallbackSnap.empty) {
-            tutorSnap = fallbackSnap.docs[0];
-            realTutorDocId = tutorSnap.id;
-            tutorData = tutorSnap.data();
-            localStorage.setItem('tutorId', realTutorDocId);
+            realTutorDocId = fallbackSnap.docs[0].id;
           }
         }
 
-        const allStudentsSnap = await getDocs(collection(db, "students"));
-        myStudents = [];
-        allStudentsSnap.forEach(docSnap => {
+        const studentsQ = query(collection(db, "students"), where("status", "==", "active"));
+        const studentsSnap = await getDocs(studentsQ);
+        studentsSnap.forEach(docSnap => {
           const student = docSnap.data();
-          if (student.status === 'active') {
-            const sTutorId = student.tutorId || '';
-            const tutorDisplayId = tutorData ? tutorData.tutorId : '';
-            const tutorNameVal = tutorData ? tutorData.name : '';
-
-            if (sTutorId.includes(realTutorDocId) ||
-                sTutorId.includes(tutorId) ||
-                (tutorDisplayId && sTutorId.includes(tutorDisplayId)) ||
-                (tutorNameVal && sTutorId.toLowerCase().includes(tutorNameVal.toLowerCase()))) {
-              myStudents.push({ id: docSnap.id, ...student });
-            }
+          const isTutorLegacy = student.tutorId === realTutorDocId || student.tutorId === tutorId;
+          const inCourseTutors = student.courseTutors && Object.values(student.courseTutors).some(tId => tId === realTutorDocId || tId === tutorId);
+          
+          if (isTutorLegacy || inCourseTutors) {
+            myStudents.push({ id: docSnap.id, ...student });
           }
         });
       } catch (error) {
@@ -125,29 +73,62 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     try {
       const reportsQ = query(collection(db, "progress_reports"),
+        where("tutorId", "==", realTutorDocId || tutorId),
         where("reportMonth", "==", selectedMonth)
       );
       const reportsSnap = await getDocs(reportsQ);
       reportsSnap.forEach(docSnap => {
         const rep = docSnap.data();
-        if (rep.tutorId === realTutorDocId || rep.tutorId === tutorId) {
-          currentReports[rep.studentId] = { id: docSnap.id, ...rep };
-        }
+        currentReports[rep.studentId] = { id: docSnap.id, ...rep };
       });
     } catch (error) {
       console.error("Error fetching reports", error);
       toast.error("Failed to fetch reports. Please check your connection.");
     }
 
+    const todayDate = new Date();
+    todayDate.setHours(0, 0, 0, 0);
+    const [selYearStr, selMonthStr] = selectedMonth.split('-');
+    const selYear = parseInt(selYearStr, 10);
+    const selMonthIdx = parseInt(selMonthStr, 10) - 1; // 0-indexed month
+
     let html = '';
     myStudents.forEach(student => {
       const report = currentReports[student.id];
+      
+      let isClickable = true;
+      let lockText = "Locked";
+      
+      const startDateStr = student.classStartingDate || student.admissionDate;
+      if (startDateStr) {
+        const startDate = new Date(startDateStr);
+        if (!isNaN(startDate.getTime())) {
+          const startDay = startDate.getDate();
+          
+          // Calculate anniversary in the selected month
+          const anniversaryDate = new Date(selYear, selMonthIdx, startDay);
+          
+          // Open date is 2 days before the anniversary
+          const openDate = new Date(anniversaryDate);
+          openDate.setDate(openDate.getDate() - 2);
+          openDate.setHours(0, 0, 0, 0);
+          
+          if (todayDate.getTime() >= openDate.getTime()) {
+            isClickable = true;
+          } else {
+            isClickable = false;
+            const openDateStr = openDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+            lockText = `Opens on ${openDateStr}`;
+          }
+        }
+      }
+
       let actionHtml = '';
       if (report) {
         actionHtml = `
           <div style="display: flex; align-items: center; gap: 10px;">
             <span style="color: #10b981; font-weight: 500; font-size: 0.85rem; background: #d1fae5; padding: 0.2rem 0.5rem; border-radius: 4px;">Submitted</span>
-            <button type="button" class="btn btn-icon btn-edit" data-id="${student.id}" data-name="${student.name}" title="Edit Report" style="padding: 0.3rem; cursor: pointer; border: none; background: transparent; color: var(--color-primary); display: flex; align-items: center; justify-content: center;">
+            <button type="button" class="btn btn-icon btn-edit" data-id="${student.id}" data-name="${student.name}" data-course="${student.course || student.courseName || '-'}" title="Edit Report" style="padding: 0.3rem; cursor: pointer; border: none; background: transparent; color: var(--color-primary); display: flex; align-items: center; justify-content: center;">
               <i data-lucide="edit" style="width: 18px; height: 18px;"></i>
             </button>
             <button type="button" class="btn btn-icon btn-delete" data-report-id="${report.id}" title="Delete Report" style="padding: 0.3rem; cursor: pointer; border: none; background: transparent; color: #ef4444; display: flex; align-items: center; justify-content: center;">
@@ -156,11 +137,19 @@ document.addEventListener('DOMContentLoaded', async () => {
           </div>
         `;
       } else {
-        actionHtml = `
-          <button class="btn btn-primary btn-register" data-id="${student.id}" data-name="${student.name}" style="padding: 0.35rem 0.75rem; font-size: 0.75rem;">
-            Register Report
-          </button>
-        `;
+        if (isClickable) {
+          actionHtml = `
+            <button class="btn btn-primary btn-register" data-id="${student.id}" data-name="${student.name}" data-course="${student.course || student.courseName || '-'}" style="padding: 0.35rem 0.75rem; font-size: 0.75rem;">
+              Register Report
+            </button>
+          `;
+        } else {
+          actionHtml = `
+            <button class="btn btn-secondary" disabled style="padding: 0.35rem 0.75rem; font-size: 0.75rem; opacity: 0.5; cursor: not-allowed;" title="${lockText}">
+              Locked
+            </button>
+          `;
+        }
       }
 
       html += `
@@ -175,21 +164,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     tableBody.innerHTML = html;
     if (window.lucide) window.lucide.createIcons();
-
-    // Check if we came from dashboard with a pre-filled student query param
-    const urlParams = new URLSearchParams(window.location.search);
-    const studentParam = urlParams.get('student');
-    if (studentParam) {
-      const targetStudent = myStudents.find(s => 
-        (s.name && s.name.toLowerCase() === studentParam.toLowerCase()) || 
-        s.id === studentParam || 
-        s.studentId === studentParam || 
-        s.regNo === studentParam
-      );
-      if (targetStudent) {
-        openReportForm(targetStudent);
-      }
-    }
   };
 
   await loadTableData();
@@ -222,10 +196,49 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (btnReg || btnEdit) {
       const btn = btnReg || btnEdit;
       const studentId = btn.getAttribute('data-id');
-      const targetStudent = myStudents.find(s => s.id === studentId);
-      if (targetStudent) {
-        openReportForm(targetStudent);
+      const studentName = btn.getAttribute('data-name');
+      const studentCourse = btn.getAttribute('data-course');
+      const selectedMonth = monthSelect.value;
+
+      if (!selectedMonth) {
+        toast.error("Please select a month first!");
+        return;
       }
+
+      progressForm.reset();
+
+      document.getElementById('studentIdHidden').value = studentId;
+      document.getElementById('studentName').value = studentName;
+      document.getElementById('studentCourseHidden').value = studentCourse;
+      document.getElementById('reportMonth').value = selectedMonth;
+
+      if (btnEdit) {
+        const report = currentReports[studentId];
+        if (report) {
+          editingReportId = report.id;
+          document.getElementById('classesConducted').value = report.attendance?.conducted || '';
+          document.getElementById('classesAttended').value = report.attendance?.attended || '';
+          const setRadio = (name, val) => {
+            if (!val) return;
+            const r = document.querySelector(`input[name="${name}"][value="${val}"]`);
+            if (r) r.checked = true;
+          };
+          setRadio('liveClassPerf', report.ratings?.liveClassPerformance);
+          setRadio('lessonProgress', report.ratings?.lessonProgress);
+          setRadio('revisionHomework', report.ratings?.revisionHomework);
+          setRadio('classActivities', report.ratings?.classActivities);
+          document.getElementById('topicsCovered').value = report.remarks?.topicsCovered || '';
+          document.getElementById('mentorRemarks').value = report.remarks?.mentorRemarks || '';
+          document.getElementById('recommendations').value = report.remarks?.recommendations || '';
+        }
+        document.getElementById('printBtn').style.display = 'inline-flex';
+      } else {
+        editingReportId = null;
+        document.getElementById('printBtn').style.display = 'none';
+      }
+
+      selectionContainer.style.display = 'none';
+      reportContainer.style.display = 'block';
     }
   });
 
@@ -234,6 +247,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     reportContainer.style.display = 'none';
     selectionContainer.style.display = 'block';
   });
+
+  // Also check if we came from dashboard with a pre-filled student
+  const urlParams = new URLSearchParams(window.location.search);
+  const studentParam = urlParams.get('student');
+  if (studentParam && myStudents.length > 0) {
+    // If they clicked 'Report Due' from dashboard, we might want to automatically open the form.
+    // For now, they can just use the table, or we can auto-trigger it.
+    // Let's keep it simple: the table is easy enough.
+  }
 
   // Handle Form Submit
   progressForm.addEventListener('submit', async (e) => {
@@ -292,4 +314,148 @@ document.addEventListener('DOMContentLoaded', async () => {
       submitBtn.disabled = false;
     }
   });
+  // Print functionality
+  const printBtn = document.getElementById('printBtn');
+  if (printBtn) {
+    printBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+
+      if (progressForm && !progressForm.checkValidity()) {
+        progressForm.reportValidity();
+        return;
+      }
+
+      printBtn.disabled = true;
+      printBtn.innerHTML = '<i data-lucide="loader" class="animate-spin"></i> Generating...';
+
+      // Populate printableReport with form values
+      document.getElementById('vStudentName').innerText = document.getElementById('studentName').value || '-';
+      const courseEl = document.getElementById('vCourse'); if(courseEl) courseEl.innerText = document.getElementById('studentCourseHidden').value || '-';
+      const mentorEl = document.getElementById('vMentor'); if(mentorEl) mentorEl.innerText = tutorName || '-';
+      document.getElementById('vReportMonth').innerText = document.getElementById('reportMonth').value || '-';
+      
+      const conducted = parseInt(document.getElementById('classesConducted').value || 0);
+      const attended = parseInt(document.getElementById('classesAttended').value || 0);
+      document.getElementById('vClassesConducted').innerText = conducted;
+      document.getElementById('vClassesAttended').innerText = attended;
+      const pctEl = document.getElementById('vAttendancePct');
+      if(pctEl) pctEl.innerText = conducted > 0 ? Math.round((attended/conducted)*100) + '%' : '-';
+      
+      const getStarsAndRemark = (rating) => {
+        rating = (rating || '').toLowerCase();
+        if (rating.includes('excellent') || rating.includes('very good')) {
+          return { stars: '★★★★☆', remark: 'VERY GOOD', cls: '' };
+        } else if (rating.includes('good') || rating.includes('satisfactory')) {
+          return { stars: '★★★☆☆', remark: 'GOOD', cls: '' };
+        } else if (rating.includes('poor') || rating.includes('improve')) {
+          return { stars: '★★☆☆☆', remark: 'NEED IMPROVEMENT', cls: 'needs-imp' };
+        }
+        return { stars: '★★★★☆', remark: 'VERY GOOD', cls: '' };
+      };
+
+      const setRatingRow = (idPrefix, ratingVal) => {
+         const info = getStarsAndRemark(ratingVal);
+         const starsEl = document.getElementById(idPrefix + 'Stars');
+         const remarkEl = document.getElementById(idPrefix + 'Remark');
+         if (starsEl) starsEl.textContent = info.stars;
+         if (remarkEl) {
+           remarkEl.textContent = info.remark;
+           remarkEl.className = 'remark-pill ' + info.cls;
+         }
+      };
+      
+      const liveClass = document.querySelector('input[name="liveClassPerf"]:checked');
+      setRatingRow('vLiveClass', liveClass ? liveClass.value : '-');
+      
+      const lessonProgress = document.querySelector('input[name="lessonProgress"]:checked');
+      setRatingRow('vLessonProgress', lessonProgress ? lessonProgress.value : '-');
+      
+      const revision = document.querySelector('input[name="revisionHomework"]:checked');
+      setRatingRow('vRevision', revision ? revision.value : '-');
+      
+      const activities = document.querySelector('input[name="classActivities"]:checked');
+      setRatingRow('vActivities', activities ? activities.value : '-');
+      
+      const topics = document.getElementById('topicsCovered').value || '-';
+      const topicsList = document.getElementById('vTopicsList');
+      if (topicsList) {
+        const splitTopics = topics.split('\\n').filter(t => t.trim() !== '');
+        if (splitTopics.length > 0) {
+          topicsList.innerHTML = splitTopics.map(t => `<div class="topic-item"><span class="topic-bullet">&bull;</span> <span>${t}</span></div>`).join('');
+        } else {
+          topicsList.innerHTML = `<div class="topic-item"><span class="topic-bullet">&bull;</span> <span>${topics}</span></div>`;
+        }
+      }
+      
+      document.getElementById('vRemarks').innerText = document.getElementById('mentorRemarks').value || '-';
+      document.getElementById('vRecommendations').innerText = document.getElementById('recommendations').value || '-';
+
+      if (window.lucide) window.lucide.createIcons();
+
+      const reportEl = document.getElementById('printableReport');
+      const noPrintEls = reportEl.querySelectorAll('.no-print');
+      noPrintEls.forEach(el => el.style.display = 'none');
+
+      reportEl.style.display = 'block';
+      reportEl.style.position = 'absolute';
+      reportEl.style.left = '-9999px';
+      reportEl.style.width = '794px';
+
+      try {
+        if (!window.html2canvas || !window.jspdf) {
+          throw new Error("PDF libraries not loaded yet");
+        }
+        
+        const canvas = await html2canvas(reportEl, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#E6F4EA',
+          logging: false
+        });
+
+        const imgData = canvas.toDataURL('image/png');
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const margin = 10;
+        const contentWidth = pageWidth - margin * 2;
+        const contentHeight = (canvas.height * contentWidth) / canvas.width;
+
+        let yOffset = 0;
+        let remainingHeight = contentHeight;
+        let isFirstPage = true;
+
+        while (remainingHeight > 0) {
+          if (!isFirstPage) pdf.addPage();
+          pdf.addImage(
+            imgData, 'PNG',
+            margin,
+            margin - yOffset,
+            contentWidth,
+            contentHeight
+          );
+          yOffset += (pageHeight - margin * 2);
+          remainingHeight -= (pageHeight - margin * 2);
+          isFirstPage = false;
+        }
+
+        const sName = document.getElementById('studentName').value || 'Student';
+        pdf.save(`Progress_Report_${sName}.pdf`);
+      } catch (error) {
+        console.error('PDF generation failed:', error);
+        toast.error('Failed to generate PDF. Please try again.');
+      } finally {
+        reportEl.style.display = 'none';
+        reportEl.style.position = '';
+        reportEl.style.left = '';
+        reportEl.style.width = '';
+        noPrintEls.forEach(el => el.style.display = '');
+        printBtn.disabled = false;
+        printBtn.innerHTML = '<i data-lucide="download"></i> Download PDF';
+        if (window.lucide) window.lucide.createIcons();
+      }
+    });
+  }
 });

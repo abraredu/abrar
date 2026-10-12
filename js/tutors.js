@@ -1,6 +1,6 @@
 // js/tutors.js
 import { db } from './firebase-config.js';
-import { collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { collection, getDocs, query, orderBy, limit, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 document.addEventListener('DOMContentLoaded', async () => {
   const tbody = document.getElementById('tutorsTableBody');
@@ -20,7 +20,24 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const searchInput = document.getElementById('searchInput');
     const typeFilter = document.getElementById('typeFilter');
-    const statusFilter = document.getElementById('statusFilter');
+    
+    let currentStatusFilter = '';
+    const statusTabs = document.getElementById('statusTabs');
+    if (statusTabs) {
+      const buttons = statusTabs.querySelectorAll('.filter-tab');
+      buttons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          buttons.forEach(b => {
+            b.classList.remove('btn-primary', 'active');
+            b.classList.add('btn-outline');
+          });
+          e.target.classList.remove('btn-outline');
+          e.target.classList.add('btn-primary', 'active');
+          currentStatusFilter = e.target.getAttribute('data-status');
+          filterData();
+        });
+      });
+    }
 
     let currentTutors = [];
 
@@ -32,7 +49,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       tbody.innerHTML = '';
       
       if (tutors.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem;">No tutors found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem;">No tutors found.</td></tr>';
         statTotal.textContent = 0;
         statActive.textContent = 0;
         return;
@@ -62,15 +79,17 @@ document.addEventListener('DOMContentLoaded', async () => {
           : `<span style="background: #FEF2F2; color: var(--color-danger); padding: 0.25rem 0.5rem; border-radius: 99px; font-size: 0.75rem; font-weight: 500;">${data.status}</span>`;
 
         tr.innerHTML = `
+          <td style="padding: 0.75rem;"><input type="checkbox" class="row-checkbox" value="${data.id}"></td>
           <td style="padding: 0.75rem; font-weight: 500;">${data.name || '-'}</td>
           <td style="padding: 0.75rem;">${data.tutorId || '-'}</td>
           <td style="padding: 0.75rem;">${typeLabel}</td>
           <td style="padding: 0.75rem;">${data.phone || '-'}</td>
           <td style="padding: 0.75rem;">${salaryModel}</td>
           <td style="padding: 0.75rem;">${statusBadge}</td>
-          <td style="padding: 0.75rem;">
-            <a href="tutor-view.html?id=${data.id}" style="color: var(--color-text-secondary); margin-right: 0.5rem;" title="View"><i data-lucide="eye" style="width: 16px; height: 16px;"></i></a>
+          <td style="padding: 0.75rem; display: flex; gap: 0.5rem; align-items: center;">
+            <a href="tutor-view.html?id=${data.id}" style="color: var(--color-text-secondary);" title="View"><i data-lucide="eye" style="width: 16px; height: 16px;"></i></a>
             <a href="edit-tutor.html?id=${data.id}" style="color: var(--color-text-secondary);" title="Edit"><i data-lucide="edit" style="width: 16px; height: 16px;"></i></a>
+            <button class="delete-btn" data-id="${data.id}" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 0;" title="Delete"><i data-lucide="trash-2" style="width: 16px; height: 16px;"></i></button>
           </td>
         `;
         tbody.appendChild(tr);
@@ -84,7 +103,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const filterData = () => {
       const searchTerm = (searchInput ? searchInput.value : '').toLowerCase();
       const type = typeFilter ? typeFilter.value : '';
-      const status = statusFilter ? statusFilter.value : '';
+      const status = currentStatusFilter;
 
       const filtered = allTutors.filter(tutor => {
         const matchesSearch = !searchTerm || 
@@ -108,9 +127,78 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (searchInput) searchInput.addEventListener('input', filterData);
     if (typeFilter) typeFilter.addEventListener('change', filterData);
-    if (statusFilter) statusFilter.addEventListener('change', filterData);
 
     renderTable(allTutors);
+
+    // Delete handlers
+    tbody.addEventListener('click', async (e) => {
+      const deleteBtn = e.target.closest('.delete-btn');
+      if (deleteBtn) {
+        const id = deleteBtn.getAttribute('data-id');
+        if (confirm('Are you sure you want to delete this tutor?')) {
+          try {
+            await deleteDoc(doc(db, "tutors", id));
+            allTutors = allTutors.filter(t => t.id !== id);
+            filterData();
+          } catch (error) {
+            console.error("Error deleting tutor:", error);
+            alert("Failed to delete tutor.");
+          }
+        }
+      }
+    });
+
+    // Bulk delete logic
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+    const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+
+    const updateBulkDeleteBtnVisibility = () => {
+      const anyChecked = document.querySelectorAll('.row-checkbox:checked').length > 0;
+      if (bulkDeleteBtn) bulkDeleteBtn.style.display = anyChecked ? 'flex' : 'none';
+    };
+
+    if (selectAllCheckbox) {
+      selectAllCheckbox.addEventListener('change', (e) => {
+        const checkboxes = document.querySelectorAll('.row-checkbox');
+        checkboxes.forEach(cb => cb.checked = e.target.checked);
+        updateBulkDeleteBtnVisibility();
+      });
+    }
+
+    tbody.addEventListener('change', (e) => {
+      if (e.target.classList.contains('row-checkbox')) {
+        updateBulkDeleteBtnVisibility();
+        if (selectAllCheckbox) {
+          const all = document.querySelectorAll('.row-checkbox').length;
+          const checked = document.querySelectorAll('.row-checkbox:checked').length;
+          selectAllCheckbox.checked = (all === checked && all > 0);
+        }
+      }
+    });
+
+    if (bulkDeleteBtn) {
+      bulkDeleteBtn.addEventListener('click', async () => {
+        const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
+        if (checkedBoxes.length === 0) return;
+        
+        if (confirm(`Are you sure you want to delete ${checkedBoxes.length} selected tutors?`)) {
+          try {
+            for (const cb of checkedBoxes) {
+              const id = cb.value;
+              await deleteDoc(doc(db, "tutors", id));
+              allTutors = allTutors.filter(t => t.id !== id);
+            }
+            filterData();
+            if (selectAllCheckbox) selectAllCheckbox.checked = false;
+            updateBulkDeleteBtnVisibility();
+          } catch (error) {
+            console.error("Error deleting tutors:", error);
+            alert("Failed to delete some tutors.");
+          }
+        }
+      });
+    }
+
 
     // ── Export CSV Logic ──
     const exportBtn = document.getElementById('exportTutorsBtn');

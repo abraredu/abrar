@@ -1,6 +1,6 @@
 // js/students.js
 import { db } from './firebase-config.js';
-import { collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { collection, getDocs, query, orderBy, limit, deleteDoc, doc, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
@@ -42,7 +42,24 @@ document.addEventListener('DOMContentLoaded', () => {
         const formatter = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' });
         const searchInput = document.getElementById('searchInput');
         const courseFilter = document.getElementById('courseFilter');
-        const statusFilter = document.getElementById('statusFilter');
+        
+        let currentStatusFilter = '';
+        const statusTabs = document.getElementById('statusTabs');
+        if (statusTabs) {
+          const buttons = statusTabs.querySelectorAll('.filter-tab');
+          buttons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+              buttons.forEach(b => {
+                b.classList.remove('btn-primary', 'active');
+                b.classList.add('btn-outline');
+              });
+              e.target.classList.remove('btn-outline');
+              e.target.classList.add('btn-primary', 'active');
+              currentStatusFilter = e.target.getAttribute('data-status');
+              filterData();
+            });
+          });
+        }
 
         const renderTable = (students) => {
           let total = 0;
@@ -100,6 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             tr.innerHTML = `
+              <td style="padding: 1rem 1.5rem;"><input type="checkbox" class="row-checkbox" value="${data.id}"></td>
               <td style="padding: 1rem 1.5rem; color: #475569; font-weight: 500;">${data.studentId || '-'}</td>
               <td style="padding: 1rem 1.5rem; font-weight: 500; color: #0f172a;">${data.name || '-'}</td>
               <td style="padding: 1rem 1.5rem; color: #475569;">${data.parentName || '-'}</td>
@@ -111,9 +129,10 @@ document.addEventListener('DOMContentLoaded', () => {
               <td style="padding: 1rem 1.5rem; color: #475569;">${data.admissionDate || '-'}</td>
               <td style="padding: 1rem 1.5rem; color: #475569;">${data.classStartingDate || '-'}</td>
               <td style="padding: 1rem 1.5rem; color: #475569; font-weight: 500;">${data.monthlyFee ? formatter.format(data.monthlyFee) : '-'}</td>
-              <td style="padding: 1rem 1.5rem;">
-                <a href="student-view.html?id=${data.id}" style="color: #64748b; margin-right: 0.5rem;" title="View"><i data-lucide="eye" style="width: 18px; height: 18px;"></i></a>
+              <td style="padding: 1rem 1.5rem; display: flex; gap: 0.5rem; align-items: center;">
+                <a href="student-view.html?id=${data.id}" style="color: #64748b;" title="View"><i data-lucide="eye" style="width: 18px; height: 18px;"></i></a>
                 <a href="edit-student.html?id=${data.id}" style="color: #64748b;" title="Edit"><i data-lucide="edit" style="width: 18px; height: 18px;"></i></a>
+                <button class="delete-btn" data-id="${data.id}" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 0;" title="Delete"><i data-lucide="trash-2" style="width: 18px; height: 18px;"></i></button>
               </td>
             `;
             tbody.appendChild(tr);
@@ -128,7 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const filterData = () => {
           const searchTerm = (searchInput ? searchInput.value : '').toLowerCase();
           const course = courseFilter ? courseFilter.value : '';
-          const status = statusFilter ? statusFilter.value : '';
+          const status = currentStatusFilter;
 
           const filtered = allStudents.filter(student => {
             const matchesSearch = !searchTerm || 
@@ -147,9 +166,108 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (searchInput) searchInput.addEventListener('input', filterData);
         if (courseFilter) courseFilter.addEventListener('change', filterData);
-        if (statusFilter) statusFilter.addEventListener('change', filterData);
 
         renderTable(allStudents);
+
+        // Delete handlers
+        tbody.addEventListener('click', async (e) => {
+          const deleteBtn = e.target.closest('.delete-btn');
+          if (deleteBtn) {
+            const id = deleteBtn.getAttribute('data-id');
+            if (confirm('Are you sure you want to delete this student and all related data (reports, payments)?')) {
+              try {
+                const deleteRelated = async (colName) => {
+                  const q = query(collection(db, colName), where("studentId", "==", id));
+                  const snap = await getDocs(q);
+                  const deletePromises = [];
+                  snap.forEach(docSnap => {
+                    deletePromises.push(deleteDoc(doc(db, colName, docSnap.id)));
+                  });
+                  await Promise.all(deletePromises);
+                };
+                await Promise.all([
+                  deleteRelated("progress_reports"),
+                  deleteRelated("payments"),
+                  deleteRelated("transactions")
+                ]);
+
+                await deleteDoc(doc(db, "students", id));
+                allStudents = allStudents.filter(s => s.id !== id);
+                filterData();
+              } catch (error) {
+                console.error("Error deleting student:", error);
+                alert("Failed to delete student.");
+              }
+            }
+          }
+        });
+
+        // Bulk delete logic
+        const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+        const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+
+        const updateBulkDeleteBtnVisibility = () => {
+          const anyChecked = document.querySelectorAll('.row-checkbox:checked').length > 0;
+          if (bulkDeleteBtn) bulkDeleteBtn.style.display = anyChecked ? 'flex' : 'none';
+        };
+
+        if (selectAllCheckbox) {
+          selectAllCheckbox.addEventListener('change', (e) => {
+            const checkboxes = document.querySelectorAll('.row-checkbox');
+            checkboxes.forEach(cb => cb.checked = e.target.checked);
+            updateBulkDeleteBtnVisibility();
+          });
+        }
+
+        tbody.addEventListener('change', (e) => {
+          if (e.target.classList.contains('row-checkbox')) {
+            updateBulkDeleteBtnVisibility();
+            if (selectAllCheckbox) {
+              const all = document.querySelectorAll('.row-checkbox').length;
+              const checked = document.querySelectorAll('.row-checkbox:checked').length;
+              selectAllCheckbox.checked = (all === checked && all > 0);
+            }
+          }
+        });
+
+        if (bulkDeleteBtn) {
+          bulkDeleteBtn.addEventListener('click', async () => {
+            const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
+            if (checkedBoxes.length === 0) return;
+            
+            if (confirm(`Are you sure you want to delete ${checkedBoxes.length} selected students and all their related data?`)) {
+              try {
+                for (const cb of checkedBoxes) {
+                  const id = cb.value;
+                  const deleteRelated = async (colName) => {
+                    const q = query(collection(db, colName), where("studentId", "==", id));
+                    const snap = await getDocs(q);
+                    const deletePromises = [];
+                    snap.forEach(docSnap => {
+                      deletePromises.push(deleteDoc(doc(db, colName, docSnap.id)));
+                    });
+                    await Promise.all(deletePromises);
+                  };
+                  await Promise.all([
+                    deleteRelated("progress_reports"),
+                    deleteRelated("payments"),
+                    deleteRelated("transactions")
+                  ]);
+
+                  await deleteDoc(doc(db, "students", id));
+                  allStudents = allStudents.filter(s => s.id !== id);
+                }
+                filterData();
+                if (selectAllCheckbox) selectAllCheckbox.checked = false;
+                updateBulkDeleteBtnVisibility();
+              } catch (error) {
+                console.error("Error deleting students:", error);
+                alert("Failed to delete some students.");
+              }
+            }
+          });
+        }
+
         
       } catch (error) {
         console.error("Error fetching students: ", error);

@@ -25,36 +25,52 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         const studentsRef = collection(db, "students");
         
-        // Search by studentId, phone, or whatsapp
+        // Search by studentId, phone, whatsapp, or admNo
         const q1 = query(studentsRef, where("studentId", "==", loginId));
         const q2 = query(studentsRef, where("phone", "==", loginId));
         const q3 = query(studentsRef, where("whatsapp", "==", loginId));
+        const q4 = query(studentsRef, where("admNo", "==", loginId));
 
-        const [snap1, snap2, snap3] = await Promise.all([
+        const [snap1, snap2, snap3, snap4] = await Promise.all([
           getDocs(q1),
           getDocs(q2),
-          getDocs(q3)
+          getDocs(q3),
+          getDocs(q4)
         ]);
 
-        let authenticated = false;
-        let studentDocId = null;
+        let matchedStudent = null;
 
-        const checkDoc = (doc) => {
-          if (!authenticated) {
-            authenticated = true;
-            studentDocId = doc.id;
+        const checkDoc = (docSnap) => {
+          if (!matchedStudent) {
+            matchedStudent = { id: docSnap.id, ...docSnap.data() };
           }
         };
 
         snap1.forEach(checkDoc);
         snap2.forEach(checkDoc);
         snap3.forEach(checkDoc);
+        snap4.forEach(checkDoc);
 
-        if (authenticated && studentDocId) {
-          sessionStorage.setItem('currentStudentId', studentDocId);
+        if (matchedStudent) {
+          // Check admission status - students must be accepted to enter the portal
+          const admissionStatus = (matchedStudent.admissionStatus || '').toLowerCase();
+          const hasAdmissionDate = matchedStudent.admissionDate && matchedStudent.admissionDate.trim() !== '' && matchedStudent.admissionDate !== '-';
+          const isAccepted = admissionStatus === 'accepted' || (!matchedStudent.admissionStatus && hasAdmissionDate);
+
+          if (!isAccepted) {
+            showError("Admission Pending: Your admission application has not been accepted yet. You can access the student portal once your admission is approved by administration.");
+            return;
+          }
+
+          if (matchedStudent.status === 'inactive' || matchedStudent.status === 'suspended') {
+            showError("Your account is currently inactive. Please contact administration.");
+            return;
+          }
+
+          sessionStorage.setItem('currentStudentId', matchedStudent.id);
           window.location.href = 'student-dashboard.html';
         } else {
-          showError();
+          showError("Invalid Abrar ID or Mobile Number.");
         }
 
       } catch (error) {

@@ -10,6 +10,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // Default to today
   document.getElementById('date').value = new Date().toISOString().split('T')[0];
 
+  // Auto-generate reference number
+  const refInput = document.getElementById('reference');
+  if (refInput && !refInput.value) {
+    refInput.value = 'EXP-' + Date.now().toString().slice(-6) + Math.floor(Math.random() * 1000);
+  }
+
   if (!form) return;
 
   form.addEventListener('submit', async (e) => {
@@ -22,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const transactionData = {
         date: document.getElementById('date').value,
         type: 'expense',
-        category: document.getElementById('category').value,
+        category: 'Uncategorized',
         description: document.getElementById('description').value,
         amount: parseFloat(document.getElementById('amount').value),
         paymentMethod: document.getElementById('paymentMethod').value,

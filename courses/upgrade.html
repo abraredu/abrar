@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Upgrade - ABRAR Management System</title>
+  <link rel="icon" type="image/png" href="../icon.png">
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    /* Tabs & Filters */
+    .tabs-wrapper {
+      display: flex;
+      gap: 0.5rem;
+      overflow-x: auto;
+      padding-bottom: 0.35rem;
+      scrollbar-width: thin;
+      -webkit-overflow-scrolling: touch;
+      align-items: center;
+    }
+    .tabs-wrapper::-webkit-scrollbar {
+      height: 4px;
+    }
+    .tabs-wrapper::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    
+    .course-tab-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.65rem 1.15rem;
+      background: #ffffff;
+      color: #475569;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all var(--transition-fast);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+    }
+    .course-tab-btn:hover {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+      color: #0f172a;
+    }
+    .course-tab-btn.active {
+      background: var(--color-primary);
+      border-color: var(--color-primary);
+      color: #ffffff;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(8, 122, 66, 0.22);
+    }
+    .course-tab-btn .tab-badge {
+      font-size: 0.725rem;
+      font-weight: 700;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      background: #f1f5f9;
+      color: #475569;
+      transition: all var(--transition-fast);
+    }
+    .course-tab-btn.active .tab-badge {
+      background: rgba(255, 255, 255, 0.25);
+      color: #ffffff;
+    }
+
+    .division-tab-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.45rem 0.95rem;
+      background: #f8fafc;
+      color: #475569;
+      border: 1px solid var(--color-border);
+      border-radius: 999px;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all var(--transition-fast);
+    }
+    .division-tab-btn:hover {
+      background: #f1f5f9;
+      border-color: #94a3b8;
+      color: #0f172a;
+    }
+    .division-tab-btn.active {
+      background: #0f172a;
+      border-color: #0f172a;
+      color: #ffffff;
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.18);
+    }
+    .division-tab-btn .tab-badge {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.1rem 0.45rem;
+      border-radius: 999px;
+      background: #e2e8f0;
+      color: #475569;
+    }
+    .division-tab-btn.active .tab-badge {
+      background: rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+    }
+
+    .level-pill-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.35rem 0.75rem;
+      background: #ffffff;
+      color: #64748b;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      font-size: 0.775rem;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all var(--transition-fast);
+    }
+    .level-pill-btn:hover {
+      background: #f8fafc;
+      color: #1e293b;
+      border-color: #cbd5e1;
+    }
+    .level-pill-btn.active {
+      background: #e6f4ea;
+      border-color: rgba(8, 122, 66, 0.4);
+      color: var(--color-primary);
+      font-weight: 600;
+    }
+    .level-pill-btn .tab-badge {
+      font-size: 0.675rem;
+      font-weight: 700;
+      padding: 0.1rem 0.4rem;
+      border-radius: 999px;
+      background: #f1f5f9;
+      color: #64748b;
+    }
+    .level-pill-btn.active .tab-badge {
+      background: var(--color-primary);
+      color: #ffffff;
+    }
+
+    /* Candidate Card */
+    .candidate-card {
+      background: var(--color-surface);
+      border: 1px solid #e2e8f0;
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      transition: all var(--transition-fast);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1rem;
+      position: relative;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+    .candidate-card:hover {
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+      border-color: #cbd5e1;
+      transform: translateY(-2px);
+    }
+    .candidate-card.selected {
+      border-color: var(--color-primary);
+      background: #fbfdfc;
+      box-shadow: 0 0 0 2px rgba(8, 122, 66, 0.15), 0 8px 20px -4px rgba(8, 122, 66, 0.08);
+    }
+    .bulk-bar {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #0f172a;
+      color: #ffffff;
+      padding: 0.85rem 1.5rem;
+      border-radius: 99px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.35);
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      z-index: 50;
+      animation: slideUp 0.25s ease-out;
+      border: 1px solid #334155;
+    }
+    @keyframes slideUp {
+      from { transform: translate(-50%, 100%); opacity: 0; }
+      to { transform: translate(-50%, 0); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <img src="../logo.png" alt="ABRAR Logo" style="height: 32px; width: auto;">
+        </div>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <a href="../dashboard.html" class="nav-item">
+          <i data-lucide="layout-dashboard"></i> Dashboard
+        </a>
+        <a href="../students/students.html" class="nav-item">
+          <i data-lucide="users"></i> Students
+        </a>
+        <div class="submenu">
+          <a href="../students/admission.html" class="submenu-item">Admission</a>
+        </div>
+        <a href="../courses/classes.html" class="nav-item active">
+          <i data-lucide="library"></i> Courses
+        </a>
+        <div class="submenu">
+          <a href="../courses/manage.html" class="submenu-item">Manage</a>
+          <a href="../courses/upgrade.html" class="submenu-item active" style="font-weight: 600; color: var(--color-primary);">Upgrade</a>
+        </div>
+        <a href="../tutors/tutors.html" class="nav-item">
+          <i data-lucide="graduation-cap"></i> Tutors
+        </a>
+        <a href="../finance/accounts.html" class="nav-item">
+          <i data-lucide="wallet"></i> Finance
+        </a>
+        <div class="submenu">
+          <a href="../finance/fees.html" class="submenu-item">Fees</a>
+          <a href="../finance/salaries.html" class="submenu-item">Salary</a>
+          <a href="../finance/accounts.html" class="submenu-item">Account</a>
+        </div>
+          <a href="../reports/progress.html" class="nav-item">
+            <i data-lucide="line-chart"></i> Progress
+          </a>
+        <div class="submenu">
+          <a href="../reports/data.html" class="submenu-item">Data</a>
+        </div>
+        
+        <a href="../assessments/assessments.html" class="nav-item">
+          <i data-lucide="clipboard-check"></i> Assessments
+        </a>
+        <a href="../reports/reports.html" class="nav-item">
+          <i data-lucide="bar-chart-3"></i> Reports
+        </a>
+        <a href="../notifications/notifications.html" class="nav-item">
+          <i data-lucide="bell"></i> Notifications
+        </a>
+        <a href="../messages/messages.html" class="nav-item">
+          <i data-lucide="mail"></i> Messages
+        </a>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <a href="../settings.html" class="nav-item">
+          <i data-lucide="settings"></i> Settings
+        </a>
+        <a href="#" id="logoutBtn" class="nav-item text-danger">
+          <i data-lucide="log-out"></i> Logout
+        </a>
+      </div>
+    </aside>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <main class="main-content">
+      <header class="top-header" style="border-bottom: 1px solid var(--color-border);">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobileMenuBtn">
+            <i data-lucide="menu"></i>
+          </button>
+          <div>
+            <div style="font-size: 0.875rem; color: var(--color-text-secondary); margin-bottom: 0.25rem;">
+              <a href="classes.html" style="color: inherit;">Courses</a> / Upgrade
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <div style="width: 40px; height: 40px; background-color: var(--color-primary-light, #E6F4EA); color: var(--color-primary); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center;">
+                <i data-lucide="trending-up"></i>
+              </div>
+              <h1 class="page-title">Student Class & Level Upgrade</h1>
+            </div>
+          </div>
+        </div>
+        <div class="header-right" style="display: flex; gap: 0.75rem; align-items: center;">
+          <button id="refreshBtn" class="btn btn-outline" style="background: white;" title="Refresh data">
+            <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i> Refresh
+          </button>
+          <button id="openBulkModalBtn" class="btn btn-primary" style="display: none;">
+            <i data-lucide="arrow-up-circle" style="width: 16px; height: 16px;"></i> Upgrade Selected (<span id="selectedCountBadge">0</span>)
+          </button>
+        </div>
+      </header>
+
+      <div class="page-content" style="padding-top: 1.5rem;">
+        
+        <!-- Primary Course Tabs -->
+        <div style="margin-bottom: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div>
+              <h2 style="font-size: 1.15rem; font-weight: 600; color: #0f172a; display: flex; align-items: center; gap: 0.5rem;">
+                <i data-lucide="book-marked" style="color: var(--color-primary); width: 20px; height: 20px;"></i>
+                Courses & Class Divisions
+              </h2>
+              <p style="font-size: 0.85rem; color: var(--color-text-secondary); margin-top: 0.15rem;">
+                Select an entered course and division below to view and upgrade candidates.
+              </p>
+            </div>
+            <div id="filterSummaryChip" style="display: none; align-items: center; gap: 0.5rem; background: #e6f4ea; border: 1px solid rgba(8,122,66,0.2); padding: 0.3rem 0.75rem; border-radius: 99px;">
+              <span style="font-size: 0.8rem; font-weight: 500; color: var(--color-primary);" id="filterSummaryText">Filtering</span>
+              <button id="resetAllFiltersBtn" style="background: none; border: none; color: var(--color-primary); cursor: pointer; font-size: 1rem; line-height: 1; padding: 0; font-weight: bold;" title="Clear filter">&times;</button>
+            </div>
+          </div>
+
+          <!-- Course Tabs Navigation -->
+          <div class="tabs-wrapper" id="courseTabsWrapper">
+            <div style="padding: 0.5rem 1rem; color: #64748b; font-size: 0.875rem;">Loading courses...</div>
+          </div>
+        </div>
+
+        <!-- Secondary Division Sub-Tabs (Per Division for Entered Courses) -->
+        <div class="card" id="divisionTabsContainer" style="margin-bottom: 1.25rem; padding: 0.875rem 1.25rem; background: #ffffff; border: 1px solid var(--color-border); border-radius: var(--radius-lg);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div style="display: flex; align-items: center; gap: 0.45rem; font-size: 0.8rem; font-weight: 600; color: #475569; text-transform: uppercase; letter-spacing: 0.03em;">
+              <i data-lucide="split" style="width: 15px; height: 15px; color: var(--color-primary);"></i>
+              <span id="divisionSectionTitle">Divisions:</span>
+            </div>
+            <span id="activeDivisionInfo" style="font-size: 0.8rem; color: #64748b;">All Divisions</span>
+          </div>
+          <div class="tabs-wrapper" id="divisionTabsWrapper">
+            <!-- Dynamically populated: [All Divisions] [Class 1] [Division A] ... -->
+          </div>
+        </div>
+
+        <!-- Level Pills & Search Toolbar -->
+        <div class="card" style="margin-bottom: 1.5rem; padding: 1rem 1.25rem; background: white;">
+          <!-- Class Level Filter Row -->
+          <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap;">
+            <span style="font-size: 0.8rem; font-weight: 600; color: #64748b; white-space: nowrap; display: flex; align-items: center; gap: 0.35rem;">
+              <i data-lucide="layers" style="width: 14px; height: 14px; color: var(--color-primary);"></i> Class Level:
+            </span>
+            <div class="tabs-wrapper" id="levelPillsWrapper" style="flex: 1;">
+              <!-- Dynamically populated: [All Levels (1)] [1st Class (0)] ... -->
+            </div>
+          </div>
+
+          <!-- Search and Selection Controls -->
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; border-top: 1px solid #f1f5f9; padding-top: 0.875rem;">
+            <div style="position: relative; flex: 1; max-width: 420px; min-width: 260px;">
+              <i data-lucide="search" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: #94a3b8;"></i>
+              <input type="text" id="searchInput" class="form-control" placeholder="Search candidate by name, admission no, phone..." style="padding-left: 2.25rem; height: 38px;">
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 1.25rem;">
+              <label style="display: flex; align-items: center; gap: 0.45rem; font-size: 0.875rem; font-weight: 500; cursor: pointer; user-select: none; color: #334155;">
+                <input type="checkbox" id="selectAllCheckbox" style="width: 16px; height: 16px; accent-color: var(--color-primary); cursor: pointer;">
+                <span>Select All Visible Candidates</span>
+              </label>
+
+              <button id="quickUpgradeSelectedBtn" class="btn btn-primary" style="display: none; padding: 0.45rem 1rem; font-size: 0.85rem;">
+                <i data-lucide="arrow-up-circle" style="width: 16px; height: 16px;"></i> Upgrade (<span id="quickSelectedCount">0</span>)
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Candidates Header & Count -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <div style="font-size: 0.95rem; font-weight: 600; color: #334155; display: flex; align-items: center; gap: 0.5rem;">
+            <span>Candidates List</span>
+            <span style="background: #e2e8f0; color: #334155; padding: 0.15rem 0.6rem; border-radius: 99px; font-size: 0.8rem; font-weight: 700;" id="candidateCountDisplay">0</span>
+          </div>
+          <div id="activeFilterBadge" style="display: none; background: #e6f4ea; color: var(--color-primary); font-size: 0.8rem; font-weight: 500; padding: 0.25rem 0.75rem; border-radius: 99px; align-items: center; gap: 0.4rem;">
+            <span>Filtered by: <strong id="filterNameDisplay">1st Class</strong></span>
+            <button id="clearLevelFilterBtn" style="background: none; border: none; color: inherit; cursor: pointer; font-size: 1rem; line-height: 1; padding: 0;">&times;</button>
+          </div>
+        </div>
+
+        <!-- Candidate Cards Grid -->
+        <div id="candidatesGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.25rem; margin-bottom: 4rem;">
+          <!-- Candidate cards injected by JS -->
+          <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; background: white; border-radius: var(--radius-lg); border: 1px solid var(--color-border); color: #64748b;">
+            Loading candidate students...
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Floating Bulk Action Bar -->
+  <div id="floatingBulkBar" class="bulk-bar" style="display: none;">
+    <div style="display: flex; align-items: center; gap: 0.5rem; font-weight: 600;">
+      <i data-lucide="check-square" style="width: 18px; height: 18px; color: #4ade80;"></i>
+      <span><span id="floatingSelectedCount">0</span> Selected</span>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 0.75rem;">
+      <button id="floatingUpgradeBtn" class="btn btn-primary" style="background: var(--color-primary); border-radius: 99px; padding: 0.5rem 1.25rem; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.4rem; box-shadow: 0 2px 8px rgba(8,122,66,0.3); border: none;">
+        <i data-lucide="trending-up" style="width: 16px; height: 16px;"></i>
+        <span id="floatingUpgradeBtnText">Upgrade to Next Level</span>
+      </button>
+
+      <button id="floatingCancelBtn" style="background: rgba(255,255,255,0.12); border: none; color: #cbd5e1; cursor: pointer; padding: 0.45rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" title="Clear selection">
+        <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Confirmation Modal for Single / Bulk Upgrade -->
+  <div id="confirmUpgradeModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 60; align-items: center; justify-content: center; backdrop-filter: blur(2px);">
+    <div class="card" style="width: 100%; max-width: 460px; margin: 1rem; position: relative;">
+      <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+        <div style="width: 44px; height: 44px; border-radius: 50%; background: #e6f4ea; color: var(--color-primary); display: flex; align-items: center; justify-content: center;">
+          <i data-lucide="trending-up" style="width: 22px; height: 22px;"></i>
+        </div>
+        <div>
+          <h2 style="font-size: 1.15rem; font-weight: 600; color: #0f172a;" id="confirmModalTitle">Confirm Student Upgrade</h2>
+          <p style="font-size: 0.85rem; color: #64748b;">Review promotion details before applying changes.</p>
+        </div>
+      </div>
+
+      <div id="confirmModalBody" style="background: #f8fafc; border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1.25rem;">
+        <!-- Modal Content Details -->
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+        <button type="button" class="btn btn-outline" id="cancelConfirmModalBtn">Cancel</button>
+        <button type="button" class="btn btn-primary" id="executeUpgradeBtn">Confirm & Upgrade</button>
+      </div>
+    </div>
+  </div>
+
+  <script>lucide.createIcons();</script>
+  <script type="module" src="../js/firebase-config.js"></script>
+  <script type="module" src="../js/layout.js"></script>
+  <script type="module" src="../js/upgrade.js"></script>
+</body>
+</html>

@@ -25,18 +25,37 @@
         <a href="../students/students.html" class="nav-item">
           <i data-lucide="users"></i> Students
         </a>
+        <div class="submenu">
+          <a href="../students/admission.html" class="submenu-item">Admission</a>
+        </div>
         <a href="../courses/classes.html" class="nav-item">
           <i data-lucide="library"></i> Courses
         </a>
+        <div class="submenu">
+          <a href="../courses/manage.html" class="submenu-item">Manage</a>
+          <a href="../courses/upgrade.html" class="submenu-item">Upgrade</a>
+        </div>
         <a href="../tutors/tutors.html" class="nav-item active">
           <i data-lucide="graduation-cap"></i> Tutors
         </a>
         <a href="../finance/accounts.html" class="nav-item">
           <i data-lucide="wallet"></i> Finance
         </a>
+        <div class="submenu">
+          <a href="../finance/fees.html" class="submenu-item">Fees</a>
+          <a href="../finance/salaries.html" class="submenu-item">Salary</a>
+          <a href="../finance/accounts.html" class="submenu-item">Account</a>
+        </div>
           <a href="../reports/progress.html" class="nav-item">
             <i data-lucide="line-chart"></i> Progress
           </a>
+        <div class="submenu">
+          <a href="../reports/data.html" class="submenu-item">Data</a>
+        </div>
+        
+        <a href="../assessments/assessments.html" class="nav-item">
+          <i data-lucide="clipboard-check"></i> Assessments
+        </a>
         <a href="../reports/reports.html" class="nav-item">
           <i data-lucide="bar-chart-3"></i> Reports
         </a>
@@ -66,9 +85,17 @@
           <button class="mobile-menu-btn" id="mobileMenuBtn">
             <i data-lucide="menu"></i>
           </button>
-          <h1 class="page-title">Tutors</h1>
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div style="width: 40px; height: 40px; background-color: var(--color-sidebar-active); color: var(--color-primary); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center;">
+              <i data-lucide="graduation-cap"></i>
+            </div>
+            <h1 class="page-title">Tutors</h1>
+          </div>
         </div>
         <div class="header-right" style="display:flex;gap:0.75rem;align-items:center;">
+          <button id="bulkDeleteBtn" class="btn" style="display:none; background:#ef4444; color:white; border:none; padding:0.5rem 1rem; border-radius:8px; font-weight:500; font-size:0.875rem; cursor:pointer; align-items:center; gap:0.4rem;">
+            <i data-lucide="trash-2" style="width:16px;height:16px;"></i> Delete Selected
+          </button>
           <button id="exportTutorsBtn" class="btn" style="border:1.5px solid var(--color-border);background:#fff;color:#475569;display:flex;align-items:center;gap:0.4rem;padding:0.5rem 1rem;border-radius:8px;font-weight:500;font-size:0.875rem;cursor:pointer;">
             <i data-lucide="download" style="width:16px;height:16px;"></i> Export CSV
           </button>
@@ -95,35 +122,35 @@
         </div>
         
         <!-- Filters & Search -->
-        <div class="card" style="margin-bottom: 1.5rem;">
-          <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-            <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 200px;">
-              <input type="text" id="searchInput" class="form-control" placeholder="Search by name, ID, phone...">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+          <div class="filter-tabs" style="display: flex; gap: 0.5rem;" id="statusTabs">
+            <button class="btn btn-primary filter-tab active" data-status="">ALL</button>
+            <button class="btn btn-outline filter-tab" data-status="active">ACTIVE</button>
+            <button class="btn btn-outline filter-tab" data-status="inactive">INACTIVE</button>
+          </div>
+          
+          <div style="display: flex; gap: 0.75rem; align-items: center;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <input type="text" id="searchInput" class="form-control" placeholder="Search tutors..." style="padding-left: 1rem; height: 38px;">
             </div>
             <div class="form-group" style="margin-bottom: 0;">
-              <select id="typeFilter" class="form-control">
+              <select id="typeFilter" class="form-control" style="height: 38px;">
                 <option value="">All Types</option>
                 <option value="madrasa_individual">Madrasa Individual</option>
                 <option value="madrasa_group">Madrasa Group</option>
                 <option value="quran_recitation">Qur'an Recitation</option>
               </select>
             </div>
-            <div class="form-group" style="margin-bottom: 0;">
-              <select id="statusFilter" class="form-control">
-                <option value="">All Statuses</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-            </div>
           </div>
         </div>
         
         <!-- Table -->
-        <div class="card" style="overflow-x: auto;">
+        <div class="card" style="overflow-x: auto; border: none; box-shadow: none; padding: 0;">
           <div class="table-responsive">
-<table style="width: 100%; text-align: left; border-collapse: collapse;">
+<table style="width: 100%; text-align: left; border-collapse: collapse; border-top: 1px solid var(--color-border);">
             <thead>
-              <tr style="border-bottom: 1px solid var(--color-border);">
+              <tr style="border-bottom: 1px solid var(--color-border); background-color: transparent;">
+                <th style="padding: 0.75rem; width: 40px;"><input type="checkbox" id="selectAllCheckbox"></th>
                 <th style="padding: 0.75rem; font-weight: 600; color: var(--color-text-secondary);">Tutor</th>
                 <th style="padding: 0.75rem; font-weight: 600; color: var(--color-text-secondary);">ID</th>
                 <th style="padding: 0.75rem; font-weight: 600; color: var(--color-text-secondary);">Type</th>
@@ -134,7 +161,7 @@
               </tr>
             </thead>
             <tbody id="tutorsTableBody">
-              <tr><td colspan="7" style="text-align: center; padding: 2rem;">Loading...</td></tr>
+              <tr><td colspan="8" style="text-align: center; padding: 2rem;">Loading...</td></tr>
             </tbody>
           </table>
 </div>

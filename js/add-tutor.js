@@ -3,10 +3,21 @@ import { toast } from './toast.js';
 import { db, auth } from './firebase-config.js';
 import { collection, doc, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { uploadToCloudinary } from './cloudinary-config.js';
+import { loadManagedCourses, renderTutorTypeCheckboxes } from './course-types.js';
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   const form = document.getElementById('addTutorForm');
   const submitBtn = document.getElementById('submitBtn');
+  const typeContainer = document.getElementById('tutorTypeCheckboxes');
+
+  // Load course types from Manage Courses
+  let allCourses = [];
+  try {
+    allCourses = await loadManagedCourses();
+  } catch (err) {
+    console.error('Error loading courses:', err);
+  }
+  renderTutorTypeCheckboxes(typeContainer, allCourses);
 
 
   form.addEventListener('submit', async (e) => {
@@ -42,10 +53,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // Determine prefix based on the primary tutorType
-    let prefix = 'MO'; // Madrasa One-to-One
-    if (tutorType.includes('madrasa_group')) prefix = 'MG';
-    else if (tutorType.includes('quran_recitation')) prefix = 'AQR';
-    if (tutorType.includes('madrasa_individual')) prefix = 'MO';
+    const typesLower = tutorType.map(t => String(t).toLowerCase());
+    const has = (...keys) => typesLower.some(t => keys.some(k => t.includes(k)));
+    let prefix = '';
+    if (has('madrasa_individual', 'individual', 'one-to-one', 'one to one')) prefix = 'MO';
+    else if (has('madrasa_group', 'group')) prefix = 'MG';
+    else if (has('quran', "qur'an", 'recitation')) prefix = 'AQR';
+    if (!prefix) {
+      // New course types: use course serial without trailing digits (e.g. "AS001" -> "AS")
+      const firstCourse = allCourses.find(c => c.courseName === tutorType[0]);
+      prefix = (firstCourse && String(firstCourse.serialNo || '').trim().toUpperCase().replace(/\d+$/, '')) || 'TU';
+    }
 
     try {
       const counterRef = doc(db, 'counters', 'tutors');
@@ -75,8 +93,8 @@ document.addEventListener('DOMContentLoaded', () => {
           address: document.getElementById('address').value,
           tutorType: tutorType,
           joiningDate: document.getElementById('joiningDate').value,
-          loginUsername: (document.getElementById('loginUsername') && document.getElementById('loginUsername').value.trim()) ? document.getElementById('loginUsername').value.trim() : formattedId,
-          loginPassword: document.getElementById('loginPassword') ? document.getElementById('loginPassword').value : '',
+          loginUsername: (document.getElementById('loginUsername') && document.getElementById('loginUsername').value.trim()) ? document.getElementById('loginUsername').value.trim() : 'AGM',
+          loginPassword: (document.getElementById('loginPassword') && document.getElementById('loginPassword').value) ? document.getElementById('loginPassword').value : document.getElementById('phone').value,
           status: 'active',
           photoUrl: photoUrl,
           idDocumentUrl: idDocumentUrl,

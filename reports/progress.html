@@ -142,174 +142,273 @@
     }
 
     /* Modern Report Design CSS */
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Open+Sans:wght@400;600;700&display=swap');
 
-    /* ── Minimal Report Card ── */
     .modern-report {
-      background-color: #ffffff;
-      color: #1F2937;
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #f8fafc;
+      color: #334155;
+      font-family: 'Open Sans', sans-serif;
       position: relative;
       overflow: hidden;
       padding: 0;
-      border-radius: 12px;
-      box-shadow: 0 4px 24px rgba(8,122,66,0.10);
-      border: 1.5px solid #E6F4EA;
+      border-radius: 0px;
+      border: 1px solid #e2e8f0;
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
     }
 
-    .modern-report-header {
-      background-color: #087A42;
+    .report-top-header {
+      background-color: #115e59;
       color: white;
-      padding: 1.75rem 2rem;
+      padding: 2.5rem 2.5rem 3.5rem 2.5rem;
       display: flex;
-      align-items: center;
-      gap: 1.25rem;
-      border-radius: 10px 10px 0 0;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
     }
-    .modern-report-header img {
-      height: 44px;
-      width: auto;
-      background: white;
-      padding: 4px 8px;
-      border-radius: 6px;
+    
+    .report-top-header::after {
+      content: '';
+      position: absolute;
+      bottom: -40px;
+      left: -10%;
+      width: 120%;
+      height: 80px;
+      background: #f8fafc;
+      border-radius: 50%;
+      border-top: 8px solid #d97706;
     }
-    .modern-report-header-text {
-      display: flex;
-      flex-direction: column;
+
+    .report-top-left, .report-top-right {
+      position: relative;
+      z-index: 2;
     }
-    .modern-report-title {
-      font-size: 1.25rem;
-      font-weight: 700;
-      margin: 0;
+
+    .brand-title {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 2.5rem;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: 1px;
+    }
+    .brand-subtitle {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 500;
       letter-spacing: 0.5px;
-    }
-    .modern-report-subtitle {
-      font-size: 0.8rem;
-      color: #B9F5D0;
-      font-weight: 400;
-      margin-top: 2px;
+      margin-top: 5px;
     }
 
-    .modern-report-body {
-      padding: 1.75rem 2rem;
+    .report-title-main, .report-title-sub {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 700;
+      line-height: 1.1;
+      text-transform: uppercase;
+    }
+    .report-title-motto {
+      font-size: 0.9rem;
+      color: #fcd34d;
+      margin-top: 8px;
+      font-weight: 600;
     }
 
-    /* Info grid */
-    .info-grid {
+    .report-main-body {
+      padding: 1.5rem 2.5rem 0rem 2.5rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    .report-section-box {
+      background: white;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .student-info-box {
+      display: flex;
+      justify-content: space-between;
+      border-color: #94a3b8;
+    }
+    .info-col-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #0f766e;
+      margin-bottom: 0.25rem;
+      text-transform: uppercase;
+    }
+    .info-col-val {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #334155;
+    }
+
+    .report-grid-2 {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 0;
-      border: 1.5px solid #E5E7EB;
-      border-radius: 8px;
-      overflow: hidden;
-      margin-bottom: 1.5rem;
-    }
-    .info-cell {
-      padding: 0.65rem 1rem;
-      border-right: 1.5px solid #E5E7EB;
-      border-bottom: 1.5px solid #E5E7EB;
-    }
-    .info-cell:nth-child(2n) { border-right: none; }
-    .info-cell:nth-last-child(-n+2) { border-bottom: none; }
-    .info-label {
-      font-size: 0.7rem;
-      font-weight: 600;
-      color: #6B7280;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 2px;
-    }
-    .info-value {
-      font-size: 0.95rem;
-      font-weight: 600;
-      color: #1F2937;
+      gap: 1.25rem;
     }
 
-    /* Section heading */
-    .section-heading {
-      font-size: 0.7rem;
+    .section-title {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.1rem;
       font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      color: #087A42;
-      margin-bottom: 0.5rem;
-      padding-bottom: 0.35rem;
-      border-bottom: 2px solid #E6F4EA;
-    }
-
-    /* Ratings table */
-    .modern-table-container {
-      margin-bottom: 1.5rem;
-    }
-    .modern-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    .modern-table th {
-      font-size: 0.7rem;
-      font-weight: 700;
-      color: #6B7280;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      padding: 0.5rem 0.75rem;
-      background: #F9FAFB;
-      border-bottom: 1.5px solid #E5E7EB;
-      text-align: left;
-    }
-    .modern-table td {
-      padding: 0.65rem 0.75rem;
-      border-bottom: 1px solid #F3F4F6;
-      font-size: 0.9rem;
-      color: #374151;
-      font-weight: 500;
-    }
-    .modern-table tr:last-child td { border-bottom: none; }
-    .modern-table td:last-child {
-      font-weight: 700;
-      color: #087A42;
-    }
-
-    /* Remarks blocks */
-    .remarks-block {
+      color: #0f766e;
+      margin-top: 0;
       margin-bottom: 1rem;
-      padding: 0.75rem 1rem;
-      background: #F9FAFB;
-      border-left: 3px solid #087A42;
-      border-radius: 0 6px 6px 0;
+      text-transform: uppercase;
     }
-    .remarks-block .info-label { margin-bottom: 4px; }
-    .remarks-block .info-value {
+
+    .attendance-boxes {
+      display: flex;
+      gap: 1rem;
+      justify-content: space-between;
+    }
+    .att-box {
+      background: #f0fdfa;
+      border-radius: 8px;
+      padding: 0.75rem;
+      text-align: center;
+      flex: 1;
+      border: 1px solid #ccfbf1;
+    }
+    .att-label {
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: #64748b;
+      line-height: 1.2;
+      margin-bottom: 0.5rem;
+    }
+    .att-val {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #0f766e;
+    }
+
+    .progress-col {
+      text-align: center;
+      flex-shrink: 0;
+      width: 150px;
+    }
+    .flex-row { display: flex; gap: 1rem; }
+    .align-center { align-items: center; }
+
+    .circular-progress {
+      width: 110px; height: 110px;
+      border-radius: 50%;
+      background: conic-gradient(#d97706 0% 80%, #cbd5e1 80% 100%);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto;
+    }
+    .circle-inner {
+      width: 85px; height: 85px;
+      background: white;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .inner-text {
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: #0f766e;
+    }
+    .inner-stars {
+      color: #d97706;
       font-size: 0.9rem;
-      font-weight: 400;
-      color: #374151;
+      margin-top: 2px;
+    }
+    .progress-remark {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #334155;
       line-height: 1.5;
     }
 
-    /* Footer */
-    .report-footer {
-      margin-top: 1.5rem;
-      padding-top: 1rem;
-      border-top: 1.5px solid #E6F4EA;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    .perf-table {
+      width: 100%;
+      border-collapse: collapse;
     }
-    .report-footer-brand {
-      font-size: 0.75rem;
-      color: #9CA3AF;
+    .perf-table th {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #64748b;
+      text-align: left;
+      padding-bottom: 0.75rem;
+    }
+    .perf-table td {
+      padding: 0.75rem 0;
+      font-size: 0.9rem;
+      color: #475569;
+      font-weight: 500;
+      border-top: 1px solid #f1f5f9;
+    }
+    .text-right { text-align: right !important; }
+
+    .rating-stars { color: #d97706; font-size: 1rem; letter-spacing: 2px; }
+
+    .remark-pill {
+      background: #f0fdfa;
+      color: #0f766e;
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 0.4rem 0.8rem;
+      border-radius: 99px;
+      text-transform: uppercase;
+    }
+    .remark-pill.needs-imp {
+      background: #fef2f2;
+      color: #b91c1c;
+    }
+
+    .topics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem 1.5rem;
+    }
+    .topic-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #334155;
+    }
+    .topic-bullet {
+      color: #d97706;
+      font-size: 1.2rem;
+      line-height: 1;
+    }
+
+    .obs-text {
+      font-size: 0.85rem;
+      color: #475569;
+      line-height: 1.6;
       font-weight: 500;
     }
-    .report-footer-sign {
-      font-size: 0.75rem;
-      color: #9CA3AF;
-      text-align: right;
+
+    .report-footer-section {
+      background: #115e59;
+      color: white;
+      text-align: center;
+      padding: 1.25rem;
+      margin-top: 1rem;
     }
-    .report-footer-sign span {
-      display: block;
-      width: 100px;
-      border-top: 1px solid #D1D5DB;
-      padding-top: 4px;
-      margin-top: 24px;
+    .footer-remark {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      letter-spacing: 0.5px;
+    }
+    .footer-brand {
+      font-size: 0.75rem;
+      font-weight: 400;
+      color: #ccfbf1;
     }
 
     @media print {
@@ -334,18 +433,37 @@
         <a href="../students/students.html" class="nav-item">
           <i data-lucide="users"></i> Students
         </a>
+        <div class="submenu">
+          <a href="../students/admission.html" class="submenu-item">Admission</a>
+        </div>
         <a href="../courses/classes.html" class="nav-item">
           <i data-lucide="library"></i> Courses
         </a>
+        <div class="submenu">
+          <a href="../courses/manage.html" class="submenu-item">Manage</a>
+          <a href="../courses/upgrade.html" class="submenu-item">Upgrade</a>
+        </div>
         <a href="../tutors/tutors.html" class="nav-item">
           <i data-lucide="graduation-cap"></i> Tutors
         </a>
         <a href="../finance/accounts.html" class="nav-item">
           <i data-lucide="wallet"></i> Finance
         </a>
+        <div class="submenu">
+          <a href="../finance/fees.html" class="submenu-item">Fees</a>
+          <a href="../finance/salaries.html" class="submenu-item">Salary</a>
+          <a href="../finance/accounts.html" class="submenu-item">Account</a>
+        </div>
           <a href="../reports/progress.html" class="nav-item">
             <i data-lucide="line-chart"></i> Progress
           </a>
+        <div class="submenu">
+          <a href="../reports/data.html" class="submenu-item">Data</a>
+        </div>
+        
+        <a href="../assessments/assessments.html" class="nav-item">
+          <i data-lucide="clipboard-check"></i> Assessments
+        </a>
         <a href="../reports/reports.html" class="nav-item active">
           <i data-lucide="bar-chart-3"></i> Reports
         </a>
@@ -381,192 +499,162 @@
 
       <div class="page-content">
         <div id="reportContainer" class="card">
-          <div class="report-header">
-            <img src="../logo.png" alt="ABRAR Logo">
-            <div class="report-title">Monthly Progress Report</div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+            <h2 style="margin: 0; font-size: 1.25rem;">Submitted Progress Reports</h2>
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+              <input type="month" id="filterMonth" class="form-control" style="width: auto;">
+              <input type="text" id="filterStudent" class="form-control" placeholder="Search student..." style="width: auto;">
+            </div>
           </div>
-
-          <form id="progressForm">
-            
-            <div class="report-section">
-              <h4><i data-lucide="smile"></i> Student Details</h4>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                <div class="form-group">
-                  <label class="form-label">Student Name</label>
-                  <input type="text" id="studentName" class="form-control" required placeholder="Enter student name...">
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Report Month</label>
-                  <input type="month" id="reportMonth" class="form-control" required>
-                </div>
-              </div>
+          
+          <div style="overflow-x: auto;">
+            <div class="table-responsive">
+              <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                <thead style="background: var(--color-background); border-bottom: 2px solid var(--color-border);">
+                  <tr>
+                    <th style="padding: 1rem; font-weight: 600; color: var(--color-text-secondary);">Student Name</th>
+                    <th style="padding: 1rem; font-weight: 600; color: var(--color-text-secondary);">Month</th>
+                    <th style="padding: 1rem; font-weight: 600; color: var(--color-text-secondary);">Tutor</th>
+                    <th style="padding: 1rem; font-weight: 600; color: var(--color-text-secondary);">Attendance</th>
+                    <th style="padding: 1rem; font-weight: 600; color: var(--color-text-secondary);">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="adminReportsTableBody">
+                  <tr><td colspan="5" style="padding: 2rem; text-align: center; color: var(--color-text-secondary);">Loading reports...</td></tr>
+                </tbody>
+              </table>
             </div>
-
-            <div class="report-section">
-              <h4><i data-lucide="calendar"></i> 1. Attendance</h4>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                <div class="form-group">
-                  <label class="form-label">Classes Conducted</label>
-                  <input type="number" id="classesConducted" class="form-control" min="0" required>
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Classes Attended</label>
-                  <input type="number" id="classesAttended" class="form-control" min="0" required>
-                </div>
-              </div>
-            </div>
-
-            <div class="report-section">
-              <h4><i data-lucide="star"></i> 2. Performance & Progress Ratings</h4>
-              
-              <div class="rating-group">
-                <div class="rating-label">Live Class Performance</div>
-                <div class="rating-desc">Overall participation, confidence, attentiveness, and response during live classes.</div>
-                <div style="display: flex; gap: 1rem; margin-top: 0.5rem; flex-wrap: wrap;">
-                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="liveClassPerf" value="Excellent" required> Excellent</label>
-                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="liveClassPerf" value="Very Good"> Very Good</label>
-                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="liveClassPerf" value="Good"> Good</label>
-                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="liveClassPerf" value="Needs Improvement"> Needs Improvement</label>
-                </div>
-              </div>
-
-              <div class="rating-group">
-                <div class="rating-label">Lesson Progress</div>
-                <div class="rating-desc">Progress made according to the monthly syllabus and learning objectives.</div>
-                <div style="display: flex; gap: 1rem; margin-top: 0.5rem; flex-wrap: wrap;">
-                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="lessonProgress" value="Excellent" required> Excellent</label>
-                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="lessonProgress" value="Very Good"> Very Good</label>
-                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="lessonProgress" value="Good"> Good</label>
-                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="lessonProgress" value="Needs Improvement"> Needs Improvement</label>
-                </div>
-              </div>
-
-              <div class="rating-group">
-                <div class="rating-label">Revision & Homework</div>
-                <div class="rating-desc">Regularity in revision and completion of assigned work.</div>
-                <div style="display: flex; gap: 1rem; margin-top: 0.5rem; flex-wrap: wrap;">
-                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="revisionHomework" value="Excellent" required> Excellent</label>
-                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="revisionHomework" value="Very Good"> Very Good</label>
-                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="revisionHomework" value="Good"> Good</label>
-                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="revisionHomework" value="Needs Improvement"> Needs Improvement</label>
-                </div>
-              </div>
-
-              <div class="rating-group">
-                <div class="rating-label">Classroom Activities & Participation</div>
-                <div class="rating-desc">Participation in discussions, oral responses, classroom activities, and practical tasks.</div>
-                <div style="display: flex; gap: 1rem; margin-top: 0.5rem; flex-wrap: wrap;">
-                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="classActivities" value="Excellent" required> Excellent</label>
-                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="classActivities" value="Very Good"> Very Good</label>
-                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="classActivities" value="Good"> Good</label>
-                  <label style="display: flex; align-items: center; gap: 0.3rem;"><input type="radio" name="classActivities" value="Needs Improvement"> Needs Improvement</label>
-                </div>
-              </div>
-            </div>
-
-            <div class="report-section">
-              <h4><i data-lucide="award"></i> 3. Topics & Remarks</h4>
-              
-              <div class="form-group">
-                <label class="form-label">Topics Covered This Month</label>
-                <div class="rating-desc">The mentor manually enters the lessons or chapters completed during the month. (e.g. Surah Al-Mulk, Fiqh - Lesson 3, etc.)</div>
-                <textarea id="topicsCovered" class="form-control" required placeholder="Enter topics covered..."></textarea>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">Mentor's Remarks</label>
-                <div class="rating-desc">A brief summary (2-3 sentences) highlighting the student's overall progress, strengths, and areas for improvement.</div>
-                <textarea id="mentorRemarks" class="form-control" required placeholder="Enter remarks..."></textarea>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">Recommendation to Parents</label>
-                <div class="rating-desc">A short and practical suggestion to help support the student's learning at home.</div>
-                <textarea id="recommendations" class="form-control" required placeholder="Enter recommendations..."></textarea>
-              </div>
-            </div>
-
-            <div style="display: flex; justify-content: flex-end; gap: 1rem;" class="no-print">
-              <button type="button" id="printBtn" class="btn btn-primary">
-                <i data-lucide="download"></i> Download PDF
-              </button>
-            </div>
-          </form>
+          </div>
         </div>
 
         <!-- Hidden report layout for printing -->
         <div class="modern-report" id="printableReport" style="display: none;">
-
-          <div class="modern-report-header">
-            <img src="../logo.png" alt="ABRAR Logo">
-            <div class="modern-report-header-text">
-              <h2 class="modern-report-title">Student Report Card</h2>
-              <div class="modern-report-subtitle">ABRAR Online Islamic School &mdash; Monthly Progress Report</div>
+          <div class="report-top-header">
+            <div class="report-top-left">
+              <div class="brand-title">ABRAR</div>
+              <div class="brand-subtitle">ONLINE ISLAMIC SCHOOL</div>
+            </div>
+            <div class="report-top-right">
+              <div class="report-title-main">MONTHLY</div>
+              <div class="report-title-sub">PROGRESS REPORT</div>
+              <div class="report-title-motto">Faith • Knowledge • Character</div>
             </div>
           </div>
 
-          <div class="modern-report-body">
-
-            <div class="info-grid">
-              <div class="info-cell">
-                <div class="info-label">Student Name</div>
-                <div class="info-value" id="vStudentName">&mdash;</div>
+          <div class="report-main-body">
+            
+            <div class="report-section-box student-info-box">
+              <div class="info-col">
+                <div class="info-col-label">STUDENT NAME</div>
+                <div class="info-col-val" id="vStudentName">—</div>
               </div>
-              <div class="info-cell">
-                <div class="info-label">Report Month</div>
-                <div class="info-value" id="vReportMonth">&mdash;</div>
+              <div class="info-col">
+                <div class="info-col-label">COURSE</div>
+                <div class="info-col-val" id="vCourse">—</div>
               </div>
-              <div class="info-cell">
-                <div class="info-label">Classes Conducted</div>
-                <div class="info-value" id="vClassesConducted">&mdash;</div>
+              <div class="info-col">
+                <div class="info-col-label">MENTOR</div>
+                <div class="info-col-val" id="vMentor">—</div>
               </div>
-              <div class="info-cell">
-                <div class="info-label">Classes Attended</div>
-                <div class="info-value" id="vClassesAttended">&mdash;</div>
+              <div class="info-col">
+                <div class="info-col-label">MONTH</div>
+                <div class="info-col-val" id="vReportMonth">—</div>
               </div>
             </div>
 
-            <div class="section-heading">Performance Ratings</div>
-            <div class="modern-table-container">
-              <div class="table-responsive">
-<table class="modern-table">
+            <div class="report-grid-2">
+              <div class="report-section-box">
+                <h3 class="section-title">1. ATTENDANCE</h3>
+                <div class="attendance-boxes">
+                  <div class="att-box">
+                    <div class="att-label">CLASSES<br>CONDUCTED</div>
+                    <div class="att-val" id="vClassesConducted">—</div>
+                  </div>
+                  <div class="att-box">
+                    <div class="att-label">CLASSES<br>ATTENDED</div>
+                    <div class="att-val" id="vClassesAttended">—</div>
+                  </div>
+                  <div class="att-box">
+                    <div class="att-label">ATTENDANCE<br>PERCENTAGE</div>
+                    <div class="att-val" id="vAttendancePct">—</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="report-section-box flex-row align-center">
+                <div class="progress-col">
+                  <h3 class="section-title">OVERALL PROGRESS</h3>
+                  <div class="circular-progress">
+                     <div class="circle-inner">
+                       <div class="inner-text">VERY GOOD</div>
+                       <div class="inner-stars">★★★★☆</div>
+                     </div>
+                  </div>
+                </div>
+                <div class="progress-remark">
+                   Good progress! Keep practising regularly and continue working on areas that need improvement.
+                </div>
+              </div>
+            </div>
+
+            <div class="report-section-box">
+              <h3 class="section-title">2. PERFORMANCE SUMMARY</h3>
+              <table class="perf-table">
                 <thead>
                   <tr>
-                    <th>Area</th>
-                    <th>Rating</th>
+                    <th>AREA</th>
+                    <th>RATING</th>
+                    <th class="text-right">REMARKS</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr><td>Live Class Performance</td><td id="vLiveClass">&mdash;</td></tr>
-                  <tr><td>Lesson Progress</td><td id="vLessonProgress">&mdash;</td></tr>
-                  <tr><td>Revision &amp; Homework</td><td id="vRevision">&mdash;</td></tr>
-                  <tr><td>Classroom Activities</td><td id="vActivities">&mdash;</td></tr>
+                  <tr>
+                    <td>Live Class Performance</td>
+                    <td class="rating-stars" id="vLiveClassStars">★★★★☆</td>
+                    <td class="text-right"><span class="remark-pill" id="vLiveClassRemark">VERY GOOD</span></td>
+                  </tr>
+                  <tr>
+                    <td>Learning Progress</td>
+                    <td class="rating-stars" id="vLessonProgressStars">★★★★☆</td>
+                    <td class="text-right"><span class="remark-pill" id="vLessonProgressRemark">VERY GOOD</span></td>
+                  </tr>
+                  <tr>
+                    <td>Revision &amp; Homework</td>
+                    <td class="rating-stars" id="vRevisionStars">★★★★☆</td>
+                    <td class="text-right"><span class="remark-pill" id="vRevisionRemark">VERY GOOD</span></td>
+                  </tr>
+                  <tr>
+                    <td>Quran Recitation</td>
+                    <td class="rating-stars" id="vActivitiesStars">★★★★☆</td>
+                    <td class="text-right"><span class="remark-pill" id="vActivitiesRemark">VERY GOOD</span></td>
+                  </tr>
                 </tbody>
               </table>
-</div>
             </div>
 
-            <div class="section-heading">Remarks</div>
-            <div class="remarks-block">
-              <div class="info-label">Topics Covered This Month</div>
-              <div class="info-value" id="vTopics">&mdash;</div>
-            </div>
-            <div class="remarks-block">
-              <div class="info-label">Mentor's Remarks</div>
-              <div class="info-value" id="vRemarks">&mdash;</div>
-            </div>
-            <div class="remarks-block">
-              <div class="info-label">Recommendations to Parents</div>
-              <div class="info-value" id="vRecommendations">&mdash;</div>
-            </div>
-
-            <div class="report-footer">
-              <div class="report-footer-brand">ABRAR Online Islamic School</div>
-              <div class="report-footer-sign">
-                <span>Authorised Signature</span>
+            <div class="report-section-box">
+              <h3 class="section-title">3. TOPICS COVERED THIS MONTH</h3>
+              <div class="topics-grid" id="vTopicsList">
+                 <div class="topic-item"><span class="topic-bullet">&bull;</span> <span id="vTopics">—</span></div>
               </div>
             </div>
 
+            <div class="report-grid-2">
+              <div class="report-section-box">
+                <h3 class="section-title">4. MENTOR'S OBSERVATION</h3>
+                <div class="obs-text" id="vRemarks">—</div>
+              </div>
+              <div class="report-section-box">
+                <h3 class="section-title">5. RECOMMENDATION TO PARENTS</h3>
+                <div class="obs-text" id="vRecommendations">—</div>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="report-footer-section">
+            <div class="footer-remark">FINAL REMARK &bull; VERY GOOD</div>
+            <div class="footer-brand">ABRAR ONLINE ISLAMIC SCHOOL &bull; Together We Nurture Faith, Knowledge &amp; Character</div>
           </div>
         </div>
       </div>
@@ -596,23 +684,63 @@
 
       // Populate printableReport with form values
       document.getElementById('vStudentName').innerText = document.getElementById('studentName').value || '-';
+      const courseEl = document.getElementById('vCourse'); if(courseEl) courseEl.innerText = '-';
+      const mentorEl = document.getElementById('vMentor'); if(mentorEl) mentorEl.innerText = '-';
       document.getElementById('vReportMonth').innerText = document.getElementById('reportMonth').value || '-';
-      document.getElementById('vClassesConducted').innerText = document.getElementById('classesConducted').value || '-';
-      document.getElementById('vClassesAttended').innerText = document.getElementById('classesAttended').value || '-';
+      
+      const conducted = parseInt(document.getElementById('classesConducted').value || 0);
+      const attended = parseInt(document.getElementById('classesAttended').value || 0);
+      document.getElementById('vClassesConducted').innerText = conducted;
+      document.getElementById('vClassesAttended').innerText = attended;
+      const pctEl = document.getElementById('vAttendancePct');
+      if(pctEl) pctEl.innerText = conducted > 0 ? Math.round((attended/conducted)*100) + '%' : '-';
+      
+      const getStarsAndRemark = (rating) => {
+        rating = (rating || '').toLowerCase();
+        if (rating.includes('excellent') || rating.includes('very good')) {
+          return { stars: '★★★★☆', remark: 'VERY GOOD', cls: '' };
+        } else if (rating.includes('good') || rating.includes('satisfactory')) {
+          return { stars: '★★★☆☆', remark: 'GOOD', cls: '' };
+        } else if (rating.includes('poor') || rating.includes('improve')) {
+          return { stars: '★★☆☆☆', remark: 'NEED IMPROVEMENT', cls: 'needs-imp' };
+        }
+        return { stars: '★★★★☆', remark: 'VERY GOOD', cls: '' };
+      };
+
+      const setRatingRow = (idPrefix, ratingVal) => {
+         const info = getStarsAndRemark(ratingVal);
+         const starsEl = document.getElementById(idPrefix + 'Stars');
+         const remarkEl = document.getElementById(idPrefix + 'Remark');
+         if (starsEl) starsEl.textContent = info.stars;
+         if (remarkEl) {
+           remarkEl.textContent = info.remark;
+           remarkEl.className = 'remark-pill ' + info.cls;
+         }
+      };
       
       const liveClass = document.querySelector('input[name="liveClassPerf"]:checked');
-      document.getElementById('vLiveClass').innerText = liveClass ? liveClass.value : '-';
+      setRatingRow('vLiveClass', liveClass ? liveClass.value : '-');
       
       const lessonProgress = document.querySelector('input[name="lessonProgress"]:checked');
-      document.getElementById('vLessonProgress').innerText = lessonProgress ? lessonProgress.value : '-';
+      setRatingRow('vLessonProgress', lessonProgress ? lessonProgress.value : '-');
       
       const revision = document.querySelector('input[name="revisionHomework"]:checked');
-      document.getElementById('vRevision').innerText = revision ? revision.value : '-';
+      setRatingRow('vRevision', revision ? revision.value : '-');
       
       const activities = document.querySelector('input[name="classActivities"]:checked');
-      document.getElementById('vActivities').innerText = activities ? activities.value : '-';
+      setRatingRow('vActivities', activities ? activities.value : '-');
       
-      document.getElementById('vTopics').innerText = document.getElementById('topicsCovered').value || '-';
+      const topics = document.getElementById('topicsCovered').value || '-';
+      const topicsList = document.getElementById('vTopicsList');
+      if (topicsList) {
+        const splitTopics = topics.split('\\n').filter(t => t.trim() !== '');
+        if (splitTopics.length > 0) {
+          topicsList.innerHTML = splitTopics.map(t => `<div class="topic-item"><span class="topic-bullet">&bull;</span> <span>${t}</span></div>`).join('');
+        } else {
+          topicsList.innerHTML = `<div class="topic-item"><span class="topic-bullet">&bull;</span> <span>${topics}</span></div>`;
+        }
+      }
+      
       document.getElementById('vRemarks').innerText = document.getElementById('mentorRemarks').value || '-';
       document.getElementById('vRecommendations').innerText = document.getElementById('recommendations').value || '-';
 

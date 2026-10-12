@@ -14,9 +14,11 @@
   --color-danger: #DC2626;
   --color-warning: #D97706;
   --color-success: #16A34A;
+  --color-success-bg: #E6F4EA;
   
   --color-sidebar-bg: #FFFFFF;
   --color-sidebar-hover: #F3F4F6;
+  --color-sidebar-item-text: #1F2937;
   --color-sidebar-active: #E6F4EA;
   --color-sidebar-active-text: #087A42;
 
@@ -29,9 +31,9 @@
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   
   /* Border Radius */
-  --radius-sm: 0.75rem;
-  --radius-md: 1.5rem;
-  --radius-lg: 2rem;
+  --radius-sm: 0.25rem; /* 4px */
+  --radius-md: 0.5rem;  /* 8px */
+  --radius-lg: 0.75rem; /* 12px */
   --radius-pill: 9999px;
   
   /* Transitions */

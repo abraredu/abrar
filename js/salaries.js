@@ -12,14 +12,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   const salaryModal = document.getElementById('salaryModal');
   const salaryForm = document.getElementById('salaryForm');
   const closeModalBtn = document.getElementById('closeSalaryModalBtn');
-  const payAdjustmentInput = document.getElementById('payAdjustment');
-  const payFinalAmountDisplay = document.getElementById('payFinalAmount');
+
   
   let currentTutors = [];
-  let currentStudents = []; // Needed for per_student calculation
+  let currentStudents = [];
   let currentSalaryPayments = [];
   let currentMonthlyClasses = {};
-  let currentRoleSalaries = [];
+  let currentSalaryConfigs = [];
 
   // Initialize Month Selector to Current Month
   const now = new Date();
@@ -30,7 +29,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const formatter = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' });
 
   async function loadSalaryData() {
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem;">Loading...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 2rem;">Loading...</td></tr>';
     const selectedMonth = monthSelector.value;
     
     try {
@@ -61,11 +60,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         currentMonthlyClasses[data.tutorId] = data;
       });
 
-      // Fetch Tutor Role Salaries configured in Salary Control for this month
-      const roleSalariesQ = query(collection(db, "tutorRoleSalaries"), where("month", "==", selectedMonth));
-      const roleSalariesSnap = await getDocs(roleSalariesQ);
-      currentRoleSalaries = [];
-      roleSalariesSnap.forEach(doc => currentRoleSalaries.push({ id: doc.id, ...doc.data() }));
+      // Fetch tutorSalaryConfigs
+      const configsQ = query(collection(db, "tutorSalaryConfigs"), where("month", "==", selectedMonth));
+      const configsSnap = await getDocs(configsQ);
+      currentSalaryConfigs = [];
+      configsSnap.forEach(doc => currentSalaryConfigs.push({ id: doc.id, ...doc.data() }));
 
       renderTable();
     } catch (error) {
@@ -82,34 +81,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     let pendingTutorsCount = 0;
 
     const rowsHtml = currentTutors.map(tutor => {
-      // Determine base calculated amount and salary model display
+      // Determine base calculated amount
       let calculatedAmount = 0;
-      let salaryModelStr = '';
-
-      const tutorRoleConfigs = currentRoleSalaries.filter(r => r.tutorId === tutor.id);
-
-      if (tutorRoleConfigs.length > 0) {
-        const modelParts = tutorRoleConfigs.map(r => {
-          let rAmount = 0;
-          if (r.salaryType === 'fixed_monthly') {
-            rAmount = r.rate || 0;
-          } else if (r.salaryType === 'per_student') {
-            const studentCount = currentStudents.filter(s => s.tutorId === tutor.id).length;
-            rAmount = (studentCount > 0 ? studentCount : 1) * (r.rate || 0);
-          } else if (r.salaryType === 'per_class') {
-            const classData = currentMonthlyClasses[tutor.id];
-            const classCount = classData && classData.classCount > 0 ? classData.classCount : 1;
-            rAmount = classCount * (r.rate || 0);
-          }
-          calculatedAmount += rAmount;
-          const typeName = (r.salaryType || 'unspecified').replace('_', ' ');
-          return `${typeName} (₹${r.rate || 0})`;
-        });
-        salaryModelStr = modelParts.join(', ');
+      
+      const tutorConfigs = currentSalaryConfigs.filter(c => c.tutorId === tutor.id);
+      if (tutorConfigs.length > 0) {
+        calculatedAmount = tutorConfigs.reduce((sum, c) => sum + (c.amount || 0), 0);
       } else {
         if (tutor.salaryType === 'fixed_monthly') {
           calculatedAmount = tutor.salaryRate || 0;
         } else if (tutor.salaryType === 'per_student') {
+          // Count active students assigned to this tutor
           const studentCount = currentStudents.filter(s => s.tutorId === tutor.id).length;
           calculatedAmount = studentCount * (tutor.salaryRate || 0);
         } else if (tutor.salaryType === 'per_class') {
@@ -117,7 +99,6 @@ document.addEventListener('DOMContentLoaded', async () => {
           const classCount = classData ? classData.classCount : 0;
           calculatedAmount = classCount * (tutor.salaryRate || 0);
         }
-        salaryModelStr = `${(tutor.salaryType || 'unspecified').replace('_', ' ')} (₹${tutor.salaryRate || 0})`;
       }
       
       // Look for existing salary payment records for this month
@@ -126,7 +107,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       // Total paid so far
       const alreadyPaid = tutorPayments.reduce((sum, p) => sum + (p.paidAmount || 0), 0);
       
-      // Fetch latest adjustment
+      // Fetch latest adjustment (if multiple, sum them or just take latest for display)
       const adjustment = tutorPayments.reduce((sum, p) => sum + (p.adjustment || 0), 0);
       
       const finalAmount = calculatedAmount + adjustment;
@@ -135,7 +116,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       let status = 'Pending';
       if (alreadyPaid >= finalAmount && finalAmount > 0) status = 'Paid';
       else if (alreadyPaid > 0) status = 'Partial';
-      else if (finalAmount === 0 && tutor.salaryType !== 'per_class' && tutorRoleConfigs.length === 0) status = 'Zero';
+      else if (finalAmount === 0 && tutor.salaryType !== 'per_class') status = 'Zero';
 
       if (status !== 'Paid' && status !== 'Zero') {
         pendingTutorsCount++;
@@ -154,8 +135,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         ? `<span style="background: var(--color-sidebar-hover); color: var(--color-text-secondary); padding: 0.25rem 0.5rem; border-radius: 99px; font-size: 0.75rem; font-weight: 500;">None</span>`
         : `<span style="background: #FEF2F2; color: var(--color-danger); padding: 0.25rem 0.5rem; border-radius: 99px; font-size: 0.75rem; font-weight: 500;">Pending</span>`;
 
-      const payBtnClass = status === 'Paid' ? 'btn-outline' : 'btn-primary';
-      const payBtnText = status === 'Paid' ? 'Pay More' : 'Pay';
+      let typeLabel = '-';
+      if (tutor.tutorType) {
+        const types = Array.isArray(tutor.tutorType) ? tutor.tutorType : [tutor.tutorType];
+        typeLabel = types.map(t => {
+          return t === 'madrasa_individual' ? 'Madrasa Individual' : 
+                 t === 'madrasa_group' ? 'Madrasa Group' : 
+                 t === 'quran_recitation' ? "Qur'an Recitation" : t;
+        }).join(', ');
+      }
 
       return `
         <tr style="border-bottom: 1px solid var(--color-border);">
@@ -163,20 +151,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             <div style="font-weight: 500;">${tutor.name}</div>
             <div style="font-size: 0.75rem; color: var(--color-text-secondary);">${tutor.tutorId}</div>
           </td>
-          <td style="padding: 0.75rem;">${salaryModelStr}</td>
-          <td style="padding: 0.75rem;">${formatter.format(calculatedAmount)}</td>
-          <td style="padding: 0.75rem;">${adjustment !== 0 ? formatter.format(adjustment) : '-'}</td>
-          <td style="padding: 0.75rem; font-weight:600;">${formatter.format(finalAmount)}</td>
+          <td style="padding: 0.75rem;">${typeLabel}</td>
           <td style="padding: 0.75rem; color: ${alreadyPaid > 0 ? 'var(--color-success)' : 'inherit'};">${formatter.format(alreadyPaid)}</td>
           <td style="padding: 0.75rem;">${statusBadge}</td>
           <td style="padding: 0.75rem;">
-            <button class="btn ${payBtnClass} pay-btn" data-id="${tutor.id}" data-calc="${calculatedAmount}" data-paid="${alreadyPaid}" style="font-size: 0.75rem; padding: 0.25rem 0.6rem;">${payBtnText}</button>
+            ${balance > 0 || (tutor.salaryType === 'per_class' && status !== 'Paid') ? `<button class="btn btn-outline pay-btn" data-id="${tutor.id}" data-calc="${calculatedAmount}" data-paid="${alreadyPaid}" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">Pay</button>` : `<span style="font-size:0.75rem; color: var(--color-text-secondary);">Settled</span>`}
           </td>
         </tr>
       `;
     }).join('');
 
-    tbody.innerHTML = rowsHtml || '<tr><td colspan="8" style="text-align: center; padding: 2rem;">No matching tutors found.</td></tr>';
+    tbody.innerHTML = rowsHtml || '<tr><td colspan="5" style="text-align: center; padding: 2rem;">No matching tutors found.</td></tr>';
     
     document.getElementById('statCalculated').textContent = formatter.format(totalCalculated);
     document.getElementById('statPaid').textContent = formatter.format(totalPaid);
@@ -192,39 +177,32 @@ document.addEventListener('DOMContentLoaded', async () => {
   let currentPayAlreadyPaid = 0;
 
   tbody.addEventListener('click', (e) => {
-    const payBtn = e.target.closest('.pay-btn');
-    if (payBtn) {
-      const tutorId = payBtn.getAttribute('data-id');
-      currentPayCalcAmount = parseFloat(payBtn.getAttribute('data-calc')) || 0;
-      currentPayAlreadyPaid = parseFloat(payBtn.getAttribute('data-paid')) || 0;
+    if (e.target.classList.contains('pay-btn')) {
+      const tutorId = e.target.getAttribute('data-id');
+      currentPayCalcAmount = parseFloat(e.target.getAttribute('data-calc')) || 0;
+      currentPayAlreadyPaid = parseFloat(e.target.getAttribute('data-paid')) || 0;
       openSalaryModal(tutorId);
     }
   });
 
-  const payAmountInput = document.getElementById('payAmount');
-
-  function updateFinalAmount(fromPayAmount = false) {
-    let adjustment = parseFloat(payAdjustmentInput.value) || 0;
-    
-    if (fromPayAmount) {
-      const payAmount = parseFloat(payAmountInput.value) || 0;
-      adjustment = (payAmount + currentPayAlreadyPaid) - currentPayCalcAmount;
-      payAdjustmentInput.value = adjustment;
+  function updateFinalAmount() {
+    const configsContainer = document.getElementById('paymentConfigsContainer');
+    if (configsContainer.style.display === 'block') {
+        const checkboxes = document.querySelectorAll('#paymentConfigsList input[type="checkbox"]:not(:disabled)');
+        let selectedTotal = 0;
+        checkboxes.forEach(cb => {
+           if (cb.checked) {
+              selectedTotal += parseFloat(cb.dataset.amount) || 0;
+           }
+        });
+        document.getElementById('payAmount').value = selectedTotal;
+        document.getElementById('payAmount').max = selectedTotal;
+    } else {
+        const finalAmount = currentPayCalcAmount;
+        const balance = finalAmount - currentPayAlreadyPaid;
+        document.getElementById('payAmount').value = Math.max(0, balance);
+        document.getElementById('payAmount').max = Math.max(0, balance);
     }
-    
-    const finalAmount = currentPayCalcAmount + adjustment;
-    const balance = finalAmount - currentPayAlreadyPaid;
-    
-    payFinalAmountDisplay.textContent = formatter.format(finalAmount);
-    
-    if (!fromPayAmount) {
-      payAmountInput.value = Math.max(0, balance) || '';
-    }
-  }
-
-  payAdjustmentInput.addEventListener('input', () => updateFinalAmount(false));
-  if (payAmountInput) {
-    payAmountInput.addEventListener('input', () => updateFinalAmount(true));
   }
 
   function openSalaryModal(tutorDocId) {
@@ -236,12 +214,57 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('payTutorIdDisplay').textContent = tutor.tutorId;
     document.getElementById('payCalculated').textContent = formatter.format(currentPayCalcAmount);
     
-    document.getElementById('payAdjustment').value = 0;
-    if (payAmountInput) {
-      payAmountInput.removeAttribute('max');
+    const tutorConfigs = currentSalaryConfigs.filter(c => c.tutorId === tutorDocId);
+    const tutorPayments = currentSalaryPayments.filter(p => p.tutorId === tutorDocId);
+    const paidConfigIds = new Set();
+    tutorPayments.forEach(p => {
+       if (p.paidConfigIds) {
+          p.paidConfigIds.forEach(id => paidConfigIds.add(id));
+       }
+    });
+
+    const configsContainer = document.getElementById('paymentConfigsContainer');
+    const configsList = document.getElementById('paymentConfigsList');
+    configsList.innerHTML = '';
+    
+    if (tutorConfigs.length > 0) {
+       configsContainer.style.display = 'block';
+       tutorConfigs.forEach(c => {
+          const isPaid = paidConfigIds.has(c.id);
+          const student = currentStudents.find(s => s.id === c.studentId);
+          const studentName = student ? student.name : 'Unknown Student';
+          const lbl = document.createElement('label');
+          lbl.style.display = 'flex';
+          lbl.style.alignItems = 'center';
+          lbl.style.gap = '0.5rem';
+          lbl.style.padding = '0.5rem';
+          lbl.style.background = 'white';
+          lbl.style.borderRadius = '4px';
+          lbl.style.border = '1px solid var(--color-border)';
+          lbl.style.cursor = isPaid ? 'not-allowed' : 'pointer';
+          lbl.style.opacity = isPaid ? '0.6' : '1';
+          
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.value = c.id;
+          checkbox.dataset.amount = c.amount;
+          if (isPaid) {
+             checkbox.checked = true;
+             checkbox.disabled = true;
+          } else {
+             checkbox.checked = true;
+             checkbox.addEventListener('change', updateFinalAmount);
+          }
+          
+          lbl.appendChild(checkbox);
+          lbl.appendChild(document.createTextNode(`${studentName} - ${formatter.format(c.amount)} ${isPaid ? '(Paid)' : ''}`));
+          configsList.appendChild(lbl);
+       });
+    } else {
+       configsContainer.style.display = 'none';
     }
     
-    updateFinalAmount(false);
+    updateFinalAmount();
 
     salaryModal.style.display = 'flex';
   }
@@ -259,31 +282,41 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const tutorDocId = document.getElementById('payTutorId').value;
     const payAmount = parseFloat(document.getElementById('payAmount').value);
-    const adjustment = parseFloat(document.getElementById('payAdjustment').value) || 0;
+    const adjustment = 0;
     const payMethod = document.getElementById('payMethod').value;
     const payDate = document.getElementById('payDate').value;
     const month = monthSelector.value;
     
-    const finalAmount = currentPayCalcAmount + adjustment;
+    const finalAmount = currentPayCalcAmount;
 
     const tutor = currentTutors.find(t => t.id === tutorDocId);
+    
+    const configsContainer = document.getElementById('paymentConfigsContainer');
+    const selectedConfigIds = [];
+    if (configsContainer.style.display === 'block') {
+       const checkboxes = document.querySelectorAll('#paymentConfigsList input[type="checkbox"]:not(:disabled)');
+       checkboxes.forEach(cb => {
+          if (cb.checked) selectedConfigIds.push(cb.value);
+       });
+    }
 
     try {
       await runTransaction(db, async (transaction) => {
         // 1. Create Salary Payment Record
         const salaryPaymentRef = doc(collection(db, 'salaryPayments'));
         const salaryData = {
-          tutorId: tutorDocId || '',
-          month: month || '',
-          salaryType: (tutor && tutor.salaryType) || 'unspecified',
-          rate: (tutor && tutor.salaryRate) !== undefined ? tutor.salaryRate : 0,
-          calculatedAmount: currentPayCalcAmount || 0,
-          adjustment: adjustment || 0,
-          finalAmount: finalAmount || 0,
-          paidAmount: payAmount || 0,
-          paymentMethod: payMethod || 'UPI',
-          paymentDate: payDate || '',
+          tutorId: tutorDocId,
+          month: month,
+          salaryType: tutor.salaryType || 'custom',
+          rate: tutor.salaryRate || 0,
+          calculatedAmount: currentPayCalcAmount,
+          adjustment: adjustment,
+          finalAmount: finalAmount,
+          paidAmount: payAmount,
+          paymentMethod: payMethod,
+          paymentDate: payDate,
           status: 'paid', // Record status is paid, overall tutor month status computed
+          paidConfigIds: selectedConfigIds,
           createdAt: serverTimestamp(),
           createdBy: auth.currentUser ? auth.currentUser.uid : 'system'
         };

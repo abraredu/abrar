@@ -4,6 +4,7 @@ import {
   collection, doc, runTransaction, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { loadManagedCourses, escapeHtml } from './course-types.js';
 
 // ── CSV Template columns ──
 const TUTOR_TEMPLATE_HEADERS = [
@@ -11,8 +12,8 @@ const TUTOR_TEMPLATE_HEADERS = [
   'tutorType', 'joiningDate', 'loginUsername', 'status'
 ];
 
-// tutorType valid values (comma-separated in CSV)
-const VALID_TUTOR_TYPES = ['madrasa_individual', 'madrasa_group', 'quran_recitation'];
+// Fallback tutorType values (used only if no courses exist in Manage Courses)
+const LEGACY_TUTOR_TYPES = ['madrasa_individual', 'madrasa_group', 'quran_recitation'];
 
 const STATUS_OPTIONS = [
   { value: 'active',   label: 'Active' },
@@ -20,6 +21,44 @@ const STATUS_OPTIONS = [
 ];
 
 const REQUIRED_FIELDS = ['name', 'phone', 'tutorType'];
+
+// Courses from "Manage Courses" (managed_courses collection)
+let allCourses = [];
+const coursesReady = loadManagedCourses()
+  .then(list => { allCourses = list; })
+  .catch(err => console.error('Error loading courses:', err));
+
+const getValidTutorTypes = () =>
+  allCourses.length ? allCourses.map(c => c.courseName) : LEGACY_TUTOR_TYPES;
+
+const normText = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+// Map a single CSV value (course name, serial no, or old alias) to a course name
+function matchCourseName(raw) {
+  const v = String(raw || '').trim();
+  if (!v) return '';
+  const n = normText(v);
+
+  if (!allCourses.length) {
+    // Legacy fallback
+    if (['madrasagrc', 'madrasagroup', 'group'].includes(n)) return 'madrasa_group';
+    if (['madrasaind', 'madrasaindividual', 'individual', 'onetoone', 'madrasaonetoone'].includes(n)) return 'madrasa_individual';
+    if (['quran', 'quranrecitation', 'recitation', 'tarteel'].includes(n)) return 'quran_recitation';
+    return v;
+  }
+
+  // Exact name / serial number match (ignoring case, spaces, hyphens)
+  let c = allCourses.find(c => normText(c.courseName) === n || (c.serialNo && normText(c.serialNo) === n));
+  if (c) return c.courseName;
+
+  // Old aliases → closest course
+  const findBy = (...kws) => allCourses.find(c => kws.every(k => normText(c.courseName).includes(k)));
+  if (['madrasaind', 'madrasaindividual', 'individual', 'onetoone', 'madrasaonetoone', 'madrassaonetoone'].includes(n)) c = findBy('madras', 'one');
+  else if (['madrasagrc', 'madrasagroup', 'group', 'madrassagroup'].includes(n)) c = findBy('madras', 'group');
+  else if (['school', 'schoolindividual', 'schoolonetoone', 'shoolonetoone', 'shool'].includes(n)) c = findBy('hool', 'one') || findBy('hool');
+  else if (['quran', 'quranrecitation', 'recitation', 'tarteel'].includes(n)) c = findBy('tarteel') || findBy('quran') || findBy('recitation');
+  return c ? c.courseName : v;
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   const uploadZone      = document.getElementById('uploadZone');
@@ -60,11 +99,14 @@ document.addEventListener('DOMContentLoaded', () => {
   setStep(1);
 
   // ── Download CSV Template ──
-  downloadBtn.addEventListener('click', () => {
+  downloadBtn.addEventListener('click', async () => {
+    await coursesReady;
+    const types = getValidTutorTypes();
+    const t = i => types[i % types.length] || '';
     const sampleRows = [
-      ['AM025', 'Umar Farouq', '9876543210', '9876543210', 'umar@example.com', 'Kozhikode', 'madrasa_individual', '2025-01-10', 'umar.farouq', 'active'],
-      ['MG007', 'Fatima Hassan', '9123456789', '', 'fatima@example.com', 'Calicut', 'madrasa_group,quran_recitation', '2025-03-01', 'fatima.h', 'active'],
-      ['AQR021', 'Ibrahim Saad', '9988776655', '9988776655', '', 'Malappuram', 'quran_recitation', '2025-05-15', 'ibrahim.s', 'active']
+      ['', 'Umar Farouq', '9876543210', '9876543210', 'umar@example.com', 'Kozhikode', t(0), '2025-01-10', 'umar.farouq', 'active'],
+      ['', 'Fatima Hassan', '9123456789', '', 'fatima@example.com', 'Calicut', types.length > 1 ? `${t(1)}, ${t(types.length - 1)}` : t(0), '2025-03-01', 'fatima.h', 'active'],
+      ['', 'Ibrahim Saad', '9988776655', '9988776655', '', 'Malappuram', t(2), '2025-05-15', 'ibrahim.s', 'active']
     ];
     const header = TUTOR_TEMPLATE_HEADERS.join(',');
     const csvContent = [header, ...sampleRows.map(r => r.map(v => `"${v}"`).join(','))].join('\n');
@@ -102,21 +144,15 @@ document.addEventListener('DOMContentLoaded', () => {
     return `${yyyy}-${mm}-${dd}`;
   }
 
+  // Normalize comma/semicolon/pipe-separated tutor types to course names
   function normalizeTutorType(val) {
     if (!val) return '';
-    return val.split(',').map(t => {
-      const cleanType = t.trim().toLowerCase();
-      if (cleanType === 'madrasa_grc' || cleanType === 'madrasa_group' || cleanType === 'group' || cleanType === 'madrasagroup') {
-        return 'madrasa_group';
-      }
-      if (cleanType === 'madrasa_ind' || cleanType === 'madrasa_individual' || cleanType === 'individual' || cleanType === 'one_to_one' || cleanType === 'madrasa_one_to_one' || cleanType === 'madrasaindividual') {
-        return 'madrasa_individual';
-      }
-      if (cleanType === 'quran' || cleanType === 'quran_recitation' || cleanType === 'recitation' || cleanType === 'quranrecitation') {
-        return 'quran_recitation';
-      }
-      return t.trim();
-    }).join(', ');
+    const out = [];
+    String(val).split(/[,;|]/).forEach(t => {
+      const name = matchCourseName(t);
+      if (name && !out.includes(name)) out.push(name);
+    });
+    return out.join(', ');
   }
 
   // ── Parse CSV ──
@@ -178,7 +214,8 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
+      await coursesReady;
       const parsed = parseCSV(e.target.result);
       rows = parsed.map(r => ({ ...r }));
       fileNameDisplay.textContent = `✓ ${file.name} — ${rows.length} row(s) loaded`;
@@ -197,9 +234,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     if (row.phone && !/^\d{7,15}$/.test(row.phone.trim())) errors.phone = 'Invalid phone';
     if (row.tutorType) {
+      const valid = getValidTutorTypes();
       const types = row.tutorType.split(',').map(t => t.trim());
-      const invalid = types.filter(t => t && !VALID_TUTOR_TYPES.includes(t));
-      if (invalid.length > 0) errors.tutorType = 'Invalid type(s): ' + invalid.join(', ');
+      const invalid = types.filter(t => t && !valid.includes(t));
+      if (invalid.length > 0) errors.tutorType = 'Unknown course(s): ' + invalid.join(', ');
     }
     return errors;
   }
@@ -236,7 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { key: 'address',       type: 'text' },
         { key: 'tutorType',     type: 'tutortype' }, // special multi-type
         { key: 'joiningDate',   type: 'text', placeholder: 'YYYY-MM-DD' },
-        { key: 'loginUsername', type: 'text', placeholder: 'Defaults to ID' },
+        { key: 'loginUsername', type: 'text', placeholder: 'Defaults to AGM' },
         { key: 'status',        type: 'select', options: STATUS_OPTIONS }
       ];
 
@@ -244,22 +282,37 @@ document.addEventListener('DOMContentLoaded', () => {
         const td = document.createElement('td');
 
         if (type === 'tutortype') {
-          // Render as a compact text field showing comma-separated values
-          // (simpler than 3 checkboxes in a tiny table cell — user can type directly)
-          const input = document.createElement('input');
-          input.type  = 'text';
-          input.value = row[key] || '';
-          input.placeholder = 'madrasa_individual';
-          input.title = errors[key] || 'Comma-separated: madrasa_individual, madrasa_group, quran_recitation';
-          if (errors[key]) input.classList.add('field-error');
-          input.addEventListener('change', () => {
-            rows[idx][key] = normalizeTutorType(input.value);
-            input.value = rows[idx][key];
-            updateAndRevalidateRow(idx, tr, tdNum);
-            const newErrors = validateRow(rows[idx]);
-            input.classList.toggle('field-error', !!newErrors[key]);
+          // Course checkboxes (from Manage Courses)
+          td.classList.add('tutor-type-cell');
+          const box = document.createElement('div');
+          box.style.cssText = 'display:flex;flex-direction:column;gap:0.25rem;padding:0.3rem 0.4rem;border-radius:5px;border:1px solid transparent;';
+          if (errors[key]) { box.style.borderColor = '#f87171'; box.style.background = '#fff5f5'; }
+          box.title = errors[key] || '';
+
+          const selected = (row[key] || '').split(',').map(t => t.trim()).filter(Boolean);
+          const valid = getValidTutorTypes();
+          // Show all courses + any unknown values so the user can untick them
+          const options = [...valid, ...selected.filter(s => !valid.includes(s))];
+
+          options.forEach(opt => {
+            const label = document.createElement('label');
+            const isUnknown = !valid.includes(opt);
+            label.innerHTML = `<input type="checkbox" style="width:auto;min-width:0;margin:0;"> <span${isUnknown ? ' style="color:#dc2626;text-decoration:line-through;"' : ''}>${escapeHtml(opt)}</span>`;
+            const cb = label.querySelector('input');
+            cb.value = opt;
+            cb.checked = selected.includes(opt);
+            cb.addEventListener('change', () => {
+              const checked = Array.from(box.querySelectorAll('input:checked')).map(c => c.value);
+              rows[idx][key] = checked.join(', ');
+              updateAndRevalidateRow(idx, tr, tdNum);
+              const newErrors = validateRow(rows[idx]);
+              box.style.borderColor = newErrors[key] ? '#f87171' : 'transparent';
+              box.style.background  = newErrors[key] ? '#fff5f5' : 'transparent';
+              box.title = newErrors[key] || '';
+            });
+            box.appendChild(label);
           });
-          td.appendChild(input);
+          td.appendChild(box);
         } else if (type === 'select') {
           const input = document.createElement('select');
           const emptyOpt = document.createElement('option');
@@ -349,7 +402,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ── Add blank row ──
-  addRowBtn.addEventListener('click', () => {
+  addRowBtn.addEventListener('click', async () => {
+    await coursesReady;
     const todayStr = getTodayDateString();
     rows.push({ tutorId:'', name:'', phone:'', whatsapp:'', email:'', address:'', tutorType:'', joiningDate: todayStr, loginUsername:'', status:'active' });
     renderPreview();
@@ -396,17 +450,24 @@ document.addEventListener('DOMContentLoaded', () => {
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
 
-        // Parse tutorType (comma-separated string → array)
+        // Parse tutorType (comma-separated string → array of course names)
+        const validTypes = getValidTutorTypes();
         const tutorTypeArr = (row.tutorType || '')
           .split(',')
           .map(t => t.trim())
-          .filter(t => VALID_TUTOR_TYPES.includes(t));
+          .filter(t => validTypes.includes(t));
 
-        // Determine prefix
-        let prefix = 'MO';
-        if (tutorTypeArr.includes('madrasa_individual')) prefix = 'MO';
-        if (tutorTypeArr.includes('madrasa_group'))      prefix = 'MG';
-        if (tutorTypeArr.includes('quran_recitation'))   prefix = 'AQR';
+        // Determine prefix (same rules as Add Tutor form)
+        const typesLower = tutorTypeArr.map(t => String(t).toLowerCase());
+        const has = (...keys) => typesLower.some(t => keys.some(k => t.includes(k)));
+        let prefix = '';
+        if (has('madrasa_individual', 'individual', 'one-to-one', 'one to one')) prefix = 'MO';
+        else if (has('madrasa_group', 'group')) prefix = 'MG';
+        else if (has('quran', "qur'an", 'recitation')) prefix = 'AQR';
+        if (!prefix) {
+          const firstCourse = allCourses.find(c => c.courseName === tutorTypeArr[0]);
+          prefix = (firstCourse && String(firstCourse.serialNo || '').trim().toUpperCase().replace(/\d+$/, '')) || 'TU';
+        }
 
         const counterRef = doc(db, 'counters', 'tutors');
         const newId = await runTransaction(db, async (transaction) => {
@@ -435,8 +496,8 @@ document.addEventListener('DOMContentLoaded', () => {
             address:       row.address || '',
             tutorType:     tutorTypeArr,
             joiningDate:   row.joiningDate || '',
-            loginUsername: (row.loginUsername && row.loginUsername.trim()) ? row.loginUsername.trim() : formattedId,
-            loginPassword: '',
+            loginUsername: (row.loginUsername && row.loginUsername.trim()) ? row.loginUsername.trim() : 'AGM',
+            loginPassword: row.phone || '',
             status:        row.status || 'active',
             photoUrl:      null,
             idDocumentUrl: null,

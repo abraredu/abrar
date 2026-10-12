@@ -77,23 +77,58 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         // Populate Modal
         document.getElementById('vStudentName').textContent = report.studentName;
+        document.getElementById('vCourse').textContent = report.courseType || 'MADRASA ONE TO ONE';
+        document.getElementById('vMentor').textContent = report.tutorName || '-';
         
         const dObj = new Date(report.reportMonth + '-01');
         const formattedMonth = dObj.toLocaleString('default', { month: 'long', year: 'numeric' });
         document.getElementById('vReportMonth').textContent = formattedMonth;
         
-        const topEl = document.getElementById('vReportMonthTop');
-        if (topEl) topEl.textContent = formattedMonth;
+        const conducted = parseInt(report.attendance?.conducted || 0);
+        const attended = parseInt(report.attendance?.attended || 0);
+        document.getElementById('vClassesConducted').textContent = conducted;
+        document.getElementById('vClassesAttended').textContent = attended;
+        document.getElementById('vAttendancePct').textContent = conducted > 0 ? Math.round((attended/conducted)*100) + '%' : '-';
         
-        document.getElementById('vClassesConducted').textContent = report.attendance?.conducted || '-';
-        document.getElementById('vClassesAttended').textContent = report.attendance?.attended || '-';
+        const getStarsAndRemark = (rating) => {
+          rating = (rating || '').toLowerCase();
+          if (rating.includes('excellent') || rating.includes('very good')) {
+            return { stars: '★★★★☆', remark: 'VERY GOOD', cls: '' };
+          } else if (rating.includes('good') || rating.includes('satisfactory')) {
+            return { stars: '★★★☆☆', remark: 'GOOD', cls: '' };
+          } else if (rating.includes('poor') || rating.includes('improve')) {
+            return { stars: '★★☆☆☆', remark: 'NEED IMPROVEMENT', cls: 'needs-imp' };
+          }
+          return { stars: '★★★★☆', remark: 'VERY GOOD', cls: '' };
+        };
+
+        const setRatingRow = (idPrefix, ratingVal) => {
+           const info = getStarsAndRemark(ratingVal);
+           const starsEl = document.getElementById(idPrefix + 'Stars');
+           const remarkEl = document.getElementById(idPrefix + 'Remark');
+           if (starsEl) starsEl.textContent = info.stars;
+           if (remarkEl) {
+             remarkEl.textContent = info.remark;
+             remarkEl.className = 'remark-pill ' + info.cls;
+           }
+        };
+
+        setRatingRow('vLiveClass', report.ratings?.liveClassPerformance);
+        setRatingRow('vLessonProgress', report.ratings?.lessonProgress);
+        setRatingRow('vRevision', report.ratings?.revisionHomework);
+        setRatingRow('vActivities', report.ratings?.classActivities);
         
-        document.getElementById('vLiveClass').textContent = report.ratings?.liveClassPerformance || '-';
-        document.getElementById('vLessonProgress').textContent = report.ratings?.lessonProgress || '-';
-        document.getElementById('vRevision').textContent = report.ratings?.revisionHomework || '-';
-        document.getElementById('vActivities').textContent = report.ratings?.classActivities || '-';
+        const topicsList = document.getElementById('vTopicsList');
+        if (topicsList) {
+          const topics = report.remarks?.topicsCovered || '-';
+          const splitTopics = topics.split('\\n').filter(t => t.trim() !== '');
+          if (splitTopics.length > 0) {
+            topicsList.innerHTML = splitTopics.map(t => `<div class="topic-item"><span class="topic-bullet">&bull;</span> <span>${t}</span></div>`).join('');
+          } else {
+            topicsList.innerHTML = `<div class="topic-item"><span class="topic-bullet">&bull;</span> <span>${topics}</span></div>`;
+          }
+        }
         
-        document.getElementById('vTopics').textContent = report.remarks?.topicsCovered || '-';
         document.getElementById('vRemarks').textContent = report.remarks?.mentorRemarks || '-';
         document.getElementById('vRecommendations').textContent = report.remarks?.recommendations || '-';
         

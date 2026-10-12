@@ -52,6 +52,14 @@ style.textContent = `
     background: #ef4444;
     color: #fff;
   }
+  .toast-icon.info {
+    background: #3b82f6;
+    color: #fff;
+  }
+  .toast-icon.warning {
+    background: #f59e0b;
+    color: #fff;
+  }
   .toast-icon svg {
     width: 14px;
     height: 14px;
@@ -84,6 +92,10 @@ const showToast = (message, type = 'success') => {
     iconHtml = `<div class="toast-icon success"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"></path></svg></div>`;
   } else if (type === 'error') {
     iconHtml = `<div class="toast-icon error"><svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"></path></svg></div>`;
+  } else if (type === 'info') {
+    iconHtml = `<div class="toast-icon info"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></div>`;
+  } else if (type === 'warning') {
+    iconHtml = `<div class="toast-icon warning"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></div>`;
   }
   
   toastEl.innerHTML = `${iconHtml}<span>${message}</span>`;
@@ -102,11 +114,17 @@ const showToast = (message, type = 'success') => {
   }, 3000);
 };
 
-export const toast = {
-  success: (msg) => showToast(msg, 'success'),
-  error: (msg) => showToast(msg, 'error'),
-  custom: (msg) => showToast(msg, 'custom')
-};
+export function toast(message, type = 'success') {
+  showToast(message, type);
+}
+
+toast.success = (msg) => showToast(msg, 'success');
+toast.error = (msg) => showToast(msg, 'error');
+toast.info = (msg) => showToast(msg, 'info');
+toast.warning = (msg) => showToast(msg, 'warning');
+toast.custom = (msg) => showToast(msg, 'custom');
 
 // Also expose to window in case it's used globally
 window.toast = toast;
+
+export default toast;

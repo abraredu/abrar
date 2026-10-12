@@ -19,18 +19,26 @@ document.addEventListener('DOMContentLoaded', () => {
   // Default to today
   document.getElementById('date').value = new Date().toISOString().split('T')[0];
 
+  // Auto-generate reference number
+  const refInput = document.getElementById('reference');
+  if (refInput && !refInput.value) {
+    refInput.value = 'INC-' + Date.now().toString().slice(-6) + Math.floor(Math.random() * 1000);
+  }
+
   if (!form) return;
 
   // Toggle Admission Fields based on Category
-  categorySelect.addEventListener('change', (e) => {
-    if (e.target.value === 'Admission Fee') {
-      admissionFields.style.display = 'block';
-      studentIdInput.required = true;
-    } else {
-      admissionFields.style.display = 'none';
-      studentIdInput.required = false;
-    }
-  });
+  if (categorySelect) {
+    categorySelect.addEventListener('change', (e) => {
+      if (e.target.value === 'Admission Fee') {
+        admissionFields.style.display = 'block';
+        studentIdInput.required = true;
+      } else {
+        admissionFields.style.display = 'none';
+        studentIdInput.required = false;
+      }
+    });
+  }
 
   // Toggle Additional Student IDs based on Home Member checkbox
   isHomeMemberCheckbox.addEventListener('change', (e) => {
@@ -89,7 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
     submitBtn.disabled = true;
     submitBtn.textContent = 'Saving...';
     
-    const categoryVal = categorySelect.value;
+    const categoryVal = categorySelect ? categorySelect.value : 'Manual Income';
     const dateVal = document.getElementById('date').value;
 
     try {

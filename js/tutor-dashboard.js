@@ -21,9 +21,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.location.href = 'index.html';
     return;
   }
-
+  
   const tutorDocId = localStorage.getItem('tutorId'); // This is the Firestore document ID
-
+  
   // Logout handler
   const logoutBtn = document.getElementById('tutorLogoutBtn');
   if (logoutBtn) {
@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     let tutorRef = doc(db, "tutors", tutorDocId);
     let tutorSnap = await getDoc(tutorRef);
     let realTutorDocId = tutorDocId;
-
+    
     // Fallback: If not found, it might be the display ID (e.g., 'MO1') stored in legacy sessions
     if (!tutorSnap.exists()) {
       const fallbackQ = query(collection(db, "tutors"), where("tutorId", "==", tutorDocId));
@@ -55,9 +55,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
       }
     }
-
+    
     const tutorData = tutorSnap.data();
-
+    
     // Update Profile UI
     document.getElementById('navTutorName').textContent = tutorData.name;
     const headerAvatar = document.getElementById('headerAvatar');
@@ -67,16 +67,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('profileName').textContent = tutorData.name;
     document.getElementById('profileId').textContent = tutorData.tutorId;
     document.getElementById('profilePhone').textContent = tutorData.phone || '-';
-
+    
     // Format Join Date
     const joinDate = tutorData.joiningDate ? new Date(tutorData.joiningDate).toLocaleDateString() : '-';
     document.getElementById('profileJoinDate').textContent = joinDate;
-
+    
     // Status Badge
     const statusSpan = document.getElementById('profileStatus');
     statusSpan.textContent = tutorData.status.charAt(0).toUpperCase() + tutorData.status.slice(1);
     statusSpan.style.color = tutorData.status === 'active' ? 'var(--color-primary)' : 'var(--color-danger)';
-
+    
     // Roles Badges
     const rolesContainer = document.getElementById('profileRoles');
     const roles = tutorData.tutorType || [];
@@ -90,83 +90,69 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Fetch all students and filter locally to handle comma-separated names/IDs from bulk uploads
     const allStudentsSnap = await getDocs(collection(db, "students"));
     const assignedStudents = [];
-
+    
     allStudentsSnap.forEach(docSnap => {
       const student = docSnap.data();
       const sTutorId = student.tutorId || '';
-      // Match by exact doc ID, or display ID, or name (in case of bulk upload raw text)
-      if (sTutorId.includes(realTutorDocId) ||
-        sTutorId.includes(tutorData.tutorId) ||
-        (tutorData.name && sTutorId.toLowerCase().includes(tutorData.name.toLowerCase()))) {
+      
+      const isLegacyMatch = sTutorId.includes(realTutorDocId) || 
+                            sTutorId.includes(tutorData.tutorId) || 
+                            (tutorData.name && sTutorId.toLowerCase().includes(tutorData.name.toLowerCase()));
+                            
+      const inCourseTutors = student.courseTutors && Object.values(student.courseTutors).some(tId => 
+        tId === realTutorDocId || tId === tutorData.tutorId || (tutorData.name && tId.toLowerCase().includes(tutorData.name.toLowerCase()))
+      );
+      
+      if (isLegacyMatch || inCourseTutors) {
         assignedStudents.push(student);
       }
     });
-
+    
     let activeStudentsCount = 0;
     let studentsHtml = '';
-
+    
     if (assignedStudents.length === 0) {
       studentsHtml = '<tr><td colspan="4" style="padding: 1.5rem; text-align: center; color: var(--color-text-secondary);">No students assigned to you yet.</td></tr>';
     } else {
-
-      const now = new Date();
-      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-      let submittedStudentIds = new Set();
-      let submittedStudentNames = new Set();
-
-      try {
-        const reportsQ = query(collection(db, "progress_reports"), where("reportMonth", "==", currentMonthStr));
-        const reportsSnap = await getDocs(reportsQ);
-        reportsSnap.forEach(docSnap => {
-          const rep = docSnap.data();
-          if (rep.tutorId === realTutorDocId || rep.tutorId === tutorDocId) {
-            if (rep.studentId) submittedStudentIds.add(rep.studentId);
-            if (rep.studentName) submittedStudentNames.add(rep.studentName.toLowerCase());
-          }
-        });
-      } catch (err) {
-        console.error("Error checking reports:", err);
-      }
-
-      function checkReportDue(student) {
-        if (student.status !== 'active') return false;
-        const startDateStr = student.classStartingDate || student.admissionDate;
-        if (!startDateStr) return false;
-
-        const startDate = new Date(startDateStr);
-        if (isNaN(startDate.getTime())) return false;
-
-        const startDay = startDate.getDate();
-        const anniversaryDate = new Date(today.getFullYear(), today.getMonth(), startDay);
-
-        const diffTime = anniversaryDate.getTime() - today.getTime();
-        const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
-
-        return diffDays >= -3 && diffDays <= 3;
-      }
+      
+      const today = new Date();
+      // Set to start of day for accurate day-only comparisons
+      today.setHours(0, 0, 0, 0);
 
       assignedStudents.forEach(student => {
         if (student.status === 'active') activeStudentsCount++;
-
+        
         const statusColor = student.status === 'active' ? 'var(--color-primary)' : 'var(--color-text-secondary)';
-
+        
         let actionHtml = '-';
-        if (student.status === 'active') {
-          const urlParams = new URLSearchParams();
-          urlParams.set('student', student.name || '');
-          const reportLink = `reports/tutor-progress.html?${urlParams.toString()}`;
+        if (student.status === 'active' && (student.classStartingDate || student.admissionDate)) {
+          const startDateStr = student.classStartingDate || student.admissionDate;
+          const startDate = new Date(startDateStr);
+          
+          if (!isNaN(startDate.getTime())) {
+            const startDay = startDate.getDate();
+            const currentMonthIdx = today.getMonth();
+            const currentYear = today.getFullYear();
+            
+            // Calculate anniversary for this current month
+            let anniversaryDate = new Date(currentYear, currentMonthIdx, startDay);
+            
+            // Difference in days between today and the anniversary (positive means anniversary is in the future)
+            const diffTime = anniversaryDate.getTime() - today.getTime();
+            const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+            
+            // Calculate how many days the student has been enrolled
+            const daysSinceStart = Math.round((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
 
-          const isSubmitted = (student.id && submittedStudentIds.has(student.id)) ||
-                              (student.name && submittedStudentNames.has(student.name.toLowerCase()));
-
-          if (isSubmitted) {
-            actionHtml = `<a href="${reportLink}" style="background: #d1fae5; color: #065f46; padding: 0.35rem 0.75rem; border-radius: 4px; font-size: 0.75rem; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 0.25rem;"><i data-lucide="check-circle" style="width: 14px; height: 14px;"></i> Submitted</a>`;
-          } else if (checkReportDue(student)) {
-            actionHtml = `<a href="${reportLink}" style="background: var(--color-primary); color: white; padding: 0.35rem 0.75rem; border-radius: 4px; font-size: 0.75rem; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 0.25rem;"><i data-lucide="file-text" style="width: 14px; height: 14px;"></i> Report Due</a>`;
+            // Show report due button starting 2 days before the anniversary (diffDays <= 2)
+            // It will remain visible after the anniversary (diffDays < 0) for the rest of the month.
+            // AND only if the student has been enrolled for at least 20 days
+            if (diffDays <= 2 && daysSinceStart >= 20) {
+              actionHtml = `<button onclick="document.getElementById('navProgress').click(); setTimeout(() => { const buttons = document.querySelectorAll('#tutorStudentsTableBody button.btn-register'); for(let b of buttons) { if(b.getAttribute('data-name') === '${student.name}') { b.click(); break; } } }, 100);" style="background: var(--color-primary); color: white; padding: 0.35rem 0.75rem; border-radius: 4px; font-size: 0.75rem; border: none; cursor: pointer; font-weight: 500; display: inline-flex; align-items: center; gap: 0.25rem;"><i data-lucide="file-text" style="width: 14px; height: 14px;"></i> Report Due</button>`;
+            }
           }
         }
-
+        
         studentsHtml += `
           <tr style="border-bottom: 1px solid var(--color-border);">
             <td style="padding: 1rem; font-weight: 500;">${student.name}</td>
@@ -181,22 +167,51 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     }
     document.getElementById('studentsTableBody').innerHTML = studentsHtml;
+
+    // Wait for DOM then attach tab toggle listeners
+    setTimeout(() => {
+      const navDashboard = document.getElementById('navDashboard');
+      const navProgress = document.getElementById('navProgress');
+      const dashboardSection = document.getElementById('dashboardSection');
+      const progressSection = document.getElementById('progressSection');
+      const pageTitle = document.querySelector('.page-title');
+
+      if (navDashboard && navProgress) {
+        navDashboard.addEventListener('click', (e) => {
+          e.preventDefault();
+          navDashboard.classList.add('active');
+          navProgress.classList.remove('active');
+          dashboardSection.style.display = 'block';
+          progressSection.style.display = 'none';
+          if(pageTitle) pageTitle.textContent = 'Tutor Portal';
+        });
+
+        navProgress.addEventListener('click', (e) => {
+          e.preventDefault();
+          navProgress.classList.add('active');
+          navDashboard.classList.remove('active');
+          dashboardSection.style.display = 'none';
+          progressSection.style.display = 'block';
+          if(pageTitle) pageTitle.textContent = 'Progress Reports';
+        });
+      }
+    }, 100);
     document.getElementById('statStudentsCount').textContent = activeStudentsCount;
 
     // 3. Fetch Payment History
     const currentYear = new Date().getFullYear();
     const paymentsQ = query(collection(db, "salaryPayments"), where("tutorId", "==", realTutorDocId));
     const paymentsSnap = await getDocs(paymentsQ);
-
+    
     let totalEarnings = 0;
     let paymentsHtml = '';
-
+    
     // Convert to array so we can sort by date descending
     const paymentsList = [];
     paymentsSnap.forEach(p => paymentsList.push({ id: p.id, ...p.data() }));
-
+    
     paymentsList.sort((a, b) => new Date(b.paymentDate) - new Date(a.paymentDate));
-
+    
     if (paymentsList.length === 0) {
       paymentsHtml = '<tr><td colspan="5" style="padding: 1.5rem; text-align: center; color: var(--color-text-secondary);">No payment history found.</td></tr>';
     } else {
@@ -205,13 +220,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (payment.paymentDate && payment.paymentDate.startsWith(currentYear.toString())) {
           totalEarnings += (payment.paidAmount || 0);
         }
-
+        
         paymentsHtml += `
           <tr style="border-bottom: 1px solid var(--color-border);">
             <td style="padding: 1rem;">${payment.paymentDate || '-'}</td>
             <td style="padding: 1rem; font-weight: 500;">${payment.month || '-'}</td>
             <td style="padding: 1rem;">
-              <span class="role-badge">${TUTOR_TYPE_LABELS[payment.tutorRole] || payment.tutorRole}</span>
+              <span class="role-badge">${
+                payment.tutorRole 
+                  ? (TUTOR_TYPE_LABELS[payment.tutorRole] || payment.tutorRole) 
+                  : (tutorData.tutorType && tutorData.tutorType.length > 0
+                      ? (Array.isArray(tutorData.tutorType) ? tutorData.tutorType : [tutorData.tutorType]).map(r => TUTOR_TYPE_LABELS[r] || r).join(', ')
+                      : (TUTOR_TYPE_LABELS[payment.salaryType] || payment.salaryType || '-'))
+              }</span>
             </td>
             <td style="padding: 1rem; font-weight: 600; color: var(--color-text);">
               ${formatter.format(payment.paidAmount || 0)}
@@ -223,7 +244,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         `;
       });
     }
-
+    
     document.getElementById('paymentsTableBody').innerHTML = paymentsHtml;
     document.getElementById('statTotalEarnings').textContent = formatter.format(totalEarnings);
 
