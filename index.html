@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login - ABRAR Management System</title>
+  <title>Staff Login - ABRAR Management System</title>
     <link rel="icon" type="image/png" href="icon.png">
   <link rel="stylesheet" href="css/style.css">
 </head>
@@ -13,12 +13,12 @@
       <div class="auth-logo">
         <img src="logo.png" alt="ABRAR Logo" style="height: 64px; width: auto; margin: 0 auto;">
       </div>
-      <div class="auth-subtitle">Madrasa Management System</div>
+      <div class="auth-subtitle">Staff Login</div>
       
       <form id="loginForm" class="auth-form">
         <div class="form-group">
           <label for="email" class="form-label">Username or Email</label>
-          <input type="text" id="email" class="form-control" required placeholder="admin@abrar.com or tutor username">
+          <input type="text" id="email" class="form-control" required placeholder="admin@abrar.com or username">
         </div>
         
         <div class="form-group">
@@ -29,8 +29,15 @@
         <button type="submit" class="btn btn-primary">Sign In</button>
       </form>
       
-      <div style="margin-top: 1rem; font-size: 0.875rem;">
+      <div style="margin-top: 1rem; font-size: 0.875rem; text-align: center; display: flex; flex-direction: column; gap: 0.625rem;">
         <a href="#" class="text-muted">Forgot Password?</a>
+        <div style="padding-top: 0.625rem; border-top: 1px solid var(--border-color, #e5e7eb);">
+          <span class="text-muted">Are you a student? </span>
+          <a href="student-login.html" style="color: var(--primary, #087A42); font-weight: 600;">Student Login &rarr;</a>
+        </div>
+        <div>
+          <a href="web/index.html" class="text-muted" style="font-size: 0.8125rem;">&larr; Back to Public Website</a>
+        </div>
       </div>
     </div>
   </div>
