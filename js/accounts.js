@@ -1,7 +1,7 @@
 import { toast } from './toast.js';
 // js/accounts.js
 import { db } from './firebase-config.js';
-import { collection, getDocs, query, orderBy, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { collection, getDocs, getDoc, query, where, orderBy, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
@@ -139,27 +139,89 @@ document.addEventListener('DOMContentLoaded', () => {
     deleteBtns.forEach(btn => {
       btn.addEventListener('click', async (e) => {
         const id = e.currentTarget.getAttribute('data-id');
-        if (confirm('Are you sure you want to delete this transaction? This action cannot be undone.')) {
+        if (confirm('Are you sure you want to delete this transaction? This will permanently remove it and synchronize across all pages.')) {
           try {
-            // First fetch the transaction to check for linked records
             const txRef = doc(db, "transactions", id);
-            const txSnap = await getDocs(query(collection(db, "transactions")));
-            const txDoc = txSnap.docs.find(d => d.id === id);
+            const txSnap = await getDoc(txRef);
+            const txData = txSnap.exists() ? txSnap.data() : null;
             
-            if (txDoc) {
-              const txData = txDoc.data();
-              // Delete linked salary payment if it exists
+            if (txData) {
+              // 1. Delete linked salary payment by direct salaryPaymentId
               if (txData.salaryPaymentId) {
-                await deleteDoc(doc(db, "salaryPayments", txData.salaryPaymentId));
+                try {
+                  await deleteDoc(doc(db, "salaryPayments", txData.salaryPaymentId));
+                } catch (spErr) {
+                  console.warn("Could not delete salaryPayment by salaryPaymentId:", spErr);
+                }
               }
-              // Delete linked student fee payment if it exists
+
+              // 2. Delete any salary payment linking to this transaction by transactionId
+              try {
+                const spTxQ = query(collection(db, "salaryPayments"), where("transactionId", "==", id));
+                const spTxSnap = await getDocs(spTxQ);
+                for (const spDoc of spTxSnap.docs) {
+                  await deleteDoc(doc(db, "salaryPayments", spDoc.id));
+                }
+              } catch (spTxErr) {
+                console.warn("Could not query salaryPayments by transactionId:", spTxErr);
+              }
+
+              // 3. Fallback for salary payments: match by tutorId and amount/date
+              if (txData.category === 'Tutor Salary' || txData.tutorId) {
+                try {
+                  const fallbackQ = txData.tutorId 
+                    ? query(collection(db, "salaryPayments"), where("tutorId", "==", txData.tutorId))
+                    : query(collection(db, "salaryPayments"));
+                  const fbSnap = await getDocs(fallbackQ);
+                  for (const fbDoc of fbSnap.docs) {
+                    const fb = fbDoc.data();
+                    const amountMatch = (fb.paidAmount === txData.amount || fb.finalAmount === txData.amount);
+                    const dateMatch = (fb.paymentDate === txData.date || (fb.month && txData.description && txData.description.includes(fb.month)));
+                    if (amountMatch && (dateMatch || !txData.date)) {
+                      await deleteDoc(doc(db, "salaryPayments", fbDoc.id));
+                    }
+                  }
+                } catch (fbErr) {
+                  console.warn("Could not clean up salaryPayments fallback:", fbErr);
+                }
+              }
+
+              // 4. Delete linked student fee payment by direct paymentId
               if (txData.paymentId) {
-                await deleteDoc(doc(db, "payments", txData.paymentId));
+                try {
+                  await deleteDoc(doc(db, "payments", txData.paymentId));
+                } catch (pErr) {
+                  console.warn("Could not delete payment by paymentId:", pErr);
+                }
+              }
+
+              // 5. Delete any student payment linking to this transaction by transactionId
+              try {
+                const pTxQ = query(collection(db, "payments"), where("transactionId", "==", id));
+                const pTxSnap = await getDocs(pTxQ);
+                for (const pDoc of pTxSnap.docs) {
+                  await deleteDoc(doc(db, "payments", pDoc.id));
+                }
+              } catch (pTxErr) {
+                console.warn("Could not query payments by transactionId:", pTxErr);
+              }
+
+              // 6. Fallback for student payments by receiptNumber / referenceNumber
+              if (txData.referenceNumber) {
+                try {
+                  const rQ = query(collection(db, "payments"), where("receiptNumber", "==", txData.referenceNumber));
+                  const rSnap = await getDocs(rQ);
+                  for (const rDoc of rSnap.docs) {
+                    await deleteDoc(doc(db, "payments", rDoc.id));
+                  }
+                } catch (rErr) {
+                  console.warn("Could not clean up payments by referenceNumber:", rErr);
+                }
               }
             }
             
             await deleteDoc(txRef);
-            toast.success('Transaction and associated records deleted successfully.');
+            toast.success('Transaction and associated records deleted successfully from all pages.');
             loadTransactions();
           } catch (error) {
             console.error("Error deleting transaction:", error);

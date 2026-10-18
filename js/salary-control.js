@@ -399,6 +399,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       await runTransaction(db, async (transaction) => {
         const salaryPaymentRef = doc(collection(db, 'salaryPayments'));
+        const transactionRef = doc(collection(db, 'transactions'));
+
         const salaryData = {
           tutorId: currentPayEntry.tutorId,
           tutorRole: currentPayEntry.tutorRole,
@@ -413,12 +415,12 @@ document.addEventListener('DOMContentLoaded', async () => {
           paymentMethod: payMethod,
           paymentDate: payDate,
           status: 'paid',
+          transactionId: transactionRef.id,
           createdAt: serverTimestamp(),
           createdBy: auth.currentUser ? auth.currentUser.uid : 'system'
         };
         transaction.set(salaryPaymentRef, salaryData);
 
-        const transactionRef = doc(collection(db, 'transactions'));
         const transactionData = {
           date: payDate,
           type: 'expense',

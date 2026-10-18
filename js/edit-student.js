@@ -187,6 +187,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (document.getElementById('level')) document.getElementById('level').value = data.level || '';
 
       if (document.getElementById('admissionDate')) document.getElementById('admissionDate').value = data.admissionDate || '';
+      if (document.getElementById('leftDate')) document.getElementById('leftDate').value = data.leftDate || '';
       const classStartField = document.getElementById('classStartingDate') || document.getElementById('classStartDate');
       if (classStartField) classStartField.value = data.classStartingDate || data.classStartDate || '';
       if (document.getElementById('monthlyFee')) document.getElementById('monthlyFee').value = data.monthlyFee || '';
@@ -220,6 +221,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const parentNameVal = document.getElementById('parentName')?.value.trim() || document.getElementById('fatherName')?.value.trim() || '';
       const placeVal = document.getElementById('place')?.value.trim() || document.getElementById('address')?.value.trim() || '';
       const admissionDateVal = document.getElementById('admissionDate')?.value || '';
+      const leftDateVal = document.getElementById('leftDate')?.value || '';
       const classDateVal = document.getElementById('classStartingDate')?.value || document.getElementById('classStartDate')?.value || '';
 
       const studentData = {
@@ -243,6 +245,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         admissionDate: admissionDateVal,
         admissionStatus: admissionDateVal ? 'accepted' : (currentStudentData?.admissionStatus || 'pending'),
+        leftDate: leftDateVal || null,
+        leftStatus: leftDateVal ? 'left' : null,
         classStartingDate: classDateVal,
         classStartDate: classDateVal,
         monthlyFee: parseFloat(document.getElementById('monthlyFee')?.value) || 0,

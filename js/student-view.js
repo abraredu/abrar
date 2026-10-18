@@ -73,6 +73,17 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('tutorVal').textContent = data.tutorId || '-'; // In reality, fetch tutor name
       document.getElementById('admissionVal').textContent = data.admissionDate || '-';
       
+      const leftContainer = document.getElementById('leftValContainer');
+      const leftVal = document.getElementById('leftVal');
+      if (leftContainer && leftVal) {
+        if (data.leftDate) {
+          leftContainer.style.display = 'block';
+          leftVal.textContent = data.leftDate;
+        } else {
+          leftContainer.style.display = 'none';
+        }
+      }
+      
       const formatter = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' });
       document.getElementById('monthlyFeeVal').textContent = formatter.format(data.monthlyFee || 0);
 
@@ -130,7 +141,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             <tbody>
         `;
         payments.forEach(p => {
-          const amountDisplay = p.isVacationLeave ? `<span style="color: #4338CA;">Vacation Leave</span>` : formatter.format(p.paidAmount || 0);
+          let amountDisplay = formatter.format(p.paidAmount || 0);
+          if (p.isHoliday) {
+            const reasonTxt = p.holidayReason ? ` (${p.holidayReason})` : '';
+            amountDisplay = `<span style="color: #4338CA; font-weight: 600;"><i data-lucide="palmtree" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle;"></i> Holiday${reasonTxt}: ${formatter.format(p.paidAmount || 0)}</span>`;
+          } else if (p.isVacationLeave) {
+            amountDisplay = `<span style="color: #4338CA;">Vacation Leave</span>`;
+          }
           tableHTML += `
             <tr style="border-bottom: 1px solid var(--color-border);">
               <td style="padding: 0.75rem;">${p.paymentDate || '-'}</td>
@@ -143,6 +160,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
         tableHTML += `</tbody></table>`;
         historyContainer.innerHTML = tableHTML;
+        if (window.lucide) lucide.createIcons();
       }
 
       // Fee Status Calculation for Current Month

@@ -190,6 +190,27 @@
     </div>
   </div>
 
+  <!-- Salary Payment History Modal -->
+  <div id="salaryHistoryModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 60; align-items: center; justify-content: center; backdrop-filter: blur(2px);">
+    <div class="card" style="width: 100%; max-width: 520px; margin: 1rem; position: relative; padding: 0; overflow: hidden; border-radius: 12px; background: white;">
+      <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; background: #fafbfc;">
+        <div>
+          <h3 id="historyTutorName" style="margin: 0; font-size: 1.1rem; color: #0f172a;">Payment History</h3>
+          <p id="historyMonthSubtitle" style="margin: 0; font-size: 0.75rem; color: #64748b;">Payments recorded for this month</p>
+        </div>
+        <button type="button" id="closeHistoryModalBtn" style="background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px; display: flex; align-items: center;">
+          <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+        </button>
+      </div>
+      <div id="historyPaymentsList" style="padding: 1.25rem; max-height: 350px; overflow-y: auto;">
+        <!-- dynamic payments list -->
+      </div>
+      <div style="padding: 0.75rem 1.25rem; background: #fafbfc; border-top: 1px solid var(--color-border); display: flex; justify-content: flex-end;">
+        <button type="button" id="closeHistoryModalFooterBtn" class="btn btn-outline" style="padding: 0.4rem 1rem;">Close</button>
+      </div>
+    </div>
+  </div>
+
   <script>lucide.createIcons();</script>
   <script type="module" src="../js/firebase-config.js"></script>
   <script type="module" src="../js/layout.js"></script>
