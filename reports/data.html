@@ -475,16 +475,27 @@
       </header>
 
       <div class="page-content">
-        <div class="card" style="margin-bottom: 1.5rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-            <h3>All Generated Responses</h3>
-            <div class="form-group" style="margin-bottom: 0; min-width: 200px;">
-              <input type="month" id="filterMonth" class="form-control" title="Filter by Month">
-            </div>
+        <!-- Page Hero -->
+        <section class="page-hero">
+          <div class="page-hero-content">
+            <h2 class="page-hero-title"><i data-lucide="folder-kanban" style="width: 22px; height: 22px;"></i> Progress Report Archive</h2>
+            <p class="page-hero-sub">Browse all generated monthly progress reports, filter by month, and download PDFs.</p>
           </div>
-          
+          <div class="page-hero-actions">
+            <a href="progress.html" class="btn-glass"><i data-lucide="table" style="width: 16px; height: 16px;"></i> Table View</a>
+          </div>
+        </section>
+
+        <div class="filter-card">
+          <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: #0f172a;">All Generated Responses</h3>
+          <div class="form-group" style="margin-bottom: 0; min-width: 200px;">
+            <input type="month" id="filterMonth" class="form-control" title="Filter by Month" style="height: 38px;">
+          </div>
+        </div>
+
+        <div class="card">
           <!-- Data Grid -->
-          <div id="dataGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+          <div id="dataGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.25rem;">
             <div style="grid-column: 1 / -1; text-align: center; padding: 2rem; color: var(--color-text-secondary);">
               Loading data...
             </div>

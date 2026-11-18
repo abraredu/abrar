@@ -86,15 +86,15 @@
           <button class="mobile-menu-btn" id="mobileMenuBtn">
             <i data-lucide="menu"></i>
           </button>
-          <div>
-            <div style="font-size: 0.875rem; color: var(--color-text-secondary); margin-bottom: 0.25rem;">
-              <a href="students.html" style="color: inherit;">Students</a> / Admission
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div style="width: 40px; height: 40px; background-color: var(--color-sidebar-active); color: var(--color-primary); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <i data-lucide="user-check"></i>
             </div>
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
-              <div style="width: 40px; height: 40px; background-color: var(--color-sidebar-active); color: var(--color-primary); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center;">
-                <i data-lucide="user-check"></i>
+            <div>
+              <div style="font-size: 0.75rem; line-height: 1.2; color: var(--color-text-secondary); margin-bottom: 2px;">
+                <a href="students.html" style="color: inherit;">Students</a> / Admission
               </div>
-              <h1 class="page-title">Admission Management</h1>
+              <h1 class="page-title" style="line-height: 1.2;">Admission Management</h1>
             </div>
           </div>
         </div>
@@ -109,36 +109,59 @@
       </header>
 
       <div class="page-content">
+        <!-- Page Hero -->
+        <section class="page-hero">
+          <div class="page-hero-content">
+            <h2 class="page-hero-title"><i data-lucide="user-check" style="width: 22px; height: 22px;"></i> Admission Management</h2>
+            <p class="page-hero-sub">Review pending applications, accept admissions, and track daily enrollments.</p>
+          </div>
+          <div class="page-hero-actions">
+            <a href="add-student.html" class="btn-white"><i data-lucide="plus" style="width: 16px; height: 16px;"></i> New Admission</a>
+          </div>
+        </section>
+
         <!-- Stats -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-          <div class="card stat-card" style="padding: 1.25rem; border-left: 4px solid var(--color-primary);">
-            <div class="stat-info">
-              <span class="stat-title">Total Students</span>
-              <span class="stat-value" id="statTotal">-</span>
+        <div class="kpi-row">
+          <div class="kpi-box">
+            <div>
+              <div class="kpi-box-label">Total Students</div>
+              <div class="kpi-box-value" id="statTotal">-</div>
+            </div>
+            <div class="kpi-box-icon" style="background: #ECFDF5; color: #087A42;">
+              <i data-lucide="users" style="width: 22px; height: 22px;"></i>
             </div>
           </div>
-          <div class="card stat-card" style="padding: 1.25rem; border-left: 4px solid #f59e0b;">
-            <div class="stat-info">
-              <span class="stat-title">Pending Admissions</span>
-              <span class="stat-value" id="statPending" style="color: #d97706;">-</span>
+          <div class="kpi-box">
+            <div>
+              <div class="kpi-box-label">Pending Admissions</div>
+              <div class="kpi-box-value" id="statPending" style="color: #d97706;">-</div>
+            </div>
+            <div class="kpi-box-icon" style="background: #FEF3C7; color: #D97706;">
+              <i data-lucide="clock" style="width: 22px; height: 22px;"></i>
             </div>
           </div>
-          <div class="card stat-card" style="padding: 1.25rem; border-left: 4px solid var(--color-success);">
-            <div class="stat-info">
-              <span class="stat-title">Accepted Admissions</span>
-              <span class="stat-value text-success" id="statAccepted">-</span>
+          <div class="kpi-box">
+            <div>
+              <div class="kpi-box-label">Accepted Admissions</div>
+              <div class="kpi-box-value text-success" id="statAccepted">-</div>
+            </div>
+            <div class="kpi-box-icon" style="background: #DCFCE7; color: #16A34A;">
+              <i data-lucide="check-circle-2" style="width: 22px; height: 22px;"></i>
             </div>
           </div>
-          <div class="card stat-card" style="padding: 1.25rem; border-left: 4px solid #3b82f6;">
-            <div class="stat-info">
-              <span class="stat-title">Admitted Today</span>
-              <span class="stat-value" id="statToday" style="color: #2563eb;">-</span>
+          <div class="kpi-box">
+            <div>
+              <div class="kpi-box-label">Admitted Today</div>
+              <div class="kpi-box-value" id="statToday" style="color: #2563eb;">-</div>
+            </div>
+            <div class="kpi-box-icon" style="background: #DBEAFE; color: #2563EB;">
+              <i data-lucide="sparkles" style="width: 22px; height: 22px;"></i>
             </div>
           </div>
         </div>
 
         <!-- Filters & Search -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div class="filter-card">
           <div class="filter-tabs" style="display: flex; gap: 0.5rem;" id="admissionStatusTabs">
             <button class="btn btn-primary filter-tab active" data-status="">ALL</button>
             <button class="btn btn-outline filter-tab" data-status="pending">PENDING</button>
@@ -158,9 +181,9 @@
         </div>
 
         <!-- Table -->
-        <div class="card" style="overflow-x: auto; border: none; box-shadow: none; padding: 0;">
+        <div class="table-card">
           <div class="table-responsive">
-            <table style="width: 100%; text-align: left; border-collapse: collapse; min-width: 1320px; border-top: 1px solid var(--color-border);">
+            <table style="width: 100%; text-align: left; border-collapse: collapse; min-width: 1320px;">
               <thead>
                 <tr style="border-bottom: 1px solid var(--color-border); background-color: #fafbfc;">
                   <th style="padding: 1rem 1.25rem; width: 40px;"><input type="checkbox" id="selectAllCheckbox"></th>

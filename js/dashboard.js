@@ -12,8 +12,43 @@ document.addEventListener('DOMContentLoaded', () => {
   const pendingTitleEl = document.getElementById('dashPendingTitle');
   const recentActivitiesList = document.getElementById('recentActivitiesList');
 
-  const formatter = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' });
+  // New creative dashboard elements
+  const dashCurrentDateEl = document.getElementById('dashCurrentDate');
+  const dashGreetingEl = document.getElementById('dashGreeting');
+  const dashHeroSummaryEl = document.getElementById('dashHeroSummary');
+  const dashStudentsBadgeEl = document.getElementById('dashStudentsBadge');
+  const dashCollectionBadgeEl = document.getElementById('dashCollectionBadge');
+  const dashTutorRatioBadgeEl = document.getElementById('dashTutorRatioBadge');
+  const dashPendingBadgeEl = document.getElementById('dashPendingBadge');
+  const dashCollectionBarEl = document.getElementById('dashCollectionBar');
+  const dashPendingBarEl = document.getElementById('dashPendingBar');
+  const courseDistListEl = document.getElementById('courseDistributionList');
+  const feeHealthRingEl = document.getElementById('feeHealthRing');
+  const feeHealthPctEl = document.getElementById('feeHealthPct');
+  const feeExpectedValEl = document.getElementById('feeExpectedVal');
+  const feeCollectedValEl = document.getElementById('feeCollectedVal');
+  const feeRemainingValEl = document.getElementById('feeRemainingVal');
+  const feeHealthMonthLabelEl = document.getElementById('feeHealthMonthLabel');
+  const recentTxListEl = document.getElementById('recentTransactionsList');
+
+  const formatter = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
   const auth = getAuth();
+
+  // Set Hero Date & Time-of-Day Greeting immediately
+  const nowInit = new Date();
+  if (dashCurrentDateEl) {
+    dashCurrentDateEl.textContent = nowInit.toLocaleDateString('en-IN', {
+      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+    });
+  }
+  if (dashGreetingEl) {
+    const hr = nowInit.getHours();
+    const part = hr < 12 ? 'Good Morning' : hr < 17 ? 'Good Afternoon' : 'Good Evening';
+    dashGreetingEl.textContent = `Assalamu Alaikum, ${part}`;
+  }
+  if (feeHealthMonthLabelEl) {
+    feeHealthMonthLabelEl.textContent = nowInit.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' }) + ' billing cycle';
+  }
   
   onAuthStateChanged(auth, async (user) => {
     if (user) {
@@ -22,10 +57,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
         
         // 1. Fetch Students
-        const studentsQ = query(collection(db, "students"), where("status", "==", "active"));
-        const studentsSnap = await getDocs(studentsQ);
+        const studentsSnap = await getDocs(collection(db, "students"));
         const activeStudents = [];
-        studentsSnap.forEach(doc => activeStudents.push({ id: doc.id, ...doc.data() }));
+        studentsSnap.forEach(docSnap => {
+          const d = docSnap.data();
+          if (String(d.status || '').trim().toLowerCase() === 'active') {
+            activeStudents.push({ id: docSnap.id, ...d });
+          }
+        });
         if (activeStudentsEl) activeStudentsEl.textContent = activeStudents.length;
 
         // 2. Fetch Tutors
@@ -41,6 +80,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let totalPending = 0;
         let totalOverdue = 0;
+        let totalExpectedMonthly = 0;
+        let pendingStudentsCount = 0;
+        let overdueStudentsCount = 0;
         
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -49,6 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         activeStudents.forEach(student => {
           const monthlyFee = student.monthlyFee || 0;
+          totalExpectedMonthly += monthlyFee;
           
           const studentPayments = currentPayments.filter(p => p.studentId === student.id);
           const actualPaid = studentPayments.reduce((sum, p) => sum + (p.paidAmount || 0), 0);
@@ -59,6 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
           
           if (balance > 0) {
             totalPending += balance;
+            pendingStudentsCount++;
             
             // Check if overdue
             const baseDateStr = student.classStartingDate || student.admissionDate;
@@ -74,6 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   
                   if (diffDays < 0) {
                     totalOverdue += balance;
+                    overdueStudentsCount++;
                   }
                 }
               }
@@ -86,26 +131,136 @@ document.addEventListener('DOMContentLoaded', () => {
           if (totalOverdue > 0) {
             pendingTitleEl.textContent = 'Overdue Fees';
             pendingFeesEl.textContent = formatter.format(totalOverdue);
+            if (dashPendingBadgeEl) dashPendingBadgeEl.textContent = `${overdueStudentsCount} Overdue`;
           } else {
             pendingTitleEl.textContent = 'Pending Fees';
             pendingFeesEl.textContent = formatter.format(totalPending);
+            if (dashPendingBadgeEl) dashPendingBadgeEl.textContent = `${pendingStudentsCount} Pending`;
           }
         }
 
-        
-        // 5. Month Collection
+        // Update Tutor ratio badge
+        if (dashTutorRatioBadgeEl && tutorsSnap.size > 0) {
+          const ratio = Math.round(activeStudents.length / tutorsSnap.size);
+          dashTutorRatioBadgeEl.textContent = `~${ratio} Students / Tutor`;
+        }
+        if (dashStudentsBadgeEl) {
+          dashStudentsBadgeEl.textContent = `${activeStudents.length} Enrolled`;
+        }
+
+        // 5. Month Collection & Recent Income Transactions
         const txQ = query(collection(db, "transactions")); 
         const txSnap = await getDocs(txQ);
         let collectedThisMonth = 0;
+        const incomeTransactions = [];
         
-        txSnap.forEach(doc => {
-          const t = doc.data();
-          if (t.type === 'income' && t.date && t.date.startsWith(currentMonth)) {
-            collectedThisMonth += (t.amount || 0);
+        txSnap.forEach(docSnap => {
+          const t = docSnap.data();
+          if (t.type === 'income') {
+            incomeTransactions.push(t);
+            if (t.date && t.date.startsWith(currentMonth)) {
+              collectedThisMonth += (t.amount || 0);
+            }
           }
         });
         
         if (monthCollectionEl) monthCollectionEl.textContent = formatter.format(collectedThisMonth);
+
+        // Update Fee Health Ring & KPI Progress Bars
+        const feePct = totalExpectedMonthly > 0
+          ? Math.min(100, Math.round((collectedThisMonth / totalExpectedMonthly) * 100))
+          : 0;
+        if (feeHealthRingEl) {
+          feeHealthRingEl.style.background = `conic-gradient(#087A42 0% ${feePct}%, #e2e8f0 ${feePct}% 100%)`;
+        }
+        if (feeHealthPctEl) feeHealthPctEl.textContent = `${feePct}%`;
+        if (feeExpectedValEl) feeExpectedValEl.textContent = formatter.format(totalExpectedMonthly);
+        if (feeCollectedValEl) feeCollectedValEl.textContent = formatter.format(collectedThisMonth);
+        if (feeRemainingValEl) feeRemainingValEl.textContent = formatter.format(totalPending);
+        if (dashCollectionBadgeEl) dashCollectionBadgeEl.textContent = `${feePct}% of Target`;
+        if (dashCollectionBarEl) dashCollectionBarEl.style.width = `${feePct}%`;
+        if (dashPendingBarEl && totalExpectedMonthly > 0) {
+          const pendPct = Math.min(100, Math.round(((totalOverdue > 0 ? totalOverdue : totalPending) / totalExpectedMonthly) * 100));
+          dashPendingBarEl.style.width = `${pendPct}%`;
+        }
+
+        // Update Hero Summary
+        if (dashHeroSummaryEl) {
+          dashHeroSummaryEl.textContent = `${activeStudents.length} active students across the academy with ${tutorsSnap.size} active tutors and ${feePct}% monthly fee collection achieved.`;
+        }
+
+        // Render Recent Income Transactions
+        if (recentTxListEl) {
+          incomeTransactions.sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+          const latestTx = incomeTransactions.slice(0, 5);
+          if (latestTx.length === 0) {
+            recentTxListEl.innerHTML = '<div style="color: #64748b; font-size: 0.875rem; padding: 1rem 0; text-align: center;">No income records found.</div>';
+          } else {
+            recentTxListEl.innerHTML = latestTx.map(tx => `
+              <div class="tx-row">
+                <div class="tx-left">
+                  <div class="tx-badge-icon"><i data-lucide="arrow-down-left" style="width: 16px; height: 16px;"></i></div>
+                  <div style="min-width: 0;">
+                    <div class="tx-desc">${tx.description || tx.category || 'Fee Payment'}</div>
+                    <div class="tx-date">${tx.date || '-'}</div>
+                  </div>
+                </div>
+                <div class="tx-amount">+${formatter.format(tx.amount || 0)}</div>
+              </div>
+            `).join('');
+            if (window.lucide) lucide.createIcons();
+          }
+        }
+
+        // 5b. Course Enrollment Breakdown
+        if (courseDistListEl) {
+          const coursesSnap = await getDocs(collection(db, "managed_courses"));
+          const managedCourses = [];
+          coursesSnap.forEach(d => managedCourses.push({ id: d.id, ...d.data() }));
+          managedCourses.sort((a, b) => String(a.serialNo || '').localeCompare(String(b.serialNo || ''), undefined, { numeric: true }));
+
+          const palette = ['#087A42', '#0284C7', '#D97706', '#7C3AED', '#0D9488', '#DB2777'];
+          const courseCounts = managedCourses.map((c, idx) => {
+            const rawSerial = String(c.serialNo || '').trim().toUpperCase();
+            const prefix = rawSerial.replace(/\d+$/, '');
+            const cName = String(c.courseName || '').toLowerCase().trim();
+            const count = activeStudents.filter(s => {
+              const sId = String(s.studentId || s.admNo || '').trim().toUpperCase();
+              const c1 = String(s.course || '').toLowerCase().trim();
+              const c2 = String(s.courseType || '').toLowerCase().trim();
+              if (prefix && sId.startsWith(prefix)) return true;
+              if (cName && (c1.includes(cName) || c2.includes(cName))) return true;
+              if ((prefix === 'AMO' || cName.includes('madrassa one-to-one') || cName.includes('madrasa one-to-one')) && c2.includes('madrasa_individual')) return true;
+              if ((prefix === 'AMG' || cName.includes('group')) && c2.includes('madrasa_group')) return true;
+              if ((prefix === 'AT' || prefix === 'AQO' || cName.includes('tarteel')) && (sId.startsWith('AQO') || c2.includes('quran_recitation') || c1.includes('recitation'))) return true;
+              return false;
+            }).length;
+            return { label: c.courseName || rawSerial, serial: rawSerial, count, color: palette[idx % palette.length] };
+          });
+
+          const totalActive = activeStudents.length || 1;
+          if (courseCounts.length === 0) {
+            courseDistListEl.innerHTML = '<div style="color: #64748b; font-size: 0.875rem;">No courses configured yet.</div>';
+          } else {
+            courseDistListEl.innerHTML = courseCounts.map(item => {
+              const pct = Math.round((item.count / totalActive) * 100);
+              return `
+                <div class="course-dist-item">
+                  <div class="course-dist-meta">
+                    <span class="course-dist-name">
+                      <span class="course-dot" style="background: ${item.color};"></span>
+                      ${item.label} <span style="color: #94a3b8; font-weight: 500; font-size: 0.75rem;">(${item.serial})</span>
+                    </span>
+                    <span class="course-dist-count">${item.count} <span style="color: #94a3b8; font-weight: 500;">(${pct}%)</span></span>
+                  </div>
+                  <div class="course-track">
+                    <div class="course-fill" style="width: ${pct}%; background: ${item.color};"></div>
+                  </div>
+                </div>
+              `;
+            }).join('');
+          }
+        }
 
         // 6. Recent Progress Reports
         const reportsQ = query(collection(db, "progress_reports"));
@@ -140,7 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   <i data-lucide="file-text" style="position: absolute; top: 1.5rem; right: 1.5rem; color: #15803d; width: 24px; height: 24px;"></i>
                   <h4 style="margin: 0 0 1rem 0; font-size: 1.4rem; color: #1e293b; font-weight: 600;">
                     ${monthStr}
-                    <div style="font-size: 0.9rem; color: #0d9488; margin-top: 0.25rem;">${report.studentName || 'Student'}</div>
+                    <div style="font-size: 0.9rem; color: #0d9488; margin-top: 0.25rem;">${(report.studentName || 'STUDENT').toUpperCase()}</div>
                   </h4>
                   <div style="display: flex; align-items: center; gap: 0.5rem; color: #64748b; font-size: 0.95rem; margin-bottom: 1.5rem;">
                     <i data-lucide="user" style="width: 16px; height: 16px;"></i>

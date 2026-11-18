@@ -216,18 +216,25 @@
       </header>
 
       <div class="page-content">
-        
+        <!-- Page Hero -->
+        <section class="page-hero">
+          <div class="page-hero-content">
+            <h2 class="page-hero-title"><i data-lucide="mail" style="width: 22px; height: 22px;"></i> Contact Messages</h2>
+            <p class="page-hero-sub">Review parent &amp; visitor inquiries, mark messages as read, and follow up.</p>
+          </div>
+        </section>
+
         <!-- Status Filter Toggle -->
-        <div style="margin-bottom: 2rem; display: flex; justify-content: flex-start;">
-          <div style="background: #ffffff; padding: 0.5rem; border-radius: var(--radius-pill); box-shadow: var(--shadow-sm); display: inline-flex; gap: 0.5rem; border: 1px solid var(--color-border);">
-            <button class="filter-btn active" data-filter="all" style="padding: 0.5rem 1.5rem; border: none; border-radius: var(--radius-pill); background: var(--color-sidebar-active); color: var(--color-primary); font-weight: 500; font-size: 0.875rem; cursor: pointer; transition: all var(--transition-fast);">All</button>
-            <button class="filter-btn" data-filter="unread" style="padding: 0.5rem 1.5rem; border: none; border-radius: var(--radius-pill); background: transparent; color: var(--color-text-secondary); font-weight: 500; font-size: 0.875rem; cursor: pointer; transition: all var(--transition-fast);">Unread</button>
-            <button class="filter-btn" data-filter="read" style="padding: 0.5rem 1.5rem; border: none; border-radius: var(--radius-pill); background: transparent; color: var(--color-text-secondary); font-weight: 500; font-size: 0.875rem; cursor: pointer; transition: all var(--transition-fast);">Read</button>
+        <div class="filter-card">
+          <div style="display: inline-flex; gap: 0.5rem;">
+            <button class="filter-btn active" data-filter="all" style="padding: 0.5rem 1.5rem; border: none; border-radius: var(--radius-pill); background: var(--color-sidebar-active); color: var(--color-primary); font-weight: 600; font-size: 0.875rem; cursor: pointer; transition: all var(--transition-fast);">All</button>
+            <button class="filter-btn" data-filter="unread" style="padding: 0.5rem 1.5rem; border: none; border-radius: var(--radius-pill); background: transparent; color: var(--color-text-secondary); font-weight: 600; font-size: 0.875rem; cursor: pointer; transition: all var(--transition-fast);">Unread</button>
+            <button class="filter-btn" data-filter="read" style="padding: 0.5rem 1.5rem; border: none; border-radius: var(--radius-pill); background: transparent; color: var(--color-text-secondary); font-weight: 600; font-size: 0.875rem; cursor: pointer; transition: all var(--transition-fast);">Read</button>
           </div>
         </div>
 
         <!-- Messages Table -->
-        <div class="card" style="padding: 0; overflow-x: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid #f1f5f9;">
+        <div class="table-card">
           <div class="table-responsive">
 <table class="data-table">
             <thead>

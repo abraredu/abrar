@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const data = docSnap.data();
       
       // Update UI
-      document.getElementById('studentNameTitle').textContent = data.name || 'Unknown';
+      document.getElementById('studentNameTitle').textContent = data.name ? String(data.name).toUpperCase() : 'Unknown';
       document.getElementById('studentIdTitle').textContent = data.studentId || '-';
       
       // Photo

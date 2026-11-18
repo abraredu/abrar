@@ -101,12 +101,25 @@
       </header>
 
       <div class="page-content">
+        <!-- Page Hero -->
+        <section class="page-hero">
+          <div class="page-hero-content">
+            <h2 class="page-hero-title"><i data-lucide="receipt" style="width: 22px; height: 22px;"></i> Fee Collection &amp; Tutor Payouts</h2>
+            <p class="page-hero-sub">Search any student to collect monthly fees, adjust billing cycles, or process tutor salaries.</p>
+          </div>
+          <div class="page-hero-actions">
+            <a href="accounts.html" class="btn-glass"><i data-lucide="wallet" style="width: 16px; height: 16px;"></i> Accounts Ledger</a>
+          </div>
+        </section>
+
         <!-- Unified Student Search and Fee/Salary Management -->
         <div class="card" style="margin-bottom: 1.5rem;">
-          <h2 style="margin-bottom: 1rem;">Search & Select Student</h2>
+          <h2 style="margin-bottom: 0.75rem; font-size: 1.05rem; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 0.5rem;">
+            <i data-lucide="search" style="width: 18px; height: 18px; color: var(--color-primary);"></i> Search &amp; Select Student
+          </h2>
           <div class="form-group" style="margin-bottom: 0; position: relative;">
-            <input type="text" id="unifiedSearchInput" class="form-control" placeholder="Type student name or ID..." autocomplete="off">
-            <ul id="customSearchDropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; max-height: 250px; overflow-y: auto; background: white; border: 1px solid var(--color-border); border-radius: 4px; z-index: 1000; list-style: none; padding: 0; margin: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"></ul>
+            <input type="text" id="unifiedSearchInput" class="form-control" placeholder="Type student name or ID..." autocomplete="off" style="height: 44px;">
+            <ul id="customSearchDropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; max-height: 250px; overflow-y: auto; background: white; border: 1px solid var(--color-border); border-radius: 10px; z-index: 1000; list-style: none; padding: 0; margin: 4px 0 0 0; box-shadow: 0 10px 25px rgba(0,0,0,0.12);"></ul>
           </div>
         </div>
         

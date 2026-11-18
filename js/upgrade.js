@@ -149,16 +149,30 @@ document.addEventListener('DOMContentLoaded', () => {
     return currentDiv;
   }
 
+  // Normalize course names/slugs for reliable matching (e.g. madrasa_group <-> Madrassa Group)
+  function normalizeCourseKey(val) {
+    const norm = String(val || '')
+      .trim()
+      .toLowerCase()
+      .replace(/[_-]+/g, ' ')
+      .replace(/\bmadrass+a\b/g, 'madrasa')
+      .replace(/\bshool\b/g, 'school')
+      .replace(/\s+/g, ' ');
+    if (norm === 'madrasa individual') return 'madrasa one to one';
+    if (norm === 'quran recitation') return 'tarteel';
+    return norm;
+  }
+
   // Check if a student matches a course
   function studentMatchesCourse(student, course) {
     if (!course) return true;
-    const sCourse = (student.course || '').trim().toLowerCase();
-    const sCourseType = (student.courseType || '').trim().toLowerCase();
-    const cName = (course.courseName || '').trim().toLowerCase();
-    const cSerial = (course.serialNo || '').trim().toLowerCase();
+    const sCourse = normalizeCourseKey(student.course);
+    const sCourseType = normalizeCourseKey(student.courseType);
+    const cName = normalizeCourseKey(course.courseName);
+    const cSerial = normalizeCourseKey(course.serialNo);
 
-    return sCourse === cName || sCourse === cSerial ||
-           sCourseType === cName || sCourseType === cSerial ||
+    return (sCourse && (sCourse === cName || sCourse === cSerial)) ||
+           (sCourseType && (sCourseType === cName || sCourseType === cSerial)) ||
            student.courseId === course.id;
   }
 
@@ -221,6 +235,8 @@ document.addEventListener('DOMContentLoaded', () => {
       allStudents = [];
       studentsSnap.forEach(docSnap => {
         const data = docSnap.data();
+        const divStr = String(data.division || '').trim();
+        if (!divStr || divStr.toLowerCase() === 'default div') return;
         allStudents.push({
           id: docSnap.id,
           ...data,
@@ -323,6 +339,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 2. Render Secondary Division Tabs (Per Division for the Active Course)
   function renderDivisionTabs() {
+    if (!divisionTabsWrapper) return;
     divisionTabsWrapper.innerHTML = '';
 
     // Determine relevant students for current course selection
@@ -463,7 +480,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     levelPillsWrapper.appendChild(allLevelsPill);
 
-    // List of levels to display: standardLevels (1st to 5th or any with students) + Unassigned
+    // List of levels to display: standardLevels (1st to 5th or any with students) + Unassigned (only if any)
     const levelsToDisplay = standardLevels.slice(0, 5);
     baseCandidates.forEach(s => {
       const lvl = s.level || 'Unassigned';
@@ -471,7 +488,9 @@ document.addEventListener('DOMContentLoaded', () => {
         levelsToDisplay.push(lvl);
       }
     });
-    levelsToDisplay.push('Unassigned');
+    if (baseCandidates.some(s => (s.level || 'Unassigned') === 'Unassigned')) {
+      levelsToDisplay.push('Unassigned');
+    }
 
     levelsToDisplay.forEach(lvl => {
       const count = baseCandidates.filter(s => (s.level || 'Unassigned') === lvl).length;
@@ -588,54 +607,45 @@ document.addEventListener('DOMContentLoaded', () => {
       card.dataset.id = student.id;
 
       card.innerHTML = `
-        <div>
-          <!-- Top Row: Checkbox, Avatar, Name & Current Level -->
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.75rem; margin-bottom: 0.85rem;">
-            <div style="display: flex; gap: 0.75rem; align-items: center;">
-              <input type="checkbox" class="candidate-checkbox" data-id="${student.id}" ${isSelected ? 'checked' : ''} style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--color-primary);">
-              <div style="width: 44px; height: 44px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-weight: 600; color: #475569; overflow: hidden; flex-shrink: 0; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                ${student.photoUrl 
-                  ? `<img src="${student.photoUrl}" alt="${studentName}" style="width: 100%; height: 100%; object-fit: cover;">` 
-                  : studentName.charAt(0).toUpperCase()}
-              </div>
-              <div>
-                <div style="font-weight: 600; font-size: 0.95rem; color: #0f172a; line-height: 1.25;">${studentName}</div>
-                <div style="font-size: 0.75rem; color: #64748b; font-family: monospace; margin-top: 1px;">${studentId}</div>
-              </div>
+        <div class="cand-top">
+          <div class="cand-identity">
+            <input type="checkbox" class="candidate-checkbox" data-id="${student.id}" ${isSelected ? 'checked' : ''} style="width: 17px; height: 17px; cursor: pointer; accent-color: var(--color-primary); flex-shrink: 0;">
+            <div class="cand-avatar">
+              ${student.photoUrl 
+                ? `<img src="${student.photoUrl}" alt="${studentName}" style="width: 100%; height: 100%; object-fit: cover;">` 
+                : studentName.charAt(0).toUpperCase()}
             </div>
-            
-            <span style="background: ${currentLevel === 'Unassigned' ? '#fef3c7' : '#e6f4ea'}; color: ${currentLevel === 'Unassigned' ? '#92400e' : 'var(--color-primary)'}; padding: 0.25rem 0.65rem; border-radius: 99px; font-size: 0.75rem; font-weight: 600; white-space: nowrap; border: 1px solid rgba(8,122,66,0.15);">
-              ${currentLevel}
-            </span>
+            <div style="min-width: 0;">
+              <div class="cand-name" title="${studentName}">${studentName}</div>
+              <div class="cand-id">${studentId}</div>
+            </div>
           </div>
+          <span class="cand-level-badge ${currentLevel === 'Unassigned' ? 'is-unassigned' : ''}">
+            ${currentLevel}
+          </span>
+        </div>
 
-          <!-- Student Course & Division Info Pill -->
-          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--radius-md); padding: 0.75rem; font-size: 0.8125rem; margin-bottom: 0.85rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
-              <span style="color: #64748b; font-size: 0.75rem; font-weight: 500;">Course Track:</span>
-              <span style="font-weight: 600; color: #1e293b; max-width: 160px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" title="${courseName}">${courseName}</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="color: #64748b; font-size: 0.75rem; font-weight: 500;">Active Division:</span>
-              <strong style="color: #0f172a; background: #ffffff; padding: 0.15rem 0.5rem; border-radius: 4px; border: 1px solid var(--color-border); font-size: 0.75rem;">
-                ${currentDiv}
-              </strong>
-            </div>
+        <div class="cand-meta-grid">
+          <div class="cand-meta-item">
+            <span class="cand-meta-label">Course Track</span>
+            <span class="cand-meta-value" title="${courseName}">${courseName}</span>
+          </div>
+          <div class="cand-meta-item">
+            <span class="cand-meta-label">Division</span>
+            <span class="cand-div-pill">${currentDiv}</span>
           </div>
         </div>
 
-        <!-- Direct 1-Click Upgrade Action -->
-        <div style="border-top: 1px solid #f1f5f9; padding-top: 0.85rem; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;">
-          <div>
-            <div style="font-size: 0.725rem; color: #64748b; font-weight: 500;">Next Promotion:</div>
-            <div style="font-size: 0.85rem; font-weight: 700; color: var(--color-primary); display: flex; align-items: center; gap: 0.35rem;">
-              <i data-lucide="arrow-right" style="width: 13px; height: 13px;"></i>
+        <div class="cand-footer">
+          <div class="cand-promo">
+            <span class="cand-promo-label">Next Promotion</span>
+            <div class="cand-promo-target">
+              <i data-lucide="arrow-up-right" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
               <span>${recommendedNextLevel}</span>
-              ${recommendedNextDivision && recommendedNextDivision !== currentDiv ? `<span style="font-size: 0.725rem; color: #0369a1; background: #e0f2fe; padding: 0.1rem 0.4rem; border-radius: 4px; font-weight: 600;">(${recommendedNextDivision})</span>` : ''}
+              ${recommendedNextDivision && recommendedNextDivision !== currentDiv ? `<span class="cand-promo-div">${recommendedNextDivision}</span>` : ''}
             </div>
           </div>
-
-          <button class="btn btn-primary single-upgrade-btn" data-id="${student.id}" data-target-level="${recommendedNextLevel}" data-target-division="${recommendedNextDivision || currentDiv}" style="padding: 0.5rem 1rem; font-size: 0.825rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.4rem; box-shadow: 0 1px 3px rgba(8,122,66,0.2); white-space: nowrap;">
+          <button class="btn btn-primary single-upgrade-btn" data-id="${student.id}" data-target-level="${recommendedNextLevel}" data-target-division="${recommendedNextDivision || currentDiv}">
             <i data-lucide="trending-up" style="width: 15px; height: 15px;"></i> Upgrade to ${recommendedNextLevel}
           </button>
         </div>

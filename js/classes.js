@@ -102,31 +102,61 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Fetch students for this course
+    // Fetch students for this course
     try {
-      // Assuming students collection has a 'course' field mapping to courseName or serialNo.
-      // For broad compatibility, we fetch all and filter client side if structure varies,
-      // but ideally we query by courseId or courseName. Let's query by courseName for now.
       const q = query(collection(db, "students"));
       const snapshot = await getDocs(q);
+      
+      const rawSerial = (course.serialNo || '').trim().toUpperCase();
+      const coursePrefix = rawSerial.replace(/\d+$/, ''); // e.g. "AMO"
+      const matchName = (course.courseName || '').toLowerCase().trim();
+      const matchSerial = rawSerial.toLowerCase();
       
       currentStudents = [];
       snapshot.forEach(docSnap => {
         const data = docSnap.data();
-        const c1 = data.course || '';
-        const c2 = data.courseType || '';
+        const sId = String(data.studentId || data.admNo || '').trim().toUpperCase();
+        const c1 = String(data.course || '').toLowerCase().trim();
+        const c2 = String(data.courseType || '').toLowerCase().trim();
         const c3 = data.courseId || '';
-        const cArr = Array.isArray(data.courses) ? data.courses : [];
+        const cArr = Array.isArray(data.courses) ? data.courses.map(c => String(c).toLowerCase().trim()) : [];
         
-        const matchName = course.courseName.toLowerCase();
-        const matchSerial = course.serialNo ? course.serialNo.toLowerCase() : '';
-        
+        // 1. Check if student's ID starts with the course prefix (e.g. AMO001 starts with AMO)
+        let isMatch = Boolean(coursePrefix && sId.startsWith(coursePrefix));
+
+        // 2. Check courseName, serial, courseId, courses array
         const checkMatch = (val) => {
            if (!val) return false;
-           const v = String(val).toLowerCase();
-           return v === matchName || v === matchSerial || v.includes(matchName) || (matchSerial && v.includes(matchSerial));
+           const v = String(val).toLowerCase().trim();
+           if (v === matchName || v === matchSerial) return true;
+           if (matchName && (v.includes(matchName) || matchName.includes(v))) return true;
+           // Normalize: remove spaces, underscores, dashes, and duplicate letters like 'ss'
+           const normV = v.replace(/[\s_-]/g, '').replace(/ss/g, 's');
+           const normName = matchName.replace(/[\s_-]/g, '').replace(/ss/g, 's');
+           if (normV === normName || normV.includes(normName) || normName.includes(normV)) return true;
+           return false;
         };
 
-        let isMatch = checkMatch(c1) || checkMatch(c2) || c3 === course.id || cArr.some(checkMatch);
+        if (!isMatch) {
+          isMatch = checkMatch(c1) || checkMatch(c2) || c3 === course.id || cArr.some(checkMatch);
+        }
+
+        // 3. Known mappings for legacy types
+        if (!isMatch) {
+          if ((coursePrefix === 'AMO' || matchName.includes('individual') || matchName.includes('one-to-one')) &&
+              (c2.includes('madrasa_individual') || c2.includes('individual') || c1.includes('individual'))) {
+            isMatch = true;
+          } else if ((coursePrefix === 'AMG' || matchName.includes('group')) &&
+              (c2.includes('madrasa_group') || c2.includes('group') || c1.includes('group'))) {
+            isMatch = true;
+          } else if ((coursePrefix === 'AQO' || coursePrefix === 'AT' || matchName.includes('quran') || matchName.includes('recitation') || matchName.includes('tarteel')) &&
+              (sId.startsWith('AQO') || sId.startsWith('AT') ||
+               c2.includes('quran_recitation') || c2.includes('recitation') || c2.includes('quran') || c2.includes('tarteel') ||
+               c1.includes('recitation') || c1.includes('quran') || c1.includes('tarteel') ||
+               cArr.some(v => v.includes('quran_recitation') || v.includes('recitation') || v.includes('quran') || v.includes('tarteel')))) {
+            isMatch = true;
+          }
+        }
 
         if (!isMatch && data.courseTutors && data.courseTutors[course.courseName]) {
            isMatch = true;
@@ -180,7 +210,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     let filteredStudents = currentStudents;
     if (filterDiv !== 'all') {
-      filteredStudents = currentStudents.filter(s => s.division === filterDiv || s.batch === filterDiv);
+      const fd = filterDiv.toLowerCase().trim();
+      const numOnly = fd.replace(/[^0-9]/g, '');
+      filteredStudents = currentStudents.filter(s => {
+        const sDiv = String(s.division || s.batch || '').toLowerCase().trim();
+        const sLevel = String(s.level || '').toLowerCase().trim();
+        const sLevelNum = sLevel.replace(/[^0-9]/g, '');
+        return sDiv === fd || sLevel === fd || (numOnly && sLevelNum === numOnly) || sDiv.includes(fd) || sLevel.includes(fd);
+      });
     }
 
     // Update Stats
@@ -200,11 +237,24 @@ document.addEventListener('DOMContentLoaded', async () => {
       const statusColor = student.status === 'inactive' ? '#ef4444' : '#10b981';
       const statusText = student.status === 'inactive' ? 'Inactive' : 'Active';
 
+      // Format division/level display
+      let divDisplay = student.division || '';
+      if (!divDisplay && student.level) {
+        const lvlStr = String(student.level).trim();
+        divDisplay = lvlStr.toLowerCase().startsWith('class') ? lvlStr : `Class ${lvlStr}`;
+      }
+      if (!divDisplay && student.batch) {
+        divDisplay = student.batch;
+      }
+      if (!divDisplay) {
+        divDisplay = '-';
+      }
+
       tr.innerHTML = `
-        <td style="padding: 1rem 1.5rem; font-weight: 500; color: #0f172a;">${student.name || '-'}</td>
+        <td style="padding: 1rem 1.5rem; font-weight: 500; color: #0f172a;">${student.name ? String(student.name).toUpperCase() : '-'}</td>
         <td style="padding: 1rem 1.5rem; color: #475569;">${student.studentId || student.admNo || '-'}</td>
         <td style="padding: 1rem 1.5rem; color: #475569;">
-          <span style="background: #f1f5f9; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem;">${student.division || student.batch || '-'}</span>
+          <span style="background: #f1f5f9; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 500;">${divDisplay}</span>
         </td>
         <td style="padding: 1rem 1.5rem;">
           <span style="color: ${statusColor}; font-size: 0.875rem; font-weight: 500; display: flex; align-items: center; gap: 0.25rem;">

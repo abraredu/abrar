@@ -170,50 +170,59 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     statUpcoming.textContent = filteredUpcoming.length;
     statOverdue.textContent = filteredOverdue.length;
+    const upPill = document.getElementById('upcomingCountPill');
+    const ovPill = document.getElementById('overdueCountPill');
+    if (upPill) upPill.textContent = filteredUpcoming.length;
+    if (ovPill) ovPill.textContent = filteredOverdue.length;
   }
 
-  function renderTable(tbody, dataList, type) {
-    tbody.innerHTML = '';
-    
+  function renderTable(container, dataList, type) {
     if (dataList.length === 0) {
-      const msg = type === 'upcoming' ? 'No upcoming payments in the next 7 days.' : 'No overdue payments this month! 🎉';
-      tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 2rem; color: #64748b;">${msg}</td></tr>`;
+      const msg = type === 'upcoming' ? 'No upcoming payments in the next 7 days.' : 'No overdue payments this month!';
+      container.innerHTML = `<div style="text-align: center; padding: 2.5rem 1rem; color: #64748b; font-size: 0.875rem;">${msg}</div>`;
       return;
     }
-    
-    dataList.forEach(item => {
-      const tr = document.createElement('tr');
-      tr.style.borderBottom = '1px solid #f1f5f9';
-      tr.style.transition = 'background-color 0.2s';
-      tr.onmouseenter = () => tr.style.backgroundColor = type === 'overdue' ? '#fff1f2' : '#f8fafc';
-      tr.onmouseleave = () => tr.style.backgroundColor = 'transparent';
-      
-      const dateOpts = { day: 'numeric', month: 'short', year: 'numeric' };
+
+    const dateOpts = { day: 'numeric', month: 'short', year: 'numeric' };
+    container.innerHTML = dataList.map(item => {
       const formattedDate = item.dueDate.toLocaleDateString('en-IN', dateOpts);
-      
+      const upperName = item.name ? String(item.name).toUpperCase() : 'STUDENT';
+      const initials = upperName.split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('') || 'S';
+
       let dateBadge = '';
       if (type === 'upcoming') {
-        const text = item.daysAway === 0 ? 'Today' : `In ${item.daysAway} days`;
-        dateBadge = `<span style="background: #e0f2fe; color: #0284c7; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 500;">${text}</span>`;
+        const text = item.daysAway === 0 ? 'Due Today' : `In ${item.daysAway} days`;
+        dateBadge = `<span style="background: #e0f2fe; color: #0369a1; padding: 0.2rem 0.55rem; border-radius: 999px; font-size: 0.72rem; font-weight: 700;">${text}</span>`;
       } else {
         const text = `${Math.abs(item.daysAway)} days ago`;
-        dateBadge = `<span style="background: #fee2e2; color: #dc2626; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 500;">${text}</span>`;
+        dateBadge = `<span style="background: #fee2e2; color: #dc2626; padding: 0.2rem 0.55rem; border-radius: 999px; font-size: 0.72rem; font-weight: 700;">${text}</span>`;
       }
 
-      tr.innerHTML = `
-        <td style="padding: 1rem 1.5rem; font-weight: 500; color: #0f172a;">${item.name}</td>
-        <td style="padding: 1rem 1.5rem;">
-          <div style="font-weight: 500; color: #475569;">${formattedDate}</div>
-          <div style="margin-top: 0.25rem;">${dateBadge}</div>
-        </td>
-        <td style="padding: 1rem 1.5rem; font-weight: 500; color: #475569;">${formatter.format(item.fee)}</td>
-        <td style="padding: 1rem 1.5rem; color: #475569;">${item.phone}</td>
-        <td style="padding: 1rem 1.5rem; text-align: right;">
-          <a href="../students/student-view.html?id=${item.id}" class="btn btn-outline" style="padding: 0.25rem 0.75rem; font-size: 0.75rem;">View Student</a>
-        </td>
+      return `
+        <div class="notify-card ${type === 'overdue' ? 'overdue' : ''}">
+          <div class="notify-card-top">
+            <div class="notify-student">
+              <div class="notify-avatar">${initials}</div>
+              <div style="min-width: 0;">
+                <div class="notify-name" title="${upperName}">${upperName}</div>
+                <div class="notify-phone">${item.phone}</div>
+              </div>
+            </div>
+            <div class="notify-fee">${formatter.format(item.fee)}</div>
+          </div>
+          <div class="notify-card-bottom">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span style="font-size: 0.78rem; font-weight: 600; color: #475569;">${formattedDate}</span>
+              ${dateBadge}
+            </div>
+            <div style="display: flex; gap: 0.45rem;">
+              <a href="../finance/fees.html" class="btn btn-primary" style="padding: 0.3rem 0.7rem; font-size: 0.74rem;">Collect</a>
+              <a href="../students/student-view.html?id=${item.id}" class="btn btn-outline" style="padding: 0.3rem 0.7rem; font-size: 0.74rem;">View</a>
+            </div>
+          </div>
+        </div>
       `;
-      tbody.appendChild(tr);
-    });
+    }).join('');
   }
 
   // Filter Button Listeners (delegated, since tabs are rendered dynamically)

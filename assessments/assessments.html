@@ -35,6 +35,211 @@
     .status-safe { background: #d1fae5; color: #047857; }
     .status-warning { background: #fef3c7; color: #b45309; }
     .status-danger { background: #fee2e2; color: #b91c1c; }
+
+    /* Non-lagging Division-Grouped Assessment Cards */
+    .div-pills-bar {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      width: 100%;
+      padding-top: 0.75rem;
+      border-top: 1px solid #f1f5f9;
+    }
+
+    .div-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.42rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid #e2e8f0;
+      background: #f8fafc;
+      color: #475569;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .div-pill:hover {
+      background: #ecfdf5;
+      border-color: #a7f3d0;
+      color: #065f46;
+    }
+
+    .div-pill.active {
+      background: #087A42;
+      border-color: #087A42;
+      color: #ffffff;
+    }
+
+    .div-pill-count {
+      background: rgba(15, 23, 42, 0.08);
+      padding: 0.1rem 0.45rem;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+
+    .div-pill.active .div-pill-count {
+      background: rgba(255, 255, 255, 0.22);
+      color: #ffffff;
+    }
+
+    .assess-divisions-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 1.75rem;
+    }
+
+    .assess-div-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+    }
+
+    .assess-div-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.65rem 1rem;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-left: 4px solid #087A42;
+      border-radius: 12px;
+    }
+
+    .assess-div-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .assess-div-badge {
+      background: #ecfdf5;
+      color: #087A42;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.2rem 0.65rem;
+      border-radius: 999px;
+    }
+
+    .assess-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+      gap: 1rem;
+    }
+
+    .assess-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 1.15rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      position: relative;
+      overflow: hidden;
+      content-visibility: auto;
+      contain-intrinsic-size: 210px;
+      transition: transform 0.16s ease, border-color 0.16s ease;
+    }
+
+    .assess-card:hover {
+      transform: translateY(-2px);
+      border-color: #94a3b8;
+    }
+
+    .assess-card-stripe {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+    }
+    .assess-card-stripe.safe { background: #10b981; }
+    .assess-card-stripe.warning { background: #f59e0b; }
+    .assess-card-stripe.danger { background: #ef4444; }
+    .assess-card-stripe.na { background: #cbd5e1; }
+
+    .assess-card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-top: 0.15rem;
+    }
+
+    .assess-student-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      min-width: 0;
+    }
+
+    .assess-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 11px;
+      background: #ecfdf5;
+      color: #087A42;
+      font-weight: 800;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .assess-name {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #0f172a;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .assess-id {
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: #64748b;
+    }
+
+    .assess-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem 0.75rem;
+      background: #f8fafc;
+      border-radius: 10px;
+      padding: 0.65rem 0.8rem;
+      font-size: 0.78rem;
+    }
+
+    .assess-meta-lbl {
+      color: #64748b;
+      font-weight: 500;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .assess-meta-val {
+      color: #1e293b;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .assess-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding-top: 0.25rem;
+    }
   </style>
 </head>
 <body>
@@ -124,27 +329,49 @@
       </header>
 
       <div class="page-content">
+        <!-- Page Hero -->
+        <section class="page-hero">
+          <div class="page-hero-content">
+            <h2 class="page-hero-title"><i data-lucide="clipboard-check" style="width: 22px; height: 22px;"></i> Student Assessments</h2>
+            <p class="page-hero-sub">Track 90-day assessment timers, upcoming evaluations, and overdue reviews.</p>
+          </div>
+        </section>
+
         <!-- Stats -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-          <div class="card stat-card" style="padding: 1rem;">
-            <span class="stat-title">Total Active Students</span>
-            <span class="stat-value" id="statTotal">-</span>
+        <div class="kpi-row">
+          <div class="kpi-box">
+            <div>
+              <div class="kpi-box-label">Total Active Students</div>
+              <div class="kpi-box-value" id="statTotal">-</div>
+            </div>
+            <div class="kpi-box-icon" style="background: #E0F2FE; color: #0284C7;">
+              <i data-lucide="users" style="width: 22px; height: 22px;"></i>
+            </div>
           </div>
-          <div class="card stat-card" style="padding: 1rem;">
-            <span class="stat-title">Assessments Due Soon</span>
-            <span class="stat-value text-warning" id="statWarning">-</span>
+          <div class="kpi-box">
+            <div>
+              <div class="kpi-box-label">Assessments Due Soon</div>
+              <div class="kpi-box-value text-warning" id="statWarning">-</div>
+            </div>
+            <div class="kpi-box-icon" style="background: #FEF3C7; color: #D97706;">
+              <i data-lucide="clock" style="width: 22px; height: 22px;"></i>
+            </div>
           </div>
-          <div class="card stat-card" style="padding: 1rem;">
-            <span class="stat-title">Overdue Assessments</span>
-            <span class="stat-value text-danger" id="statDanger">-</span>
+          <div class="kpi-box">
+            <div>
+              <div class="kpi-box-label">Overdue Assessments</div>
+              <div class="kpi-box-value text-danger" id="statDanger">-</div>
+            </div>
+            <div class="kpi-box-icon" style="background: #FEE2E2; color: #DC2626;">
+              <i data-lucide="alert-triangle" style="width: 22px; height: 22px;"></i>
+            </div>
           </div>
         </div>
         
         <!-- Filters & Search -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
-          
-          <div style="display: flex; gap: 0.75rem; align-items: center;">
-            <div class="form-group" style="margin-bottom: 0;">
+        <div class="filter-card">
+          <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; width: 100%;">
+            <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 220px;">
               <input type="text" id="searchInput" class="form-control" placeholder="Search students..." style="padding-left: 1rem; height: 38px;">
             </div>
             <div class="form-group" style="margin-bottom: 0;">
@@ -163,27 +390,13 @@
               </select>
             </div>
           </div>
+          <div id="divisionPillsBar" class="div-pills-bar"></div>
         </div>
         
-        <!-- Table -->
-        <div class="card" style="overflow-x: auto; border: none; box-shadow: none; padding: 0;">
-          <div class="table-responsive">
-            <table style="width: 100%; text-align: left; border-collapse: collapse; min-width: 1200px; border-top: 1px solid var(--color-border);">
-              <thead>
-                <tr style="border-bottom: 1px solid var(--color-border); background-color: transparent;">
-                  <th style="padding: 1rem 1.5rem; font-weight: 600; color: #475569; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Student Name</th>
-                  <th style="padding: 1rem 1.5rem; font-weight: 600; color: #475569; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Course / Level</th>
-                  <th style="padding: 1rem 1.5rem; font-weight: 600; color: #475569; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Tutor</th>
-                  <th style="padding: 1rem 1.5rem; font-weight: 600; color: #475569; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Class Starting Date</th>
-                  <th style="padding: 1rem 1.5rem; font-weight: 600; color: #475569; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; width: 250px;">Assessment Timer</th>
-                  <th style="padding: 1rem 1.5rem; font-weight: 600; color: #475569; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Status</th>
-                  <th style="padding: 1rem 1.5rem; font-weight: 600; color: #475569; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Actions</th>
-                </tr>
-              </thead>
-              <tbody id="assessmentsTableBody">
-                <tr><td colspan="7" style="text-align: center; padding: 2rem;">Loading...</td></tr>
-              </tbody>
-            </table>
+        <!-- Division-Grouped Assessment Cards -->
+        <div id="assessmentsGrid" class="assess-divisions-wrap">
+          <div style="text-align: center; padding: 3rem; color: #64748b; background: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0;">
+            Loading assessments...
           </div>
         </div>
       </div>

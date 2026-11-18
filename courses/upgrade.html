@@ -8,42 +8,72 @@
   <link rel="stylesheet" href="../css/style.css">
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    /* Tabs & Filters */
+    /* Upgrade Page Unified Filter Panel */
+    .upgrade-filter-panel {
+      background: #ffffff;
+      border: 1px solid var(--color-border);
+      border-radius: 16px;
+      box-shadow: 0 2px 10px rgba(15, 23, 42, 0.03);
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+    .filter-panel-section {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .filter-panel-section:last-child {
+      border-bottom: none;
+    }
+    .filter-section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.65rem;
+      flex-wrap: wrap;
+    }
+    .filter-section-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Tabs & Pills */
     .tabs-wrapper {
       display: flex;
       gap: 0.5rem;
       overflow-x: auto;
-      padding-bottom: 0.35rem;
-      scrollbar-width: thin;
-      -webkit-overflow-scrolling: touch;
+      padding: 0.15rem 0;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
       align-items: center;
     }
     .tabs-wrapper::-webkit-scrollbar {
-      height: 4px;
+      display: none;
     }
-    .tabs-wrapper::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
-      border-radius: 4px;
-    }
-    
+
     .course-tab-btn {
       display: inline-flex;
       align-items: center;
-      gap: 0.6rem;
-      padding: 0.65rem 1.15rem;
-      background: #ffffff;
+      gap: 0.5rem;
+      padding: 0.5rem 0.95rem;
+      background: #f8fafc;
       color: #475569;
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-lg);
-      font-size: 0.875rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 0.825rem;
       font-weight: 500;
       cursor: pointer;
       white-space: nowrap;
       transition: all var(--transition-fast);
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
     }
     .course-tab-btn:hover {
-      background: #f8fafc;
+      background: #f1f5f9;
       border-color: #cbd5e1;
       color: #0f172a;
     }
@@ -52,39 +82,38 @@
       border-color: var(--color-primary);
       color: #ffffff;
       font-weight: 600;
-      box-shadow: 0 4px 12px rgba(8, 122, 66, 0.22);
+      box-shadow: 0 3px 10px rgba(8, 122, 66, 0.22);
     }
     .course-tab-btn .tab-badge {
-      font-size: 0.725rem;
+      font-size: 0.7rem;
       font-weight: 700;
-      padding: 0.15rem 0.5rem;
+      padding: 0.1rem 0.45rem;
       border-radius: 999px;
-      background: #f1f5f9;
+      background: #e2e8f0;
       color: #475569;
-      transition: all var(--transition-fast);
     }
     .course-tab-btn.active .tab-badge {
-      background: rgba(255, 255, 255, 0.25);
+      background: rgba(255, 255, 255, 0.22);
       color: #ffffff;
     }
 
     .division-tab-btn {
       display: inline-flex;
       align-items: center;
-      gap: 0.45rem;
-      padding: 0.45rem 0.95rem;
-      background: #f8fafc;
+      gap: 0.4rem;
+      padding: 0.38rem 0.8rem;
+      background: #ffffff;
       color: #475569;
-      border: 1px solid var(--color-border);
+      border: 1px solid #e2e8f0;
       border-radius: 999px;
-      font-size: 0.8125rem;
+      font-size: 0.8rem;
       font-weight: 500;
       cursor: pointer;
       white-space: nowrap;
       transition: all var(--transition-fast);
     }
     .division-tab-btn:hover {
-      background: #f1f5f9;
+      background: #f8fafc;
       border-color: #94a3b8;
       color: #0f172a;
     }
@@ -93,14 +122,13 @@
       border-color: #0f172a;
       color: #ffffff;
       font-weight: 600;
-      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.18);
     }
     .division-tab-btn .tab-badge {
-      font-size: 0.7rem;
+      font-size: 0.68rem;
       font-weight: 700;
-      padding: 0.1rem 0.45rem;
+      padding: 0.08rem 0.4rem;
       border-radius: 999px;
-      background: #e2e8f0;
+      background: #f1f5f9;
       color: #475569;
     }
     .division-tab-btn.active .tab-badge {
@@ -112,11 +140,11 @@
       display: inline-flex;
       align-items: center;
       gap: 0.35rem;
-      padding: 0.35rem 0.75rem;
+      padding: 0.32rem 0.7rem;
       background: #ffffff;
       color: #64748b;
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-md);
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
       font-size: 0.775rem;
       font-weight: 500;
       cursor: pointer;
@@ -125,11 +153,11 @@
     }
     .level-pill-btn:hover {
       background: #f8fafc;
-      color: #1e293b;
+      color: #0f172a;
       border-color: #cbd5e1;
     }
     .level-pill-btn.active {
-      background: #e6f4ea;
+      background: #ecfdf5;
       border-color: rgba(8, 122, 66, 0.4);
       color: var(--color-primary);
       font-weight: 600;
@@ -137,7 +165,7 @@
     .level-pill-btn .tab-badge {
       font-size: 0.675rem;
       font-weight: 700;
-      padding: 0.1rem 0.4rem;
+      padding: 0.08rem 0.38rem;
       border-radius: 999px;
       background: #f1f5f9;
       color: #64748b;
@@ -149,28 +177,175 @@
 
     /* Candidate Card */
     .candidate-card {
-      background: var(--color-surface);
+      background: #ffffff;
       border: 1px solid #e2e8f0;
-      border-radius: var(--radius-lg);
-      padding: 1.25rem;
+      border-radius: 14px;
+      padding: 1.15rem;
       transition: all var(--transition-fast);
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      gap: 1rem;
-      position: relative;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      gap: 0.9rem;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
     }
     .candidate-card:hover {
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 10px 24px -6px rgba(15, 23, 42, 0.09);
       border-color: #cbd5e1;
       transform: translateY(-2px);
     }
     .candidate-card.selected {
       border-color: var(--color-primary);
-      background: #fbfdfc;
-      box-shadow: 0 0 0 2px rgba(8, 122, 66, 0.15), 0 8px 20px -4px rgba(8, 122, 66, 0.08);
+      background: #fafffc;
+      box-shadow: 0 0 0 2px rgba(8, 122, 66, 0.16), 0 8px 20px -4px rgba(8, 122, 66, 0.08);
     }
+    .cand-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.65rem;
+    }
+    .cand-identity {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      min-width: 0;
+    }
+    .cand-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+      color: var(--color-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.95rem;
+      overflow: hidden;
+      flex-shrink: 0;
+      border: 1px solid rgba(8, 122, 66, 0.15);
+    }
+    .cand-name {
+      font-weight: 600;
+      font-size: 0.925rem;
+      color: #0f172a;
+      line-height: 1.25;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .cand-id {
+      font-size: 0.725rem;
+      color: #64748b;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      margin-top: 2px;
+    }
+    .cand-level-badge {
+      background: #ecfdf5;
+      color: var(--color-primary);
+      padding: 0.22rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.725rem;
+      font-weight: 700;
+      white-space: nowrap;
+      border: 1px solid rgba(8, 122, 66, 0.18);
+      flex-shrink: 0;
+    }
+    .cand-level-badge.is-unassigned {
+      background: #fef3c7;
+      color: #92400e;
+      border-color: rgba(146, 64, 14, 0.2);
+    }
+    .cand-meta-grid {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.5rem 0.75rem;
+      background: #f8fafc;
+      border: 1px solid #f1f5f9;
+      border-radius: 10px;
+      padding: 0.65rem 0.8rem;
+      align-items: center;
+    }
+    .cand-meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+    .cand-meta-label {
+      font-size: 0.68rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #94a3b8;
+    }
+    .cand-meta-value {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #1e293b;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .cand-div-pill {
+      display: inline-block;
+      color: #0f172a;
+      background: #ffffff;
+      padding: 0.15rem 0.55rem;
+      border-radius: 6px;
+      border: 1px solid #e2e8f0;
+      font-size: 0.75rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .cand-footer {
+      border-top: 1px solid #f1f5f9;
+      padding-top: 0.8rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+    .cand-promo {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+    .cand-promo-label {
+      font-size: 0.725rem;
+      color: #64748b;
+      font-weight: 500;
+    }
+    .cand-promo-target {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.825rem;
+      font-weight: 700;
+      color: var(--color-primary);
+      white-space: nowrap;
+    }
+    .cand-promo-div {
+      font-size: 0.7rem;
+      color: #0369a1;
+      background: #e0f2fe;
+      padding: 0.1rem 0.45rem;
+      border-radius: 5px;
+      font-weight: 600;
+    }
+    .single-upgrade-btn {
+      width: 100%;
+      justify-content: center;
+      padding: 0.52rem 0.9rem;
+      font-size: 0.825rem;
+      font-weight: 600;
+      border-radius: 9px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      box-shadow: 0 2px 6px rgba(8, 122, 66, 0.18);
+    }
+
     .bulk-bar {
       position: fixed;
       bottom: 2rem;
@@ -272,15 +447,15 @@
           <button class="mobile-menu-btn" id="mobileMenuBtn">
             <i data-lucide="menu"></i>
           </button>
-          <div>
-            <div style="font-size: 0.875rem; color: var(--color-text-secondary); margin-bottom: 0.25rem;">
-              <a href="classes.html" style="color: inherit;">Courses</a> / Upgrade
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div style="width: 40px; height: 40px; background-color: var(--color-primary-light, #E6F4EA); color: var(--color-primary); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <i data-lucide="trending-up"></i>
             </div>
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
-              <div style="width: 40px; height: 40px; background-color: var(--color-primary-light, #E6F4EA); color: var(--color-primary); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center;">
-                <i data-lucide="trending-up"></i>
+            <div>
+              <div style="font-size: 0.75rem; line-height: 1.2; color: var(--color-text-secondary); margin-bottom: 2px;">
+                <a href="classes.html" style="color: inherit;">Courses</a> / Upgrade
               </div>
-              <h1 class="page-title">Student Class & Level Upgrade</h1>
+              <h1 class="page-title" style="line-height: 1.2;">Student Class & Level Upgrade</h1>
             </div>
           </div>
         </div>
@@ -294,93 +469,80 @@
         </div>
       </header>
 
-      <div class="page-content" style="padding-top: 1.5rem;">
-        
-        <!-- Primary Course Tabs -->
-        <div style="margin-bottom: 1.25rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
-            <div>
-              <h2 style="font-size: 1.15rem; font-weight: 600; color: #0f172a; display: flex; align-items: center; gap: 0.5rem;">
-                <i data-lucide="book-marked" style="color: var(--color-primary); width: 20px; height: 20px;"></i>
-                Courses & Class Divisions
-              </h2>
-              <p style="font-size: 0.85rem; color: var(--color-text-secondary); margin-top: 0.15rem;">
-                Select an entered course and division below to view and upgrade candidates.
-              </p>
-            </div>
-            <div id="filterSummaryChip" style="display: none; align-items: center; gap: 0.5rem; background: #e6f4ea; border: 1px solid rgba(8,122,66,0.2); padding: 0.3rem 0.75rem; border-radius: 99px;">
-              <span style="font-size: 0.8rem; font-weight: 500; color: var(--color-primary);" id="filterSummaryText">Filtering</span>
-              <button id="resetAllFiltersBtn" style="background: none; border: none; color: var(--color-primary); cursor: pointer; font-size: 1rem; line-height: 1; padding: 0; font-weight: bold;" title="Clear filter">&times;</button>
+      <div class="page-content">
+
+        <!-- Page Hero -->
+        <section class="page-hero" style="margin-bottom: 1.25rem;">
+          <div class="page-hero-content">
+            <h2 class="page-hero-title"><i data-lucide="trending-up" style="width: 22px; height: 22px;"></i> Student Class &amp; Level Upgrade</h2>
+            <p class="page-hero-sub">Filter by course track, division, or class level to promote students individually or in bulk.</p>
+          </div>
+          <div class="page-hero-actions">
+            <div id="filterSummaryChip" style="display: none; align-items: center; gap: 0.5rem; background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.28); padding: 0.35rem 0.85rem; border-radius: 99px; color: #ffffff;">
+              <span style="font-size: 0.8rem; font-weight: 500;" id="filterSummaryText">Filtering</span>
+              <button id="resetAllFiltersBtn" style="background: none; border: none; color: #ffffff; cursor: pointer; font-size: 1rem; line-height: 1; padding: 0; font-weight: bold;" title="Clear filter">&times;</button>
             </div>
           </div>
+        </section>
 
-          <!-- Course Tabs Navigation -->
-          <div class="tabs-wrapper" id="courseTabsWrapper">
-            <div style="padding: 0.5rem 1rem; color: #64748b; font-size: 0.875rem;">Loading courses...</div>
-          </div>
-        </div>
-
-        <!-- Secondary Division Sub-Tabs (Per Division for Entered Courses) -->
-        <div class="card" id="divisionTabsContainer" style="margin-bottom: 1.25rem; padding: 0.875rem 1.25rem; background: #ffffff; border: 1px solid var(--color-border); border-radius: var(--radius-lg);">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; flex-wrap: wrap; gap: 0.5rem;">
-            <div style="display: flex; align-items: center; gap: 0.45rem; font-size: 0.8rem; font-weight: 600; color: #475569; text-transform: uppercase; letter-spacing: 0.03em;">
-              <i data-lucide="split" style="width: 15px; height: 15px; color: var(--color-primary);"></i>
-              <span id="divisionSectionTitle">Divisions:</span>
+        <!-- Unified Course, Division, Level & Search Filter Panel -->
+        <section class="upgrade-filter-panel">
+          <!-- Row 1: Courses -->
+          <div class="filter-panel-section">
+            <div class="filter-section-head">
+              <span class="filter-section-label">
+                <i data-lucide="book-marked" style="width: 14px; height: 14px; color: var(--color-primary);"></i>
+                Course Track
+              </span>
             </div>
-            <span id="activeDivisionInfo" style="font-size: 0.8rem; color: #64748b;">All Divisions</span>
-          </div>
-          <div class="tabs-wrapper" id="divisionTabsWrapper">
-            <!-- Dynamically populated: [All Divisions] [Class 1] [Division A] ... -->
-          </div>
-        </div>
-
-        <!-- Level Pills & Search Toolbar -->
-        <div class="card" style="margin-bottom: 1.5rem; padding: 1rem 1.25rem; background: white;">
-          <!-- Class Level Filter Row -->
-          <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap;">
-            <span style="font-size: 0.8rem; font-weight: 600; color: #64748b; white-space: nowrap; display: flex; align-items: center; gap: 0.35rem;">
-              <i data-lucide="layers" style="width: 14px; height: 14px; color: var(--color-primary);"></i> Class Level:
-            </span>
-            <div class="tabs-wrapper" id="levelPillsWrapper" style="flex: 1;">
-              <!-- Dynamically populated: [All Levels (1)] [1st Class (0)] ... -->
+            <div class="tabs-wrapper" id="courseTabsWrapper">
+              <div style="padding: 0.35rem 0.5rem; color: #64748b; font-size: 0.85rem;">Loading courses...</div>
             </div>
           </div>
 
-          <!-- Search and Selection Controls -->
-          <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; border-top: 1px solid #f1f5f9; padding-top: 0.875rem;">
-            <div style="position: relative; flex: 1; max-width: 420px; min-width: 260px;">
-              <i data-lucide="search" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: #94a3b8;"></i>
-              <input type="text" id="searchInput" class="form-control" placeholder="Search candidate by name, admission no, phone..." style="padding-left: 2.25rem; height: 38px;">
+          <!-- Row 2: Class Levels + Search & Bulk Controls -->
+          <div class="filter-panel-section">
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.85rem; flex-wrap: wrap;">
+              <span class="filter-section-label" style="white-space: nowrap;">
+                <i data-lucide="layers" style="width: 14px; height: 14px; color: var(--color-primary);"></i> Class Level
+              </span>
+              <div class="tabs-wrapper" id="levelPillsWrapper" style="flex: 1;"></div>
             </div>
 
-            <div style="display: flex; align-items: center; gap: 1.25rem;">
-              <label style="display: flex; align-items: center; gap: 0.45rem; font-size: 0.875rem; font-weight: 500; cursor: pointer; user-select: none; color: #334155;">
-                <input type="checkbox" id="selectAllCheckbox" style="width: 16px; height: 16px; accent-color: var(--color-primary); cursor: pointer;">
-                <span>Select All Visible Candidates</span>
-              </label>
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; border-top: 1px solid #f1f5f9; padding-top: 0.85rem;">
+              <div style="position: relative; flex: 1; max-width: 420px; min-width: 240px;">
+                <i data-lucide="search" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: #94a3b8;"></i>
+                <input type="text" id="searchInput" class="form-control" placeholder="Search candidate by name, ID, phone..." style="padding-left: 2.25rem; height: 38px; border-radius: 10px;">
+              </div>
 
-              <button id="quickUpgradeSelectedBtn" class="btn btn-primary" style="display: none; padding: 0.45rem 1rem; font-size: 0.85rem;">
-                <i data-lucide="arrow-up-circle" style="width: 16px; height: 16px;"></i> Upgrade (<span id="quickSelectedCount">0</span>)
-              </button>
+              <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                <label style="display: flex; align-items: center; gap: 0.45rem; font-size: 0.85rem; font-weight: 500; cursor: pointer; user-select: none; color: #334155;">
+                  <input type="checkbox" id="selectAllCheckbox" style="width: 16px; height: 16px; accent-color: var(--color-primary); cursor: pointer;">
+                  <span>Select All Visible</span>
+                </label>
+
+                <button id="quickUpgradeSelectedBtn" class="btn btn-primary" style="display: none; padding: 0.45rem 1rem; font-size: 0.825rem; border-radius: 9px;">
+                  <i data-lucide="arrow-up-circle" style="width: 16px; height: 16px;"></i> Upgrade (<span id="quickSelectedCount">0</span>)
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        </section>
 
         <!-- Candidates Header & Count -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-          <div style="font-size: 0.95rem; font-weight: 600; color: #334155; display: flex; align-items: center; gap: 0.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+          <div style="font-size: 0.95rem; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 0.5rem;">
             <span>Candidates List</span>
-            <span style="background: #e2e8f0; color: #334155; padding: 0.15rem 0.6rem; border-radius: 99px; font-size: 0.8rem; font-weight: 700;" id="candidateCountDisplay">0</span>
+            <span style="background: #e2e8f0; color: #334155; padding: 0.15rem 0.65rem; border-radius: 99px; font-size: 0.775rem; font-weight: 700;" id="candidateCountDisplay">0</span>
           </div>
-          <div id="activeFilterBadge" style="display: none; background: #e6f4ea; color: var(--color-primary); font-size: 0.8rem; font-weight: 500; padding: 0.25rem 0.75rem; border-radius: 99px; align-items: center; gap: 0.4rem;">
+          <div id="activeFilterBadge" style="display: none; background: #ecfdf5; color: var(--color-primary); font-size: 0.775rem; font-weight: 600; padding: 0.25rem 0.75rem; border-radius: 99px; align-items: center; gap: 0.4rem; border: 1px solid rgba(8,122,66,0.2);">
             <span>Filtered by: <strong id="filterNameDisplay">1st Class</strong></span>
             <button id="clearLevelFilterBtn" style="background: none; border: none; color: inherit; cursor: pointer; font-size: 1rem; line-height: 1; padding: 0;">&times;</button>
           </div>
         </div>
 
         <!-- Candidate Cards Grid -->
-        <div id="candidatesGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.25rem; margin-bottom: 4rem;">
-          <!-- Candidate cards injected by JS -->
+        <div id="candidatesGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.1rem; margin-bottom: 4.5rem;">
           <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; background: white; border-radius: var(--radius-lg); border: 1px solid var(--color-border); color: #64748b;">
             Loading candidate students...
           </div>

@@ -89,10 +89,21 @@
         </div>
       </header>
 
-      <div class="page-content" style="padding-top: 1rem;">
-        
+      <div class="page-content">
+        <!-- Page Hero -->
+        <section class="page-hero">
+          <div class="page-hero-content">
+            <h2 class="page-hero-title"><i data-lucide="library" style="width: 22px; height: 22px;"></i> Courses &amp; Classes</h2>
+            <p class="page-hero-sub">Browse enrolled students, divisions, and course-wise analytics.</p>
+          </div>
+          <div class="page-hero-actions">
+            <a href="manage.html" class="btn-glass"><i data-lucide="settings-2" style="width: 16px; height: 16px;"></i> Manage Courses</a>
+            <a href="upgrade.html" class="btn-white"><i data-lucide="trending-up" style="width: 16px; height: 16px;"></i> Class Upgrade</a>
+          </div>
+        </section>
+
         <!-- Dynamic Course Tabs -->
-        <div id="courseTabsContainer" style="display: flex; gap: 0.5rem; margin-bottom: 1rem; background: #ffffff; padding: 0.5rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); width: fit-content; max-width: 100%; overflow-x: auto; border: 1px solid var(--color-border); white-space: nowrap;">
+        <div id="courseTabsContainer" class="filter-card" style="width: fit-content; max-width: 100%; overflow-x: auto; white-space: nowrap; gap: 0.5rem; padding: 0.5rem;">
           <div style="padding: 0.5rem 1rem; color: #64748b; font-style: italic;">Loading courses...</div>
         </div>
 
@@ -104,33 +115,33 @@
         <!-- Dynamic Course Content -->
         <div id="courseContentArea" style="display: none;">
           <!-- Premium Stat Cards -->
-          <div class="stats-grid" style="margin-bottom: 2rem;">
-            <div class="card stat-card" style="border: 1px solid #f3f4f6; box-shadow: 0 4px 15px rgba(0,0,0,0.03); background: linear-gradient(to right bottom, #ffffff, #f9fafb); padding: 1.25rem; border-radius: 1rem;">
-              <div class="stat-icon" style="background: rgba(8, 122, 66, 0.1); color: var(--color-primary); width: 56px; height: 56px;">
-                <i data-lucide="users" style="width: 28px; height: 28px;"></i>
+          <div class="kpi-row">
+            <div class="kpi-box">
+              <div>
+                <div class="kpi-box-label">Total Students</div>
+                <div class="kpi-box-value" id="statTotalStudents">-</div>
               </div>
-              <div class="stat-info">
-                <span class="stat-title" style="font-size: 0.9rem;">Total Students</span>
-                <span class="stat-value" id="statTotalStudents">-</span>
+              <div class="kpi-box-icon" style="background: rgba(8, 122, 66, 0.1); color: var(--color-primary);">
+                <i data-lucide="users" style="width: 22px; height: 22px;"></i>
               </div>
             </div>
-            <div class="card stat-card" style="border: 1px solid #f3f4f6; box-shadow: 0 4px 15px rgba(0,0,0,0.03); background: linear-gradient(to right bottom, #ffffff, #f9fafb); padding: 1.25rem; border-radius: 1rem;">
-              <div class="stat-icon" style="background: rgba(22, 163, 74, 0.1); color: var(--color-success); width: 56px; height: 56px;">
-                <i data-lucide="check-circle" style="width: 28px; height: 28px;"></i>
+            <div class="kpi-box">
+              <div>
+                <div class="kpi-box-label">Active Students</div>
+                <div class="kpi-box-value text-success" id="statActiveStudents">-</div>
               </div>
-              <div class="stat-info">
-                <span class="stat-title" style="font-size: 0.9rem;">Active Students</span>
-                <span class="stat-value" id="statActiveStudents">-</span>
+              <div class="kpi-box-icon" style="background: #DCFCE7; color: #16A34A;">
+                <i data-lucide="check-circle" style="width: 22px; height: 22px;"></i>
               </div>
             </div>
           </div>
 
           <!-- Students Table -->
-          <div class="card" style="border: 1px solid #e5e7eb; box-shadow: 0 4px 20px rgba(0,0,0,0.04); overflow: hidden; padding: 0; border-radius: 1rem;">
-            <div style="padding: 1.5rem; border-bottom: 1px solid var(--color-border); background: #ffffff; display: flex; justify-content: space-between; align-items: center;">
+          <div class="table-card">
+            <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--color-border); background: #ffffff; display: flex; justify-content: space-between; align-items: center;">
               <div>
-                <h2 id="tableTitle" style="font-size: 1.25rem; font-weight: 600; color: #1f2937;">Students Enrolled</h2>
-                <p class="text-muted" style="font-size: 0.875rem; margin-top: 0.25rem;">Full roster and analytics for this course.</p>
+                <h2 id="tableTitle" style="font-size: 1.1rem; font-weight: 700; color: #0f172a; margin: 0;">Students Enrolled</h2>
+                <p class="text-muted" style="font-size: 0.82rem; margin: 0.2rem 0 0 0;">Full roster and analytics for this course.</p>
               </div>
             </div>
             <div style="overflow-x: auto;">

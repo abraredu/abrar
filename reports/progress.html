@@ -498,25 +498,36 @@
       </header>
 
       <div class="page-content">
-        <div id="reportContainer" class="card">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
-            <h2 style="margin: 0; font-size: 1.25rem;">Submitted Progress Reports</h2>
-            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-              <input type="month" id="filterMonth" class="form-control" style="width: auto;">
-              <input type="text" id="filterStudent" class="form-control" placeholder="Search student..." style="width: auto;">
+        <!-- Page Hero -->
+        <section class="page-hero">
+          <div class="page-hero-content">
+            <h2 class="page-hero-title"><i data-lucide="line-chart" style="width: 22px; height: 22px;"></i> Progress Reports</h2>
+            <p class="page-hero-sub">Review, filter, print, and export submitted monthly student progress reports.</p>
+          </div>
+          <div class="page-hero-actions">
+            <a href="data.html" class="btn-glass"><i data-lucide="database" style="width: 16px; height: 16px;"></i> Progress Data</a>
+          </div>
+        </section>
+
+        <div id="reportContainer">
+          <div class="filter-card">
+            <h2 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: #0f172a;">Submitted Progress Reports</h2>
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+              <input type="month" id="filterMonth" class="form-control" style="width: auto; height: 38px;">
+              <input type="text" id="filterStudent" class="form-control" placeholder="Search student..." style="width: auto; height: 38px; min-width: 220px;">
             </div>
           </div>
           
-          <div style="overflow-x: auto;">
+          <div class="table-card">
             <div class="table-responsive">
               <table style="width: 100%; border-collapse: collapse; text-align: left;">
-                <thead style="background: var(--color-background); border-bottom: 2px solid var(--color-border);">
+                <thead>
                   <tr>
-                    <th style="padding: 1rem; font-weight: 600; color: var(--color-text-secondary);">Student Name</th>
-                    <th style="padding: 1rem; font-weight: 600; color: var(--color-text-secondary);">Month</th>
-                    <th style="padding: 1rem; font-weight: 600; color: var(--color-text-secondary);">Tutor</th>
-                    <th style="padding: 1rem; font-weight: 600; color: var(--color-text-secondary);">Attendance</th>
-                    <th style="padding: 1rem; font-weight: 600; color: var(--color-text-secondary);">Actions</th>
+                    <th>Student Name</th>
+                    <th>Month</th>
+                    <th>Tutor</th>
+                    <th>Attendance</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody id="adminReportsTableBody">

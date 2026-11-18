@@ -178,9 +178,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       btn.disabled = true;
 
       const courseData = {
-        courseName: document.getElementById('courseName').value,
+        courseName: document.getElementById('courseName').value.trim(),
         divisions: document.getElementById('hasDivisionsToggle').checked ? addCourseDivisions.join(', ') : '',
-        serialNo: document.getElementById('serialNo').value,
+        serialNo: (document.getElementById('serialNo').value || '').trim().toUpperCase(),
         createdAt: new Date().toISOString()
       };
 
@@ -253,9 +253,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const courseId = document.getElementById('editCourseId').value;
       const courseData = {
-        courseName: document.getElementById('editCourseName').value,
+        courseName: document.getElementById('editCourseName').value.trim(),
         divisions: document.getElementById('editHasDivisionsToggle').checked ? editCourseDivisions.join(', ') : '',
-        serialNo: document.getElementById('editSerialNo').value
+        serialNo: (document.getElementById('editSerialNo').value || '').trim().toUpperCase()
       };
 
       await updateDoc(doc(db, "managed_courses", courseId), courseData);

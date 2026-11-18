@@ -95,47 +95,79 @@
       </header>
 
       <div class="page-content">
+        <!-- Page Hero -->
+        <section class="page-hero">
+          <div class="page-hero-content">
+            <h2 class="page-hero-title"><i data-lucide="wallet" style="width: 22px; height: 22px;"></i> Accounts Ledger</h2>
+            <p class="page-hero-sub">Track all academy income, expenses, net balance, and monthly surplus.</p>
+          </div>
+          <div class="page-hero-actions">
+            <a href="income.html" class="btn-white"><i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i> Add Income</a>
+            <a href="expenses.html" class="btn-glass"><i data-lucide="minus-circle" style="width: 16px; height: 16px;"></i> Add Expense</a>
+          </div>
+        </section>
+
         <!-- Stats -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-          <div class="card stat-card" style="padding: 1rem;">
-            <span class="stat-title">Total Income</span>
-            <span class="stat-value text-success" id="statTotalIncome">-</span>
+        <div class="kpi-row">
+          <div class="kpi-box">
+            <div>
+              <div class="kpi-box-label">Total Income</div>
+              <div class="kpi-box-value text-success" id="statTotalIncome">-</div>
+            </div>
+            <div class="kpi-box-icon" style="background: #DCFCE7; color: #16A34A;">
+              <i data-lucide="trending-up" style="width: 22px; height: 22px;"></i>
+            </div>
           </div>
-          <div class="card stat-card" style="padding: 1rem;">
-            <span class="stat-title">Total Expense</span>
-            <span class="stat-value text-danger" id="statTotalExpense">-</span>
+          <div class="kpi-box">
+            <div>
+              <div class="kpi-box-label">Total Expense</div>
+              <div class="kpi-box-value text-danger" id="statTotalExpense">-</div>
+            </div>
+            <div class="kpi-box-icon" style="background: #FEE2E2; color: #DC2626;">
+              <i data-lucide="trending-down" style="width: 22px; height: 22px;"></i>
+            </div>
           </div>
-          <div class="card stat-card" style="padding: 1rem;">
-            <span class="stat-title">Current Balance</span>
-            <span class="stat-value" id="statCurrentBalance">-</span>
+          <div class="kpi-box">
+            <div>
+              <div class="kpi-box-label">Current Balance</div>
+              <div class="kpi-box-value" id="statCurrentBalance">-</div>
+            </div>
+            <div class="kpi-box-icon" style="background: #E0F2FE; color: #0284C7;">
+              <i data-lucide="landmark" style="width: 22px; height: 22px;"></i>
+            </div>
           </div>
-          <div class="card stat-card" style="padding: 1rem;">
-            <span class="stat-title">This Month Surplus</span>
-            <span class="stat-value" id="statMonthSurplus">-</span>
+          <div class="kpi-box">
+            <div>
+              <div class="kpi-box-label">This Month Surplus</div>
+              <div class="kpi-box-value" id="statMonthSurplus">-</div>
+            </div>
+            <div class="kpi-box-icon" style="background: #ECFDF5; color: #087A42;">
+              <i data-lucide="piggy-bank" style="width: 22px; height: 22px;"></i>
+            </div>
           </div>
         </div>
         
         <!-- Filters -->
-        <div class="card" style="margin-bottom: 1.5rem;">
-          <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <div class="filter-card">
+          <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; width: 100%; align-items: center;">
             <div class="form-group" style="margin-bottom: 0;">
-              <select id="typeFilter" class="form-control">
+              <select id="typeFilter" class="form-control" style="height: 38px;">
                 <option value="">All Types</option>
                 <option value="income">Income</option>
                 <option value="expense">Expense</option>
               </select>
             </div>
             <div class="form-group" style="margin-bottom: 0;">
-              <input type="month" id="monthFilter" class="form-control">
+              <input type="month" id="monthFilter" class="form-control" style="height: 38px;">
             </div>
-            <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 200px;">
-              <input type="text" id="searchInput" class="form-control" placeholder="Search description, reference, category...">
+            <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 220px;">
+              <input type="text" id="searchInput" class="form-control" placeholder="Search description, reference, category..." style="height: 38px;">
             </div>
           </div>
         </div>
         
         <!-- Table -->
-        <div class="card" style="overflow-x: auto;">
+        <div class="table-card">
           <div class="table-responsive">
 <table style="width: 100%; text-align: left; border-collapse: collapse;">
             <thead>

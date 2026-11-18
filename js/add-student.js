@@ -174,7 +174,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             courseTutors[cName] = select.value;
          }
       });
-      const studentNameVal = document.getElementById('name')?.value.trim() || document.getElementById('studentName')?.value.trim() || '';
+      const studentNameVal = (document.getElementById('name')?.value.trim() || document.getElementById('studentName')?.value.trim() || '').toUpperCase();
       const parentNameVal = document.getElementById('parentName')?.value.trim() || document.getElementById('fatherName')?.value.trim() || '';
       const placeVal = document.getElementById('place')?.value.trim() || document.getElementById('address')?.value.trim() || '';
       const admissionDateVal = document.getElementById('admissionDate')?.value || '';

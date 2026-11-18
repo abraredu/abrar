@@ -95,13 +95,20 @@
       </header>
 
       <div class="page-content">
-        <div class="card" style="margin-bottom: 1.5rem;">
-          <h3 style="margin-bottom: 1rem;">Generate Report</h3>
-          <form id="reportForm">
+        <!-- Page Hero -->
+        <section class="page-hero">
+          <div class="page-hero-content">
+            <h2 class="page-hero-title"><i data-lucide="bar-chart-3" style="width: 22px; height: 22px;"></i> Analytics &amp; Reports</h2>
+            <p class="page-hero-sub">Generate financial, fee collection, salary payout, and student roster reports.</p>
+          </div>
+        </section>
+
+        <div class="filter-card">
+          <form id="reportForm" style="width: 100%;">
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; align-items: end;">
               <div class="form-group" style="margin-bottom: 0;">
                 <label class="form-label">Report Type</label>
-                <select id="reportType" class="form-control" required>
+                <select id="reportType" class="form-control" required style="height: 40px;">
                   <option value="financial">Financial Transactions (Income/Expense)</option>
                   <option value="fees">Fee Collections</option>
                   <option value="salaries">Salary Payouts</option>
@@ -110,23 +117,25 @@
               </div>
               <div class="form-group" style="margin-bottom: 0;">
                 <label class="form-label">Start Date</label>
-                <input type="date" id="startDate" class="form-control">
+                <input type="date" id="startDate" class="form-control" style="height: 40px;">
               </div>
               <div class="form-group" style="margin-bottom: 0;">
                 <label class="form-label">End Date</label>
-                <input type="date" id="endDate" class="form-control">
+                <input type="date" id="endDate" class="form-control" style="height: 40px;">
               </div>
               <div class="form-group" style="margin-bottom: 0;">
-                <button type="submit" class="btn btn-primary" style="width: 100%;">Generate</button>
+                <button type="submit" class="btn btn-primary" style="width: 100%; height: 40px;">
+                  <i data-lucide="play" style="width: 16px; height: 16px;"></i> Generate
+                </button>
               </div>
             </div>
           </form>
         </div>
         
-        <div class="card" style="overflow-x: auto;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-            <h3 id="reportTitle">Report Results</h3>
-            <div id="reportSummary" style="font-weight: 600; color: var(--color-primary);"></div>
+        <div class="table-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--color-border);">
+            <h3 id="reportTitle" style="margin: 0; font-size: 1.05rem; font-weight: 700; color: #0f172a;">Report Results</h3>
+            <div id="reportSummary" style="font-weight: 700; color: var(--color-primary);"></div>
           </div>
           
           <div class="table-responsive">

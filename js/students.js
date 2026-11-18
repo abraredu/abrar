@@ -61,25 +61,30 @@ document.addEventListener('DOMContentLoaded', () => {
           });
         }
 
-        const renderTable = (students) => {
-          let total = 0;
+        const isStudentActive = (s) => String(s.status || '').trim().toLowerCase() === 'active';
+
+        const updateStats = () => {
           let active = 0;
           let inactive = 0;
-          
+          allStudents.forEach(s => {
+            if (isStudentActive(s)) active++;
+            else inactive++;
+          });
+          statTotal.textContent = allStudents.length;
+          statActive.textContent = active;
+          statInactive.textContent = inactive;
+        };
+
+        const renderTable = (students) => {
+          updateStats();
           tbody.innerHTML = '';
           
           if (students.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="12" style="text-align: center; padding: 2rem;">No students found.</td></tr>';
-            statTotal.textContent = 0;
-            statActive.textContent = 0;
-            statInactive.textContent = 0;
+            tbody.innerHTML = '<tr><td colspan="13" style="text-align: center; padding: 2rem;">No students found.</td></tr>';
             return;
           }
 
           students.forEach((data) => {
-            total++;
-            if (data.status === 'active') active++;
-            else inactive++;
             
             const tr = document.createElement('tr');
             tr.style.borderBottom = '1px solid #f1f5f9';
@@ -119,7 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tr.innerHTML = `
               <td style="padding: 1rem 1.5rem;"><input type="checkbox" class="row-checkbox" value="${data.id}"></td>
               <td style="padding: 1rem 1.5rem; color: #475569; font-weight: 500;">${data.studentId || '-'}</td>
-              <td style="padding: 1rem 1.5rem; font-weight: 500; color: #0f172a;">${data.name || '-'}</td>
+              <td style="padding: 1rem 1.5rem; font-weight: 500; color: #0f172a;">${data.name ? String(data.name).toUpperCase() : '-'}</td>
               <td style="padding: 1rem 1.5rem; color: #475569;">${data.parentName || '-'}</td>
               <td style="padding: 1rem 1.5rem; color: #475569;">${data.place || '-'}</td>
               <td style="padding: 1rem 1.5rem; color: #475569;">${contactHtml}</td>
@@ -138,9 +143,6 @@ document.addEventListener('DOMContentLoaded', () => {
             tbody.appendChild(tr);
           });
           
-          statTotal.textContent = total;
-          statActive.textContent = active;
-          statInactive.textContent = inactive;
           lucide.createIcons();
         };
 
@@ -156,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
               (student.phone && student.phone.toLowerCase().includes(searchTerm));
             
             const matchesCourse = !course || student.courseType === course;
-            const matchesStatus = !status || student.status === status;
+            const matchesStatus = !status || (status === 'inactive' ? !isStudentActive(student) : isStudentActive(student));
 
             return matchesSearch && matchesCourse && matchesStatus;
           });

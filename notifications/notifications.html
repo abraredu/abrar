@@ -6,6 +6,167 @@
   <title>Notifications - ABRAR Management System</title>
   <link rel="stylesheet" href="../css/style.css">
   <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .notify-sections {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    @media (max-width: 640px) {
+      .notify-sections { grid-template-columns: 1fr; }
+    }
+
+    .notify-panel {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
+    }
+
+    .notify-panel.overdue {
+      border-color: #fecaca;
+    }
+
+    .notify-panel-head {
+      padding: 1.15rem 1.35rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      border-bottom: 1px solid #e2e8f0;
+      background: #f8fafc;
+    }
+
+    .notify-panel.overdue .notify-panel-head {
+      background: #fef2f2;
+      border-bottom-color: #fecaca;
+    }
+
+    .notify-panel-title {
+      font-size: 1rem;
+      font-weight: 700;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #0f172a;
+    }
+
+    .notify-panel.overdue .notify-panel-title {
+      color: #991b1b;
+    }
+
+    .notify-panel-sub {
+      font-size: 0.78rem;
+      color: #64748b;
+      margin: 0.2rem 0 0 0;
+    }
+
+    .notify-panel.overdue .notify-panel-sub {
+      color: #b91c1c;
+    }
+
+    .notify-list {
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      max-height: 620px;
+      overflow-y: auto;
+    }
+
+    .notify-card {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      padding: 1rem 1.1rem;
+      border-radius: 14px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-left: 4px solid #0284c7;
+      content-visibility: auto;
+      contain-intrinsic-size: 120px;
+      transition: transform 0.15s ease, border-color 0.15s ease;
+    }
+
+    .notify-card.overdue {
+      border-left-color: #dc2626;
+      background: #fffafa;
+    }
+
+    .notify-card:hover {
+      transform: translateY(-1px);
+      border-color: #cbd5e1;
+    }
+
+    .notify-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+
+    .notify-student {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      min-width: 0;
+    }
+
+    .notify-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: #e0f2fe;
+      color: #0369a1;
+      font-weight: 800;
+      font-size: 0.88rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .notify-card.overdue .notify-avatar {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+
+    .notify-name {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #0f172a;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .notify-phone {
+      font-size: 0.76rem;
+      color: #64748b;
+      font-weight: 500;
+    }
+
+    .notify-fee {
+      font-size: 1rem;
+      font-weight: 800;
+      color: #0f172a;
+      white-space: nowrap;
+    }
+
+    .notify-card-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      padding-top: 0.5rem;
+      border-top: 1px dashed #e2e8f0;
+    }
+  </style>
 </head>
 <body>
   <div class="app-container">
@@ -90,102 +251,77 @@
       </header>
 
       <div class="page-content">
-        
+        <!-- Page Hero -->
+        <section class="page-hero">
+          <div class="page-hero-content">
+            <h2 class="page-hero-title"><i data-lucide="bell" style="width: 22px; height: 22px;"></i> Fee Notifications</h2>
+            <p class="page-hero-sub">Monitor upcoming due dates and follow up on overdue monthly payments.</p>
+          </div>
+        </section>
+
         <!-- Course Filter Toggle -->
-        <div style="margin-bottom: 2rem; display: flex; justify-content: flex-start;">
-          <div id="courseFilterBar" style="background: #ffffff; padding: 0.5rem; border-radius: var(--radius-pill); box-shadow: var(--shadow-sm); display: inline-flex; flex-wrap: wrap; gap: 0.5rem; border: 1px solid var(--color-border);">
-            <button class="filter-btn active" data-filter="all" style="padding: 0.5rem 1.5rem; border: none; border-radius: var(--radius-pill); background: var(--color-sidebar-active); color: var(--color-primary); font-weight: 500; font-size: 0.875rem; cursor: pointer; transition: all var(--transition-fast);">All</button>
+        <div class="filter-card">
+          <div id="courseFilterBar" style="display: inline-flex; flex-wrap: wrap; gap: 0.5rem;">
+            <button class="filter-btn active" data-filter="all" style="padding: 0.5rem 1.5rem; border: none; border-radius: var(--radius-pill); background: var(--color-sidebar-active); color: var(--color-primary); font-weight: 600; font-size: 0.875rem; cursor: pointer; transition: all var(--transition-fast);">All</button>
           </div>
         </div>
 
         <!-- Stats -->
-        <div class="stats-grid" style="margin-bottom: 2rem;">
-          <div class="card stat-card" style="border: 1px solid #f3f4f6; box-shadow: 0 4px 15px rgba(0,0,0,0.03); background: linear-gradient(to right bottom, #ffffff, #f9fafb); padding: 1.25rem; border-radius: 1rem;">
-            <div style="display: flex; align-items: flex-start; justify-content: space-between; width: 100%;">
-              <div>
-                <span style="font-size: 0.875rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 0.5rem;">Upcoming Payments</span>
-                <div style="display: flex; align-items: baseline; gap: 0.5rem;">
-                  <span id="statUpcoming" style="font-size: 2rem; font-weight: 700; color: #0f172a; letter-spacing: -0.025em; line-height: 1;">-</span>
-                </div>
-              </div>
-              <div style="background: #e0f2fe; padding: 0.75rem; border-radius: 0.75rem;">
-                <i data-lucide="calendar-clock" style="color: #0284c7; width: 24px; height: 24px;"></i>
-              </div>
+        <div class="kpi-row">
+          <div class="kpi-box">
+            <div>
+              <div class="kpi-box-label">Upcoming Payments</div>
+              <div class="kpi-box-value" id="statUpcoming">-</div>
+            </div>
+            <div class="kpi-box-icon" style="background: #E0F2FE; color: #0284C7;">
+              <i data-lucide="calendar-clock" style="width: 22px; height: 22px;"></i>
             </div>
           </div>
 
-          <div class="card stat-card" style="border: 1px solid #f3f4f6; box-shadow: 0 4px 15px rgba(0,0,0,0.03); background: linear-gradient(to right bottom, #ffffff, #f9fafb); padding: 1.25rem; border-radius: 1rem;">
-            <div style="display: flex; align-items: flex-start; justify-content: space-between; width: 100%;">
-              <div>
-                <span style="font-size: 0.875rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 0.5rem;">Overdue This Month</span>
-                <div style="display: flex; align-items: baseline; gap: 0.5rem;">
-                  <span id="statOverdue" style="font-size: 2rem; font-weight: 700; color: #0f172a; letter-spacing: -0.025em; line-height: 1;">-</span>
-                </div>
-              </div>
-              <div style="background: #fee2e2; padding: 0.75rem; border-radius: 0.75rem;">
-                <i data-lucide="alert-circle" style="color: #dc2626; width: 24px; height: 24px;"></i>
-              </div>
+          <div class="kpi-box">
+            <div>
+              <div class="kpi-box-label">Overdue This Month</div>
+              <div class="kpi-box-value text-danger" id="statOverdue">-</div>
+            </div>
+            <div class="kpi-box-icon" style="background: #FEE2E2; color: #DC2626;">
+              <i data-lucide="alert-circle" style="width: 22px; height: 22px;"></i>
             </div>
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr; gap: 2rem;">
+        <div class="notify-sections">
           
           <!-- Overdue Notifications -->
-          <div class="card" style="border-radius: var(--radius-lg); border: 1px solid #fca5a5; overflow: hidden; padding: 0;">
-            <div style="background-color: #fef2f2; padding: 1rem 1.5rem; border-bottom: 1px solid #fca5a5;">
-              <h3 style="font-size: 1.125rem; font-weight: 600; color: #991b1b; display: flex; align-items: center; gap: 0.5rem;">
-                <i data-lucide="alert-triangle" style="width: 20px; height: 20px;"></i>
-                Overdue This Month
-              </h3>
-              <p style="font-size: 0.875rem; color: #b91c1c; margin-top: 0.25rem;">These students have passed their monthly payment due date.</p>
+          <div class="notify-panel overdue">
+            <div class="notify-panel-head">
+              <div>
+                <h3 class="notify-panel-title">
+                  <i data-lucide="alert-triangle" style="width: 18px; height: 18px;"></i>
+                  Overdue This Month
+                </h3>
+                <p class="notify-panel-sub">Passed monthly payment due date</p>
+              </div>
+              <span id="overdueCountPill" style="background: #fee2e2; color: #991b1b; font-size: 0.78rem; font-weight: 700; padding: 0.25rem 0.75rem; border-radius: 999px;">0</span>
             </div>
-            <div style="overflow-x: auto;">
-              <div class="table-responsive">
-<table style="width: 100%; text-align: left; border-collapse: collapse;">
-                <thead>
-                  <tr style="border-bottom: 1px solid #fca5a5; background-color: #fff1f2;">
-                    <th style="padding: 1rem 1.5rem; font-weight: 600; color: #991b1b; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Student Name</th>
-                    <th style="padding: 1rem 1.5rem; font-weight: 600; color: #991b1b; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Due Date</th>
-                    <th style="padding: 1rem 1.5rem; font-weight: 600; color: #991b1b; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Fee</th>
-                    <th style="padding: 1rem 1.5rem; font-weight: 600; color: #991b1b; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Contact</th>
-                    <th style="padding: 1rem 1.5rem; font-weight: 600; color: #991b1b; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; text-align: right;">Action</th>
-                  </tr>
-                </thead>
-                <tbody id="overdueTableBody">
-                  <tr><td colspan="5" style="text-align: center; padding: 2rem; color: #64748b;">Loading...</td></tr>
-                </tbody>
-              </table>
-</div>
+            <div id="overdueTableBody" class="notify-list">
+              <div style="text-align: center; padding: 2rem; color: #64748b;">Loading...</div>
             </div>
           </div>
 
           <!-- Upcoming Notifications -->
-          <div class="card" style="border-radius: var(--radius-lg); border: 1px solid var(--color-border); overflow: hidden; padding: 0;">
-            <div style="background-color: #f8fafc; padding: 1rem 1.5rem; border-bottom: 1px solid var(--color-border);">
-              <h3 style="font-size: 1.125rem; font-weight: 600; color: #0f172a; display: flex; align-items: center; gap: 0.5rem;">
-                <i data-lucide="clock" style="width: 20px; height: 20px; color: #64748b;"></i>
-                Upcoming Payments (Next 7 Days)
-              </h3>
-              <p style="font-size: 0.875rem; color: #64748b; margin-top: 0.25rem;">These students have a payment coming due soon.</p>
+          <div class="notify-panel">
+            <div class="notify-panel-head">
+              <div>
+                <h3 class="notify-panel-title">
+                  <i data-lucide="clock" style="width: 18px; height: 18px; color: #0284c7;"></i>
+                  Upcoming Payments (Next 7 Days)
+                </h3>
+                <p class="notify-panel-sub">Payments coming due soon</p>
+              </div>
+              <span id="upcomingCountPill" style="background: #e0f2fe; color: #0369a1; font-size: 0.78rem; font-weight: 700; padding: 0.25rem 0.75rem; border-radius: 999px;">0</span>
             </div>
-            <div style="overflow-x: auto;">
-              <div class="table-responsive">
-<table style="width: 100%; text-align: left; border-collapse: collapse;">
-                <thead>
-                  <tr style="border-bottom: 1px solid #e2e8f0; background-color: #f1f5f9;">
-                    <th style="padding: 1rem 1.5rem; font-weight: 600; color: #475569; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Student Name</th>
-                    <th style="padding: 1rem 1.5rem; font-weight: 600; color: #475569; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Due Date</th>
-                    <th style="padding: 1rem 1.5rem; font-weight: 600; color: #475569; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Fee</th>
-                    <th style="padding: 1rem 1.5rem; font-weight: 600; color: #475569; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Contact</th>
-                    <th style="padding: 1rem 1.5rem; font-weight: 600; color: #475569; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; text-align: right;">Action</th>
-                  </tr>
-                </thead>
-                <tbody id="upcomingTableBody">
-                  <tr><td colspan="5" style="text-align: center; padding: 2rem; color: #64748b;">Loading...</td></tr>
-                </tbody>
-              </table>
-</div>
+            <div id="upcomingTableBody" class="notify-list">
+              <div style="text-align: center; padding: 2rem; color: #64748b;">Loading...</div>
             </div>
           </div>
           

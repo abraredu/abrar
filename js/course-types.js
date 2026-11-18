@@ -28,9 +28,16 @@ export async function loadManagedCourses() {
 export function valueMatchesCourse(value, course) {
   if (!value || !course) return false;
   const v = String(value).trim().toLowerCase();
-  return v === String(course.courseName || '').trim().toLowerCase() ||
-         v === String(course.serialNo || '').trim().toLowerCase() ||
-         v === String(course.id || '').toLowerCase();
+  const cName = String(course.courseName || '').trim().toLowerCase();
+  const cSerial = String(course.serialNo || '').trim().toLowerCase();
+  if (v === cName || v === cSerial || v === String(course.id || '').toLowerCase()) {
+    return true;
+  }
+  if ((v === 'quran_recitation' || v === "qur'an recitation" || v === 'quran recitation') &&
+      (cName.includes('tarteel') || cName.includes('quran') || cName.includes('recitation') || cSerial.startsWith('at') || cSerial.startsWith('aqo'))) {
+    return true;
+  }
+  return false;
 }
 
 export function escapeHtml(str) {

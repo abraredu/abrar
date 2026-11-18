@@ -94,37 +94,68 @@
       </header>
 
       <div class="page-content">
+        <!-- Page Hero -->
+        <section class="page-hero">
+          <div class="page-hero-content">
+            <h2 class="page-hero-title"><i data-lucide="banknote" style="width: 22px; height: 22px;"></i> Tutor Salaries</h2>
+            <p class="page-hero-sub">Track calculated monthly payouts, settled salaries, and pending tutor balances.</p>
+          </div>
+          <div class="page-hero-actions">
+            <a href="accounts.html" class="btn-glass"><i data-lucide="wallet" style="width: 16px; height: 16px;"></i> Accounts Ledger</a>
+          </div>
+        </section>
+
         <!-- Stats -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-          <div class="card stat-card" style="padding: 1rem;">
-            <span class="stat-title">Total Calculated</span>
-            <span class="stat-value" id="statCalculated">-</span>
+        <div class="kpi-row">
+          <div class="kpi-box">
+            <div>
+              <div class="kpi-box-label">Total Calculated</div>
+              <div class="kpi-box-value" id="statCalculated">-</div>
+            </div>
+            <div class="kpi-box-icon" style="background: #E0F2FE; color: #0284C7;">
+              <i data-lucide="calculator" style="width: 22px; height: 22px;"></i>
+            </div>
           </div>
-          <div class="card stat-card" style="padding: 1rem;">
-            <span class="stat-title">Paid</span>
-            <span class="stat-value text-success" id="statPaid">-</span>
+          <div class="kpi-box">
+            <div>
+              <div class="kpi-box-label">Paid</div>
+              <div class="kpi-box-value text-success" id="statPaid">-</div>
+            </div>
+            <div class="kpi-box-icon" style="background: #DCFCE7; color: #16A34A;">
+              <i data-lucide="check-circle-2" style="width: 22px; height: 22px;"></i>
+            </div>
           </div>
-          <div class="card stat-card" style="padding: 1rem;">
-            <span class="stat-title">Pending</span>
-            <span class="stat-value text-warning" id="statPending">-</span>
+          <div class="kpi-box">
+            <div>
+              <div class="kpi-box-label">Pending</div>
+              <div class="kpi-box-value text-warning" id="statPending">-</div>
+            </div>
+            <div class="kpi-box-icon" style="background: #FEF3C7; color: #D97706;">
+              <i data-lucide="clock" style="width: 22px; height: 22px;"></i>
+            </div>
           </div>
-          <div class="card stat-card" style="padding: 1rem;">
-            <span class="stat-title">Tutors Pending</span>
-            <span class="stat-value" id="statTutorsPending">-</span>
+          <div class="kpi-box">
+            <div>
+              <div class="kpi-box-label">Tutors Pending</div>
+              <div class="kpi-box-value" id="statTutorsPending">-</div>
+            </div>
+            <div class="kpi-box-icon" style="background: #FEE2E2; color: #DC2626;">
+              <i data-lucide="users" style="width: 22px; height: 22px;"></i>
+            </div>
           </div>
         </div>
         
         <!-- Filters -->
-        <div class="card" style="margin-bottom: 1.5rem;">
-          <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-            <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 200px;">
-              <input type="text" id="searchInput" class="form-control" placeholder="Search tutor...">
+        <div class="filter-card">
+          <div style="display: flex; gap: 1rem; flex-wrap: wrap; width: 100%;">
+            <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 220px;">
+              <input type="text" id="searchInput" class="form-control" placeholder="Search tutor..." style="height: 38px;">
             </div>
           </div>
         </div>
         
         <!-- Table -->
-        <div class="card" style="overflow-x: auto;">
+        <div class="table-card">
           <div class="table-responsive">
 <table style="width: 100%; text-align: left; border-collapse: collapse;">
             <thead>

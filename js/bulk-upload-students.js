@@ -141,6 +141,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if ((key === 'admissionDate' || key === 'classStartingDate') && !val) {
           val = todayStr;
         }
+        if (key === 'status') {
+          const sLow = val.toLowerCase();
+          val = sLow === 'inactive' ? 'inactive' : 'active';
+        }
         row[key] = val;
       });
       result.push(row);
@@ -365,6 +369,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Prefix counter cache
     const prefixCounts = {};
 
+    const resolveCourseName = (courseType) => {
+      const ct = String(courseType || '').toLowerCase();
+      if (ct.includes('madrasa_individual') || ct.includes('madrassa_individual')) return 'Madrassa One-to-One';
+      if (ct.includes('madrasa_group') || ct.includes('madrass_group') || ct.includes('madrassa_group')) return 'Madrassa Group';
+      return courseType || '';
+    };
+
     try {
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
@@ -373,7 +384,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let prefix = 'ABR';
         if (row.courseType.includes('madrasa_individual')) prefix = 'AMO';
         else if (row.courseType.includes('quran_recitation')) prefix = 'AQO';
-        else if (row.courseType.includes('madrasa_group'))  prefix = 'AMG';
+        else if (row.courseType.includes('madrasa_group') || row.courseType.includes('madrass_group')) prefix = 'AMG';
 
         // Try to map level to classId for group tuition
         let matchedClassId = '';
@@ -397,19 +408,21 @@ document.addEventListener('DOMContentLoaded', () => {
           const studentRef  = doc(collection(db, 'students'));
           const studentData = {
             studentId:        formattedId,
-            name:             row.name || '',
+            name:             (row.name || '').trim().toUpperCase(),
             parentName:       row.parentName || '',
             phone:            row.phone || '',
             whatsapp:         row.whatsapp || row.phone || '',
             place:            row.place || '',
             courseType:       row.courseType || '',
+            course:           resolveCourseName(row.courseType),
             level:            row.level || '',
+            division:         row.division || (row.level ? (String(row.level).trim().toLowerCase().startsWith('class') ? row.level : `Class ${row.level}`) : ''),
             tutorId:          row.tutors || '',
             classId:          matchedClassId,
             admissionDate:    row.admissionDate || '',
             classStartingDate:row.classStartingDate || '',
             monthlyFee:       parseFloat(row.monthlyFee) || 0,
-            status:           row.status || 'active',
+            status:           String(row.status || 'active').trim().toLowerCase() === 'inactive' ? 'inactive' : 'active',
             photoUrl:         null,
             idDocumentUrl:    null,
             createdAt:        serverTimestamp(),

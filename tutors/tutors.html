@@ -109,29 +109,51 @@
       </header>
 
       <div class="page-content">
-        <!-- Stats -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-          <div class="card stat-card" style="padding: 1rem;">
-            <span class="stat-title">Total Tutors</span>
-            <span class="stat-value" id="statTotal">-</span>
+        <!-- Page Hero -->
+        <section class="page-hero">
+          <div class="page-hero-content">
+            <h2 class="page-hero-title"><i data-lucide="graduation-cap" style="width: 22px; height: 22px;"></i> Tutors Directory</h2>
+            <p class="page-hero-sub">Manage faculty profiles, teaching tracks, salary models, and active status.</p>
           </div>
-          <div class="card stat-card" style="padding: 1rem;">
-            <span class="stat-title">Active</span>
-            <span class="stat-value text-success" id="statActive">-</span>
+          <div class="page-hero-actions">
+            <a href="bulk-upload-tutors.html" class="btn-glass"><i data-lucide="upload-cloud" style="width: 16px; height: 16px;"></i> Bulk Upload</a>
+            <a href="add-tutor.html" class="btn-white"><i data-lucide="plus" style="width: 16px; height: 16px;"></i> Add Tutor</a>
+          </div>
+        </section>
+
+        <!-- Stats -->
+        <div class="kpi-row">
+          <div class="kpi-box">
+            <div>
+              <div class="kpi-box-label">Total Tutors</div>
+              <div class="kpi-box-value" id="statTotal">-</div>
+            </div>
+            <div class="kpi-box-icon" style="background: #FEF3C7; color: #D97706;">
+              <i data-lucide="graduation-cap" style="width: 22px; height: 22px;"></i>
+            </div>
+          </div>
+          <div class="kpi-box">
+            <div>
+              <div class="kpi-box-label">Active Tutors</div>
+              <div class="kpi-box-value text-success" id="statActive">-</div>
+            </div>
+            <div class="kpi-box-icon" style="background: #DCFCE7; color: #16A34A;">
+              <i data-lucide="user-check" style="width: 22px; height: 22px;"></i>
+            </div>
           </div>
         </div>
         
         <!-- Filters & Search -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div class="filter-card">
           <div class="filter-tabs" style="display: flex; gap: 0.5rem;" id="statusTabs">
             <button class="btn btn-primary filter-tab active" data-status="">ALL</button>
             <button class="btn btn-outline filter-tab" data-status="active">ACTIVE</button>
             <button class="btn btn-outline filter-tab" data-status="inactive">INACTIVE</button>
           </div>
           
-          <div style="display: flex; gap: 0.75rem; align-items: center;">
+          <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
             <div class="form-group" style="margin-bottom: 0;">
-              <input type="text" id="searchInput" class="form-control" placeholder="Search tutors..." style="padding-left: 1rem; height: 38px;">
+              <input type="text" id="searchInput" class="form-control" placeholder="Search tutors..." style="padding-left: 1rem; height: 38px; min-width: 220px;">
             </div>
             <div class="form-group" style="margin-bottom: 0;">
               <select id="typeFilter" class="form-control" style="height: 38px;">
@@ -145,9 +167,9 @@
         </div>
         
         <!-- Table -->
-        <div class="card" style="overflow-x: auto; border: none; box-shadow: none; padding: 0;">
+        <div class="table-card">
           <div class="table-responsive">
-<table style="width: 100%; text-align: left; border-collapse: collapse; border-top: 1px solid var(--color-border);">
+<table style="width: 100%; text-align: left; border-collapse: collapse;">
             <thead>
               <tr style="border-bottom: 1px solid var(--color-border); background-color: transparent;">
                 <th style="padding: 0.75rem; width: 40px;"><input type="checkbox" id="selectAllCheckbox"></th>
