@@ -135,22 +135,25 @@ document.addEventListener('DOMContentLoaded', async () => {
             const startDay = startDate.getDate();
             const currentMonthIdx = today.getMonth();
             const currentYear = today.getFullYear();
-            
-            // Calculate anniversary for this current month
-            let anniversaryDate = new Date(currentYear, currentMonthIdx, startDay);
-            
-            // Difference in days between today and the anniversary (positive means anniversary is in the future)
-            const diffTime = anniversaryDate.getTime() - today.getTime();
-            const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
-            
-            // Calculate how many days the student has been enrolled
+
+            // Find the end date of the current monthly cycle (clamp day to month length)
+            const getClampedDate = (year, month, day) => {
+              const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
+              return new Date(year, month, Math.min(day, lastDayOfMonth));
+            };
+
+            let cycleEndDate = getClampedDate(currentYear, currentMonthIdx, startDay);
+            if (cycleEndDate.getTime() < today.getTime()) {
+              cycleEndDate = getClampedDate(currentYear, currentMonthIdx + 1, startDay);
+            }
+
+            const daysUntilCycleEnd = Math.round((cycleEndDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
             const daysSinceStart = Math.round((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
 
-            // Show report due button starting 2 days before the anniversary (diffDays <= 2)
-            // It will remain visible after the anniversary (diffDays < 0) for the rest of the month.
-            // AND only if the student has been enrolled for at least 20 days
-            if (diffDays <= 2 && daysSinceStart >= 20) {
-              actionHtml = `<button onclick="document.getElementById('navProgress').click(); setTimeout(() => { const buttons = document.querySelectorAll('#tutorStudentsTableBody button.btn-register'); for(let b of buttons) { if(b.getAttribute('data-name') === '${student.name}') { b.click(); break; } } }, 100);" style="background: var(--color-primary); color: white; padding: 0.35rem 0.75rem; border-radius: 4px; font-size: 0.75rem; border: none; cursor: pointer; font-weight: 500; display: inline-flex; align-items: center; gap: 0.25rem;"><i data-lucide="file-text" style="width: 14px; height: 14px;"></i> Report Due</button>`;
+            // Show Report Due button during the last 7 days of the student's monthly cycle
+            if (daysUntilCycleEnd >= 0 && daysUntilCycleEnd <= 7 && daysSinceStart >= 20) {
+              const safeName = String(student.name || '').replace(/'/g, "\\'");
+              actionHtml = `<button onclick="document.getElementById('navProgress').click(); setTimeout(() => { const buttons = document.querySelectorAll('#tutorStudentsTableBody button.btn-register'); for(let b of buttons) { if(b.getAttribute('data-name') === '${safeName}') { b.click(); break; } } }, 100);" style="background: var(--color-primary); color: white; padding: 0.35rem 0.75rem; border-radius: 6px; font-size: 0.75rem; border: none; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem; white-space: nowrap;"><i data-lucide="file-text" style="width: 14px; height: 14px;"></i> Report Due</button>`;
             }
           }
         }
@@ -169,6 +172,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     }
     document.getElementById('studentsTableBody').innerHTML = studentsHtml;
+    if (window.lucide) lucide.createIcons();
 
     // Wait for DOM then attach tab toggle listeners
     setTimeout(() => {
