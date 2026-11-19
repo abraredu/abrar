@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Report Template Studio - ABRAR Management System</title>
+  <link rel="icon" type="image/png" href="../icon.png">
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .studio-grid {
+      display: grid;
+      grid-template-columns: 340px minmax(0, 1fr);
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    @media (max-width: 1120px) {
+      .studio-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .studio-panel {
+      background: #ffffff;
+      border: 1px solid var(--color-border);
+      border-radius: 16px;
+      padding: 1.25rem;
+      box-shadow: 0 2px 10px rgba(15, 23, 42, 0.03);
+      display: flex;
+      flex-direction: column;
+      gap: 1.15rem;
+    }
+
+    .studio-section-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #64748b;
+      margin-bottom: 0.6rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .theme-cards {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.55rem;
+    }
+
+    .theme-option {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.65rem 0.8rem;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 12px;
+      background: #f8fafc;
+      cursor: pointer;
+      transition: all 0.16s ease;
+      text-align: left;
+    }
+
+    .theme-option:hover {
+      border-color: #94a3b8;
+      background: #ffffff;
+    }
+
+    .theme-option.active {
+      border-color: var(--color-primary);
+      background: #ecfdf5;
+      box-shadow: 0 0 0 2px rgba(8, 122, 66, 0.12);
+    }
+
+    .theme-swatch {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      flex-shrink: 0;
+      border: 2px solid #ffffff;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.16);
+    }
+
+    .theme-meta-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .theme-meta-sub {
+      font-size: 0.725rem;
+      color: #64748b;
+    }
+
+    .toggle-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.825rem;
+      font-weight: 500;
+      color: #334155;
+      padding: 0.4rem 0.6rem;
+      background: #f8fafc;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .toggle-row input {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--color-primary);
+      cursor: pointer;
+    }
+
+    .studio-field-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.65rem;
+    }
+
+    .studio-field label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: #64748b;
+      margin-bottom: 0.25rem;
+    }
+
+    .studio-field input,
+    .studio-field select,
+    .studio-field textarea {
+      width: 100%;
+      padding: 0.45rem 0.65rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-family: inherit;
+      color: #0f172a;
+      background: #ffffff;
+    }
+
+    /* Live Preview Wrapper */
+    .preview-stage {
+      background: #e2e8f0;
+      border-radius: 16px;
+      padding: 1.5rem;
+      display: flex;
+      justify-content: center;
+      overflow-x: auto;
+      border: 1px solid #cbd5e1;
+    }
+
+    /* Creative Report Sheet */
+    .tpl-sheet {
+      width: 100%;
+      max-width: 780px;
+      background: #ffffff;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 20px 45px -12px rgba(15, 23, 42, 0.22);
+      position: relative;
+      color: #1e293b;
+      --tpl-primary: #087A42;
+      --tpl-primary-dark: #054E2A;
+      --tpl-accent: #D97706;
+      --tpl-soft: #ECFDF5;
+      --tpl-border: #D1FAE5;
+    }
+
+    .tpl-sheet.theme-royal {
+      --tpl-primary: #0F172A;
+      --tpl-primary-dark: #1E293B;
+      --tpl-accent: #D97706;
+      --tpl-soft: #FEF3C7;
+      --tpl-border: #FDE68A;
+    }
+
+    .tpl-sheet.theme-minimal {
+      --tpl-primary: #065F46;
+      --tpl-primary-dark: #064E3B;
+      --tpl-accent: #0D9488;
+      --tpl-soft: #F0FDFA;
+      --tpl-border: #CCFBF1;
+    }
+
+    .tpl-banner {
+      background: linear-gradient(135deg, var(--tpl-primary-dark) 0%, var(--tpl-primary) 100%);
+      color: #ffffff;
+      padding: 1.75rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .tpl-pattern {
+      position: absolute;
+      inset: 0;
+      opacity: 0.1;
+      background-image: radial-gradient(circle at 20px 20px, #ffffff 1.5px, transparent 1.5px),
+                        radial-gradient(circle at 60px 60px, #ffffff 1.5px, transparent 1.5px);
+      background-size: 80px 80px;
+      pointer-events: none;
+    }
+
+    .tpl-brand-row {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .tpl-logo-badge {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: #ffffff;
+      padding: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .tpl-logo-badge img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .tpl-school-name {
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      line-height: 1.1;
+    }
+
+    .tpl-school-sub {
+      font-size: 0.72rem;
+      letter-spacing: 0.14em;
+      opacity: 0.85;
+      margin-top: 3px;
+      text-transform: uppercase;
+    }
+
+    .tpl-doc-badge {
+      text-align: right;
+      position: relative;
+      z-index: 1;
+    }
+
+    .tpl-doc-pill {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.16);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 0.2rem 0.7rem;
+      border-radius: 999px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 0.35rem;
+    }
+
+    .tpl-doc-title {
+      font-size: 1.2rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+    }
+
+    .tpl-doc-motto {
+      font-size: 0.72rem;
+      color: #fde68a;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    .tpl-body {
+      padding: 1.65rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .tpl-student-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.75rem;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-left: 4px solid var(--tpl-primary);
+      border-radius: 10px;
+      padding: 0.9rem 1.1rem;
+    }
+
+    .tpl-info-lbl {
+      font-size: 0.66rem;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .tpl-info-val {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tpl-kpi-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 1rem;
+    }
+
+    .tpl-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 1rem 1.15rem;
+      background: #ffffff;
+    }
+
+    .tpl-card-head {
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: var(--tpl-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .tpl-att-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.6rem;
+    }
+
+    .tpl-att-stat {
+      background: #f8fafc;
+      border: 1px solid #f1f5f9;
+      border-radius: 9px;
+      padding: 0.65rem 0.5rem;
+      text-align: center;
+    }
+
+    .tpl-att-num {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .tpl-att-lbl {
+      font-size: 0.64rem;
+      font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    .tpl-overall-box {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .tpl-ring {
+      width: 78px;
+      height: 78px;
+      border-radius: 50%;
+      background: conic-gradient(var(--tpl-primary) 0% 85%, #e2e8f0 85% 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .tpl-ring-inner {
+      width: 62px;
+      height: 62px;
+      border-radius: 50%;
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .tpl-ring-grade {
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: var(--tpl-primary);
+    }
+
+    .tpl-ring-stars {
+      font-size: 0.62rem;
+      color: var(--tpl-accent);
+      letter-spacing: 1px;
+    }
+
+    .tpl-perf-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+    }
+
+    .tpl-perf-table th {
+      text-align: left;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.5rem 0.6rem;
+      border-bottom: 1.5px solid #e2e8f0;
+    }
+
+    .tpl-perf-table td {
+      padding: 0.6rem;
+      border-bottom: 1px solid #f1f5f9;
+      font-weight: 500;
+      color: #1e293b;
+    }
+
+    .tpl-perf-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .tpl-stars {
+      color: var(--tpl-accent);
+      font-size: 0.92rem;
+      letter-spacing: 1.5px;
+    }
+
+    .tpl-pill {
+      display: inline-block;
+      background: var(--tpl-soft);
+      color: var(--tpl-primary);
+      border: 1px solid var(--tpl-border);
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 0.18rem 0.6rem;
+      border-radius: 999px;
+    }
+
+    .tpl-notes-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .tpl-topic-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.45rem;
+      font-size: 0.82rem;
+      color: #334155;
+      margin-bottom: 0.35rem;
+    }
+
+    .tpl-topic-dot {
+      color: var(--tpl-primary);
+      font-weight: 800;
+    }
+
+    .tpl-note-text {
+      font-size: 0.82rem;
+      line-height: 1.55;
+      color: #334155;
+    }
+
+    .tpl-footer {
+      background: #f8fafc;
+      border-top: 1px solid #e2e8f0;
+      padding: 0.95rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.74rem;
+      color: #64748b;
+    }
+
+    .tpl-seal {
+      font-weight: 700;
+      color: var(--tpl-primary);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <img src="../logo.png" alt="ABRAR Logo" style="height: 32px; width: auto;">
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="../dashboard.html" class="nav-item">
+          <i data-lucide="layout-dashboard"></i> Dashboard
+        </a>
+        <a href="../students/students.html" class="nav-item">
+          <i data-lucide="users"></i> Students
+        </a>
+        <div class="submenu">
+          <a href="../students/admission.html" class="submenu-item">Admission</a>
+        </div>
+        <a href="../courses/classes.html" class="nav-item">
+          <i data-lucide="library"></i> Courses
+        </a>
+        <div class="submenu">
+          <a href="../courses/manage.html" class="submenu-item">Manage</a>
+          <a href="../courses/upgrade.html" class="submenu-item">Upgrade</a>
+        </div>
+        <a href="../tutors/tutors.html" class="nav-item">
+          <i data-lucide="graduation-cap"></i> Tutors
+        </a>
+        <a href="../finance/accounts.html" class="nav-item">
+          <i data-lucide="wallet"></i> Finance
+        </a>
+        <div class="submenu">
+          <a href="../finance/fees.html" class="submenu-item">Fees</a>
+          <a href="../finance/salaries.html" class="submenu-item">Salary</a>
+          <a href="../finance/accounts.html" class="submenu-item">Account</a>
+        </div>
+        <a href="../reports/progress.html" class="nav-item active">
+          <i data-lucide="line-chart"></i> Progress
+        </a>
+        <div class="submenu">
+          <a href="../reports/data.html" class="submenu-item">Data</a>
+          <a href="../reports/template.html" class="submenu-item active">Template</a>
+        </div>
+
+        <a href="../assessments/assessments.html" class="nav-item">
+          <i data-lucide="clipboard-check"></i> Assessments
+        </a>
+        <a href="../reports/reports.html" class="nav-item">
+          <i data-lucide="bar-chart-3"></i> Reports
+        </a>
+        <a href="../notifications/notifications.html" class="nav-item">
+          <i data-lucide="bell"></i> Notifications
+        </a>
+        <a href="../messages/messages.html" class="nav-item">
+          <i data-lucide="mail"></i> Messages
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <a href="../settings.html" class="nav-item">
+          <i data-lucide="settings"></i> Settings
+        </a>
+        <a href="#" id="logoutBtn" class="nav-item text-danger">
+          <i data-lucide="log-out"></i> Logout
+        </a>
+      </div>
+    </aside>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <main class="main-content">
+      <header class="top-header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobileMenuBtn">
+            <i data-lucide="menu"></i>
+          </button>
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div style="width: 40px; height: 40px; background-color: #ecfdf5; color: var(--color-primary); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <i data-lucide="layout-template"></i>
+            </div>
+            <div>
+              <div style="font-size: 0.75rem; line-height: 1.2; color: var(--color-text-secondary); margin-bottom: 2px;">
+                <a href="progress.html" style="color: inherit;">Progress</a> / Template
+              </div>
+              <h1 class="page-title" style="line-height: 1.2;">Progress Report Template Studio</h1>
+            </div>
+          </div>
+        </div>
+        <div class="header-right">
+          <button id="saveThemeBtn" class="btn btn-outline" style="background: #ffffff;">
+            <i data-lucide="bookmark-check" style="width: 16px; height: 16px;"></i> Save Default
+          </button>
+          <button id="downloadSamplePdfBtn" class="btn btn-primary">
+            <i data-lucide="download" style="width: 16px; height: 16px;"></i> Download Sample PDF
+          </button>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <section class="page-hero" style="margin-bottom: 1.25rem;">
+          <div class="page-hero-content">
+            <h2 class="page-hero-title"><i data-lucide="sparkles" style="width: 22px; height: 22px;"></i> Creative Report Template Designer</h2>
+            <p class="page-hero-sub">Customize colors, layout elements, and live preview your monthly student progress report before exporting.</p>
+          </div>
+          <div class="page-hero-actions">
+            <a href="progress.html" class="btn-glass"><i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i> Back to Progress</a>
+          </div>
+        </section>
+
+        <div class="studio-grid">
+          <!-- Left: Customizer -->
+          <aside class="studio-panel">
+            <div>
+              <div class="studio-section-title"><i data-lucide="palette" style="width: 14px; height: 14px;"></i> Report Theme</div>
+              <div class="theme-cards" id="themeCards">
+                <button type="button" class="theme-option active" data-theme="emerald">
+                  <div class="theme-swatch" style="background: linear-gradient(135deg, #054E2A, #087A42);"></div>
+                  <div>
+                    <div class="theme-meta-title">Emerald Crescent</div>
+                    <div class="theme-meta-sub">Classic ABRAR green &amp; gold accents</div>
+                  </div>
+                </button>
+                <button type="button" class="theme-option" data-theme="royal">
+                  <div class="theme-swatch" style="background: linear-gradient(135deg, #0F172A, #D97706);"></div>
+                  <div>
+                    <div class="theme-meta-title">Royal Navy &amp; Gold</div>
+                    <div class="theme-meta-sub">Formal academic certificate style</div>
+                  </div>
+                </button>
+                <button type="button" class="theme-option" data-theme="minimal">
+                  <div class="theme-swatch" style="background: linear-gradient(135deg, #065F46, #0D9488);"></div>
+                  <div>
+                    <div class="theme-meta-title">Minimalist Sage</div>
+                    <div class="theme-meta-sub">Clean modern teal &amp; ivory layout</div>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <div class="studio-section-title"><i data-lucide="sliders-horizontal" style="width: 14px; height: 14px;"></i> Template Sections</div>
+              <div class="toggle-list">
+                <label class="toggle-row">
+                  <span>Geometric Header Pattern</span>
+                  <input type="checkbox" id="togglePattern" checked>
+                </label>
+                <label class="toggle-row">
+                  <span>Overall Progress Ring</span>
+                  <input type="checkbox" id="toggleRing" checked>
+                </label>
+                <label class="toggle-row">
+                  <span>Recommendation to Parents</span>
+                  <input type="checkbox" id="toggleRecs" checked>
+                </label>
+              </div>
+            </div>
+
+            <div>
+              <div class="studio-section-title"><i data-lucide="pen-line" style="width: 14px; height: 14px;"></i> Live Preview Data</div>
+              <div class="studio-field-grid">
+                <div class="studio-field">
+                  <label for="inpStudent">Student Name</label>
+                  <input type="text" id="inpStudent" value="AHMAD FATHAH">
+                </div>
+                <div class="studio-field">
+                  <label for="inpCourse">Course</label>
+                  <input type="text" id="inpCourse" value="Madrassa Group">
+                </div>
+                <div class="studio-field">
+                  <label for="inpMentor">Mentor</label>
+                  <input type="text" id="inpMentor" value="Usthadh Safwan">
+                </div>
+                <div class="studio-field">
+                  <label for="inpMonth">Report Month</label>
+                  <input type="text" id="inpMonth" value="November 2026">
+                </div>
+                <div class="studio-field">
+                  <label for="inpConducted">Conducted</label>
+                  <input type="number" id="inpConducted" value="20" min="1">
+                </div>
+                <div class="studio-field">
+                  <label for="inpAttended">Attended</label>
+                  <input type="number" id="inpAttended" value="18" min="0">
+                </div>
+              </div>
+              <div class="studio-field" style="margin-top: 0.65rem;">
+                <label for="inpTopics">Topics Covered (one per line)</label>
+                <textarea id="inpTopics" rows="3">Surah Al-Mulk (Verses 1-15)
+Tajweed: Rules of Noon Sakinah
+Fiqh: Pillars of Salah &amp; Wudu</textarea>
+              </div>
+              <div class="studio-field" style="margin-top: 0.65rem;">
+                <label for="inpObs">Mentor's Observation</label>
+                <textarea id="inpObs" rows="2">Consistent participation in live classes with noticeable improvement in Makharij and fluency.</textarea>
+              </div>
+              <div class="studio-field" style="margin-top: 0.65rem;">
+                <label for="inpRecs">Recommendation to Parents</label>
+                <textarea id="inpRecs" rows="2">Encourage 15 minutes of daily revision after Fajr or Maghrib to strengthen memorization.</textarea>
+              </div>
+            </div>
+          </aside>
+
+          <!-- Right: Live Template Preview -->
+          <div class="preview-stage">
+            <div class="tpl-sheet" id="templateSheet">
+              <div class="tpl-banner">
+                <div class="tpl-pattern" id="previewPattern"></div>
+                <div class="tpl-brand-row">
+                  <div class="tpl-logo-badge">
+                    <img src="../icon.png" alt="ABRAR Icon">
+                  </div>
+                  <div>
+                    <div class="tpl-school-name">ABRAR</div>
+                    <div class="tpl-school-sub">Online Islamic School</div>
+                  </div>
+                </div>
+                <div class="tpl-doc-badge">
+                  <div class="tpl-doc-pill">Official Academic Record</div>
+                  <div class="tpl-doc-title">MONTHLY PROGRESS REPORT</div>
+                  <div class="tpl-doc-motto">Faith &bull; Knowledge &bull; Character</div>
+                </div>
+              </div>
+
+              <div class="tpl-body">
+                <div class="tpl-student-strip">
+                  <div>
+                    <div class="tpl-info-lbl">Student Name</div>
+                    <div class="tpl-info-val" id="pvStudent">AHMAD FATHAH</div>
+                  </div>
+                  <div>
+                    <div class="tpl-info-lbl">Course Track</div>
+                    <div class="tpl-info-val" id="pvCourse">Madrassa Group</div>
+                  </div>
+                  <div>
+                    <div class="tpl-info-lbl">Mentor</div>
+                    <div class="tpl-info-val" id="pvMentor">Usthadh Safwan</div>
+                  </div>
+                  <div>
+                    <div class="tpl-info-lbl">Month</div>
+                    <div class="tpl-info-val" id="pvMonth">November 2026</div>
+                  </div>
+                </div>
+
+                <div class="tpl-kpi-grid" id="previewKpiGrid">
+                  <div class="tpl-card">
+                    <div class="tpl-card-head">
+                      <i data-lucide="calendar-check" style="width: 14px; height: 14px;"></i>
+                      1. Attendance Summary
+                    </div>
+                    <div class="tpl-att-row">
+                      <div class="tpl-att-stat">
+                        <div class="tpl-att-num" id="pvConducted">20</div>
+                        <div class="tpl-att-lbl">Conducted</div>
+                      </div>
+                      <div class="tpl-att-stat">
+                        <div class="tpl-att-num" id="pvAttended">18</div>
+                        <div class="tpl-att-lbl">Attended</div>
+                      </div>
+                      <div class="tpl-att-stat">
+                        <div class="tpl-att-num" id="pvPct" style="color: var(--tpl-primary);">90%</div>
+                        <div class="tpl-att-lbl">Attendance</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="tpl-card" id="previewRingCard">
+                    <div class="tpl-card-head">
+                      <i data-lucide="award" style="width: 14px; height: 14px;"></i>
+                      Overall Standing
+                    </div>
+                    <div class="tpl-overall-box">
+                      <div class="tpl-ring">
+                        <div class="tpl-ring-inner">
+                          <div class="tpl-ring-grade">VERY GOOD</div>
+                          <div class="tpl-ring-stars">★★★★☆</div>
+                        </div>
+                      </div>
+                      <div style="font-size: 0.78rem; color: #475569; line-height: 1.45;">
+                        Strong consistency and active engagement across recitation and revision sessions.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="tpl-card">
+                  <div class="tpl-card-head">
+                    <i data-lucide="bar-chart-2" style="width: 14px; height: 14px;"></i>
+                    2. Performance Summary
+                  </div>
+                  <table class="tpl-perf-table">
+                    <thead>
+                      <tr>
+                        <th>Assessment Area</th>
+                        <th>Rating</th>
+                        <th style="text-align: right;">Standing</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Live Class Performance</td>
+                        <td class="tpl-stars">★★★★★</td>
+                        <td style="text-align: right;"><span class="tpl-pill">EXCELLENT</span></td>
+                      </tr>
+                      <tr>
+                        <td>Lesson Progress</td>
+                        <td class="tpl-stars">★★★★☆</td>
+                        <td style="text-align: right;"><span class="tpl-pill">VERY GOOD</span></td>
+                      </tr>
+                      <tr>
+                        <td>Revision &amp; Homework</td>
+                        <td class="tpl-stars">★★★★☆</td>
+                        <td style="text-align: right;"><span class="tpl-pill">VERY GOOD</span></td>
+                      </tr>
+                      <tr>
+                        <td>Class Activities &amp; Adab</td>
+                        <td class="tpl-stars">★★★★★</td>
+                        <td style="text-align: right;"><span class="tpl-pill">EXCELLENT</span></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="tpl-notes-grid" id="previewNotesGrid">
+                  <div class="tpl-card">
+                    <div class="tpl-card-head">
+                      <i data-lucide="book-open" style="width: 14px; height: 14px;"></i>
+                      3. Topics Covered
+                    </div>
+                    <div id="pvTopics"></div>
+                  </div>
+                  <div class="tpl-card">
+                    <div class="tpl-card-head">
+                      <i data-lucide="message-square-quote" style="width: 14px; height: 14px;"></i>
+                      4. Mentor's Observation
+                    </div>
+                    <div class="tpl-note-text" id="pvObs"></div>
+                  </div>
+                </div>
+
+                <div class="tpl-card" id="previewRecsCard">
+                  <div class="tpl-card-head">
+                    <i data-lucide="heart-handshake" style="width: 14px; height: 14px;"></i>
+                    5. Recommendation to Parents
+                  </div>
+                  <div class="tpl-note-text" id="pvRecs"></div>
+                </div>
+              </div>
+
+              <div class="tpl-footer">
+                <div class="tpl-seal">
+                  <i data-lucide="shield-check" style="width: 15px; height: 15px;"></i>
+                  ABRAR ONLINE ISLAMIC SCHOOL
+                </div>
+                <div>Together We Nurture Faith, Knowledge &amp; Character</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script type="module" src="../js/firebase-config.js"></script>
+  <script type="module" src="../js/layout.js"></script>
+  <script type="module">
+    import { toast } from '../js/toast.js';
+
+    const sheet = document.getElementById('templateSheet');
+    const themeBtns = document.querySelectorAll('.theme-option');
+
+    function applyTheme(theme) {
+      sheet.classList.remove('theme-royal', 'theme-minimal');
+      if (theme === 'royal') sheet.classList.add('theme-royal');
+      if (theme === 'minimal') sheet.classList.add('theme-minimal');
+      themeBtns.forEach(b => b.classList.toggle('active', b.dataset.theme === theme));
+      sheet.dataset.theme = theme;
+    }
+
+    const savedTheme = localStorage.getItem('abrarReportTemplateTheme') || 'emerald';
+    applyTheme(savedTheme);
+
+    themeBtns.forEach(btn => {
+      btn.addEventListener('click', () => applyTheme(btn.dataset.theme));
+    });
+
+    document.getElementById('saveThemeBtn').addEventListener('click', () => {
+      localStorage.setItem('abrarReportTemplateTheme', sheet.dataset.theme || 'emerald');
+      toast.success('Default report template saved!');
+    });
+
+    // Toggles
+    document.getElementById('togglePattern').addEventListener('change', (e) => {
+      document.getElementById('previewPattern').style.display = e.target.checked ? 'block' : 'none';
+    });
+    document.getElementById('toggleRing').addEventListener('change', (e) => {
+      document.getElementById('previewRingCard').style.display = e.target.checked ? 'block' : 'none';
+      document.getElementById('previewKpiGrid').style.gridTemplateColumns = e.target.checked ? '1.2fr 1fr' : '1fr';
+    });
+    document.getElementById('toggleRecs').addEventListener('change', (e) => {
+      document.getElementById('previewRecsCard').style.display = e.target.checked ? 'block' : 'none';
+    });
+
+    // Live inputs
+    const syncText = (inputId, targetId) => {
+      const inp = document.getElementById(inputId);
+      const tgt = document.getElementById(targetId);
+      const update = () => { tgt.textContent = inp.value || '—'; };
+      inp.addEventListener('input', update);
+      update();
+    };
+    syncText('inpStudent', 'pvStudent');
+    syncText('inpCourse', 'pvCourse');
+    syncText('inpMentor', 'pvMentor');
+    syncText('inpMonth', 'pvMonth');
+    syncText('inpObs', 'pvObs');
+    syncText('inpRecs', 'pvRecs');
+
+    const updateAtt = () => {
+      const c = Math.max(0, parseInt(document.getElementById('inpConducted').value || 0, 10));
+      const a = Math.max(0, parseInt(document.getElementById('inpAttended').value || 0, 10));
+      document.getElementById('pvConducted').textContent = c;
+      document.getElementById('pvAttended').textContent = a;
+      document.getElementById('pvPct').textContent = c > 0 ? Math.round((a / c) * 100) + '%' : '0%';
+    };
+    document.getElementById('inpConducted').addEventListener('input', updateAtt);
+    document.getElementById('inpAttended').addEventListener('input', updateAtt);
+    updateAtt();
+
+    const updateTopics = () => {
+      const lines = document.getElementById('inpTopics').value.split('\n').map(l => l.trim()).filter(Boolean);
+      const container = document.getElementById('pvTopics');
+      container.innerHTML = lines.length
+        ? lines.map(t => `<div class="tpl-topic-item"><span class="tpl-topic-dot">&bull;</span><span>${t}</span></div>`).join('')
+        : '<div class="tpl-note-text">—</div>';
+    };
+    document.getElementById('inpTopics').addEventListener('input', updateTopics);
+    updateTopics();
+
+    // Sample PDF Download
+    document.getElementById('downloadSamplePdfBtn').addEventListener('click', async () => {
+      const btn = document.getElementById('downloadSamplePdfBtn');
+      const orig = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = 'Generating PDF...';
+      try {
+        const canvas = await html2canvas(sheet, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+        const imgData = canvas.toDataURL('image/png');
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pageW = pdf.internal.pageSize.getWidth();
+        const margin = 10;
+        const w = pageW - margin * 2;
+        const h = (canvas.height * w) / canvas.width;
+        pdf.addImage(imgData, 'PNG', margin, margin, w, h);
+        pdf.save(`ABRAR_Progress_Template_${sheet.dataset.theme || 'emerald'}.pdf`);
+      } catch (err) {
+        console.error(err);
+        toast.error('Failed to generate sample PDF.');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = orig;
+      }
+    });
+
+    if (window.lucide) lucide.createIcons();
+  </script>
+</body>
+</html>
