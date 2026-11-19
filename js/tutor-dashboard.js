@@ -74,8 +74,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // Status Badge
     const statusSpan = document.getElementById('profileStatus');
-    statusSpan.textContent = tutorData.status.charAt(0).toUpperCase() + tutorData.status.slice(1);
-    statusSpan.style.color = tutorData.status === 'active' ? 'var(--color-primary)' : 'var(--color-danger)';
+    const tutorStatusStr = String(tutorData.status || '').trim();
+    statusSpan.textContent = tutorStatusStr ? tutorStatusStr.charAt(0).toUpperCase() + tutorStatusStr.slice(1) : '-';
+    statusSpan.style.color = tutorStatusStr.toLowerCase() === 'active' ? 'var(--color-primary)' : 'var(--color-danger)';
     
     // Roles Badges
     const rolesContainer = document.getElementById('profileRoles');
@@ -120,12 +121,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       today.setHours(0, 0, 0, 0);
 
       assignedStudents.forEach(student => {
-        if (student.status === 'active') activeStudentsCount++;
+        const isStudentActive = String(student.status || '').trim().toLowerCase() === 'active';
+        if (isStudentActive) activeStudentsCount++;
         
-        const statusColor = student.status === 'active' ? 'var(--color-primary)' : 'var(--color-text-secondary)';
+        const statusColor = isStudentActive ? 'var(--color-primary)' : 'var(--color-text-secondary)';
         
         let actionHtml = '-';
-        if (student.status === 'active' && (student.classStartingDate || student.admissionDate)) {
+        if (isStudentActive && (student.classStartingDate || student.admissionDate)) {
           const startDateStr = student.classStartingDate || student.admissionDate;
           const startDate = new Date(startDateStr);
           
