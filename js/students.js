@@ -1,6 +1,6 @@
 // js/students.js
 import { db } from './firebase-config.js';
-import { collection, getDocs, query, orderBy, limit, deleteDoc, doc, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { collection, getDocs, query, orderBy, limit, deleteDoc, doc, where, writeBatch, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
@@ -270,7 +270,125 @@ document.addEventListener('DOMContentLoaded', () => {
           });
         }
 
-        
+        // Renumber all student IDs sequentially starting from 001 per course code prefix
+        const renumberIdsBtn = document.getElementById('renumberIdsBtn');
+        if (renumberIdsBtn) {
+          renumberIdsBtn.addEventListener('click', async () => {
+            const origHtml = renumberIdsBtn.innerHTML;
+            renumberIdsBtn.disabled = true;
+            renumberIdsBtn.textContent = 'Preparing...';
+
+            try {
+              const coursesSnap = await getDocs(collection(db, "managed_courses"));
+              const managedCourses = [];
+              coursesSnap.forEach(cDoc => managedCourses.push({ id: cDoc.id, ...cDoc.data() }));
+
+              const normalizeCourseKey = (val) => {
+                const norm = String(val || '')
+                  .trim()
+                  .toLowerCase()
+                  .replace(/[_-]+/g, ' ')
+                  .replace(/\bmadrass+a\b/g, 'madrasa')
+                  .replace(/\bshool\b/g, 'school')
+                  .replace(/\s+/g, ' ');
+                if (norm === 'madrasa individual') return 'madrasa one to one';
+                if (norm === 'quran recitation') return 'tarteel';
+                return norm;
+              };
+
+              const resolvePrefix = (student) => {
+                const sCourse = normalizeCourseKey(student.course);
+                const sCourseType = normalizeCourseKey(student.courseType);
+                const matched = managedCourses.find(c => {
+                  const cName = normalizeCourseKey(c.courseName);
+                  const cSerial = normalizeCourseKey(c.serialNo);
+                  return (sCourse && (sCourse === cName || sCourse === cSerial)) ||
+                         (sCourseType && (sCourseType === cName || sCourseType === cSerial)) ||
+                         student.courseId === c.id;
+                });
+                if (matched && matched.serialNo) {
+                  const p = String(matched.serialNo).replace(/\d+$/, '').toUpperCase();
+                  if (p) return p;
+                }
+                const ct = String(student.courseType || student.course || '').toLowerCase();
+                if (ct.includes('madrasa_individual') || ct.includes('one-to-one') || ct.includes('one to one')) return 'AMO';
+                if (ct.includes('madrasa_group') || ct.includes('madrass_group') || ct.includes('madrassa group')) return 'AMG';
+                if (ct.includes('quran') || ct.includes('tarteel')) return 'AT';
+                const existingPrefix = String(student.studentId || '').replace(/\d+$/, '').toUpperCase();
+                return existingPrefix || 'STU';
+              };
+
+              const groups = {};
+              allStudents.forEach(s => {
+                const p = resolvePrefix(s);
+                if (!groups[p]) groups[p] = [];
+                groups[p].push(s);
+              });
+
+              const extractNum = (idStr) => {
+                const m = String(idStr || '').match(/(\d+)$/);
+                return m ? parseInt(m[1], 10) : Number.MAX_SAFE_INTEGER;
+              };
+
+              const updates = [];
+              const newCounters = {};
+              const summaryLines = [];
+
+              Object.keys(groups).sort().forEach(prefix => {
+                const list = groups[prefix];
+                list.sort((a, b) => {
+                  const nA = extractNum(a.studentId);
+                  const nB = extractNum(b.studentId);
+                  if (nA !== nB) return nA - nB;
+                  const tA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+                  const tB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+                  return tA - tB;
+                });
+
+                list.forEach((student, idx) => {
+                  const newId = `${prefix}${String(idx + 1).padStart(3, '0')}`;
+                  if (student.studentId !== newId) {
+                    updates.push({ docId: student.id, newId, student });
+                  }
+                });
+                newCounters[prefix] = list.length;
+                summaryLines.push(`${prefix}: ${list.length} student(s) → ${prefix}001 to ${prefix}${String(list.length).padStart(3, '0')}`);
+              });
+
+              if (updates.length === 0) {
+                alert('All student IDs are already sequentially numbered from 001!');
+                return;
+              }
+
+              const msg = `Renumber ${updates.length} student ID(s) sequentially from 001?\n\n${summaryLines.join('\n')}`;
+              if (!confirm(msg)) return;
+
+              renumberIdsBtn.textContent = 'Renumbering...';
+
+              for (let i = 0; i < updates.length; i += 450) {
+                const batch = writeBatch(db);
+                updates.slice(i, i + 450).forEach(u => {
+                  batch.update(doc(db, "students", u.docId), { studentId: u.newId });
+                  u.student.studentId = u.newId;
+                });
+                await batch.commit();
+              }
+
+              await setDoc(doc(db, "counters", "students"), newCounters, { merge: true });
+
+              filterData();
+              alert(`Successfully renumbered ${updates.length} student ID(s)!`);
+            } catch (err) {
+              console.error("Error renumbering student IDs:", err);
+              alert("Failed to renumber IDs: " + err.message);
+            } finally {
+              renumberIdsBtn.disabled = false;
+              renumberIdsBtn.innerHTML = origHtml;
+              if (window.lucide) lucide.createIcons();
+            }
+          });
+        }
+
       } catch (error) {
         console.error("Error fetching students: ", error);
         tbody.innerHTML = `<tr><td colspan="12" style="text-align: center; padding: 2rem; color: #ef4444;">Error loading students: ${error.message}</td></tr>`;
