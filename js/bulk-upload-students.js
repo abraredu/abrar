@@ -369,22 +369,64 @@ document.addEventListener('DOMContentLoaded', () => {
     // Prefix counter cache
     const prefixCounts = {};
 
+    const normalizeCourseKey = (val) => {
+      const norm = String(val || '')
+        .trim()
+        .toLowerCase()
+        .replace(/[_-]+/g, ' ')
+        .replace(/\bmadrass+a\b/g, 'madrasa')
+        .replace(/\bshool\b/g, 'school')
+        .replace(/\s+/g, ' ');
+      if (norm === 'madrasa individual') return 'madrasa one to one';
+      if (norm === 'quran recitation') return 'tarteel';
+      return norm;
+    };
+
+    let managedCourses = [];
+    try {
+      const coursesSnap = await getDocs(collection(db, 'managed_courses'));
+      coursesSnap.forEach(cDoc => managedCourses.push({ id: cDoc.id, ...cDoc.data() }));
+    } catch (e) {
+      console.warn('Could not load managed_courses in bulk upload:', e);
+    }
+
+    const matchManagedCourse = (courseType) => {
+      const key = normalizeCourseKey(courseType);
+      if (!key) return null;
+      return managedCourses.find(c =>
+        normalizeCourseKey(c.courseName) === key ||
+        normalizeCourseKey(c.serialNo) === key
+      ) || null;
+    };
+
     const resolveCourseName = (courseType) => {
+      const matched = matchManagedCourse(courseType);
+      if (matched && matched.courseName) return matched.courseName;
       const ct = String(courseType || '').toLowerCase();
       if (ct.includes('madrasa_individual') || ct.includes('madrassa_individual')) return 'Madrassa One-to-One';
       if (ct.includes('madrasa_group') || ct.includes('madrass_group') || ct.includes('madrassa_group')) return 'Madrassa Group';
       return courseType || '';
     };
 
+    const resolvePrefix = (courseType) => {
+      const matched = matchManagedCourse(courseType);
+      if (matched && matched.serialNo) {
+        const p = String(matched.serialNo).replace(/\d+$/, '').toUpperCase();
+        if (p) return p;
+      }
+      const ct = String(courseType || '').toLowerCase();
+      if (ct.includes('madrasa_individual')) return 'AMO';
+      if (ct.includes('quran_recitation') || ct.includes('tarteel')) return 'AT';
+      if (ct.includes('madrasa_group') || ct.includes('madrass_group')) return 'AMG';
+      return 'ABR';
+    };
+
     try {
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
 
-        // Determine prefix
-        let prefix = 'ABR';
-        if (row.courseType.includes('madrasa_individual')) prefix = 'AMO';
-        else if (row.courseType.includes('quran_recitation')) prefix = 'AQO';
-        else if (row.courseType.includes('madrasa_group') || row.courseType.includes('madrass_group')) prefix = 'AMG';
+        // Determine prefix dynamically from managed_courses or fallback
+        const prefix = resolvePrefix(row.courseType);
 
         // Try to map level to classId for group tuition
         let matchedClassId = '';
