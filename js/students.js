@@ -38,6 +38,12 @@ document.addEventListener('DOMContentLoaded', () => {
         snapshot.forEach((doc) => {
           allStudents.push({ id: doc.id, ...doc.data() });
         });
+        const sortByStudentId = () => {
+          allStudents.sort((a, b) =>
+            String(a.studentId || '').localeCompare(String(b.studentId || ''), undefined, { numeric: true, sensitivity: 'base' })
+          );
+        };
+        sortByStudentId();
 
         const formatter = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' });
         const searchInput = document.getElementById('searchInput');
@@ -376,6 +382,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
               await setDoc(doc(db, "counters", "students"), newCounters, { merge: true });
 
+              sortByStudentId();
               filterData();
               alert(`Successfully renumbered ${updates.length} student ID(s)!`);
             } catch (err) {
