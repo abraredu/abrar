@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Report Schedule - ABRAR Management System</title>
+  <link rel="icon" type="image/png" href="../icon.png">
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .sched-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .sched-kpi-card {
+      background: #ffffff;
+      border: 1px solid var(--color-border);
+      border-radius: 14px;
+      padding: 1.1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+    }
+
+    .sched-kpi-lbl {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .sched-kpi-val {
+      font-size: 1.65rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin-top: 2px;
+    }
+
+    .sched-kpi-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .sched-toolbar {
+      background: #ffffff;
+      border: 1px solid var(--color-border);
+      border-radius: 14px;
+      padding: 0.9rem 1.15rem;
+      margin-bottom: 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .sched-tabs {
+      display: flex;
+      gap: 0.45rem;
+      flex-wrap: wrap;
+    }
+
+    .sched-tab {
+      padding: 0.42rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid #e2e8f0;
+      background: #f8fafc;
+      color: #475569;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.15s ease;
+    }
+
+    .sched-tab:hover {
+      background: #f1f5f9;
+      color: #0f172a;
+    }
+
+    .sched-tab.active {
+      background: var(--color-primary);
+      border-color: var(--color-primary);
+      color: #ffffff;
+    }
+
+    .sched-tab .cnt {
+      font-size: 0.7rem;
+      padding: 0.08rem 0.45rem;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.08);
+    }
+
+    .sched-tab.active .cnt {
+      background: rgba(255, 255, 255, 0.22);
+      color: #ffffff;
+    }
+
+    .sched-table-card {
+      background: #ffffff;
+      border: 1px solid var(--color-border);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+    }
+
+    .sched-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.22rem 0.65rem;
+      border-radius: 999px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .sched-badge.overdue {
+      background: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+    }
+
+    .sched-badge.due {
+      background: #fffbeb;
+      color: #d97706;
+      border: 1px solid #fde68a;
+    }
+
+    .sched-badge.submitted {
+      background: #ecfdf5;
+      color: #087a42;
+      border: 1px solid #a7f3d0;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <img src="../logo.png" alt="ABRAR Logo" style="height: 32px; width: auto;">
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="../dashboard.html" class="nav-item">
+          <i data-lucide="layout-dashboard"></i> Dashboard
+        </a>
+        <a href="../students/students.html" class="nav-item">
+          <i data-lucide="users"></i> Students
+        </a>
+        <div class="submenu">
+          <a href="../students/admission.html" class="submenu-item">Admission</a>
+        </div>
+        <a href="../courses/classes.html" class="nav-item">
+          <i data-lucide="library"></i> Courses
+        </a>
+        <div class="submenu">
+          <a href="../courses/manage.html" class="submenu-item">Manage</a>
+          <a href="../courses/upgrade.html" class="submenu-item">Upgrade</a>
+        </div>
+        <a href="../tutors/tutors.html" class="nav-item">
+          <i data-lucide="graduation-cap"></i> Tutors
+        </a>
+        <a href="../finance/accounts.html" class="nav-item">
+          <i data-lucide="wallet"></i> Finance
+        </a>
+        <div class="submenu">
+          <a href="../finance/fees.html" class="submenu-item">Fees</a>
+          <a href="../finance/salaries.html" class="submenu-item">Salary</a>
+          <a href="../finance/accounts.html" class="submenu-item">Account</a>
+        </div>
+        <a href="../reports/progress.html" class="nav-item active">
+          <i data-lucide="line-chart"></i> Progress
+        </a>
+        <div class="submenu">
+          <a href="../reports/data.html" class="submenu-item">Data</a>
+          <a href="../reports/template.html" class="submenu-item">Template</a>
+          <a href="../reports/schedule.html" class="submenu-item active">Schedule</a>
+        </div>
+
+        <a href="../assessments/assessments.html" class="nav-item">
+          <i data-lucide="clipboard-check"></i> Assessments
+        </a>
+        <a href="../reports/reports.html" class="nav-item">
+          <i data-lucide="bar-chart-3"></i> Reports
+        </a>
+        <a href="../notifications/notifications.html" class="nav-item">
+          <i data-lucide="bell"></i> Notifications
+        </a>
+        <a href="../messages/messages.html" class="nav-item">
+          <i data-lucide="mail"></i> Messages
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <a href="../settings.html" class="nav-item">
+          <i data-lucide="settings"></i> Settings
+        </a>
+        <a href="#" id="logoutBtn" class="nav-item text-danger">
+          <i data-lucide="log-out"></i> Logout
+        </a>
+      </div>
+    </aside>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <main class="main-content">
+      <header class="top-header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobileMenuBtn">
+            <i data-lucide="menu"></i>
+          </button>
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div style="width: 40px; height: 40px; background-color: #ecfdf5; color: var(--color-primary); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <i data-lucide="calendar-clock"></i>
+            </div>
+            <div>
+              <div style="font-size: 0.75rem; line-height: 1.2; color: var(--color-text-secondary); margin-bottom: 2px;">
+                <a href="progress.html" style="color: inherit;">Progress</a> / Schedule
+              </div>
+              <h1 class="page-title" style="line-height: 1.2;">Progress Report Schedule</h1>
+            </div>
+          </div>
+        </div>
+        <div class="header-right">
+          <button id="refreshScheduleBtn" class="btn btn-outline" style="background: #ffffff;">
+            <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i> Refresh
+          </button>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <section class="page-hero" style="margin-bottom: 1.25rem;">
+          <div class="page-hero-content">
+            <h2 class="page-hero-title"><i data-lucide="calendar-clock" style="width: 22px; height: 22px;"></i> 7-Day Due &amp; Overdue Tracker</h2>
+            <p class="page-hero-sub" id="scheduleMonthLabel">Monitor students whose monthly progress report is due within 7 days or already overdue.</p>
+          </div>
+          <div class="page-hero-actions">
+            <a href="progress.html" class="btn-glass"><i data-lucide="file-check" style="width: 16px; height: 16px;"></i> View Submitted Reports</a>
+          </div>
+        </section>
+
+        <!-- KPI Summary -->
+        <div class="sched-kpi-grid">
+          <div class="sched-kpi-card">
+            <div>
+              <div class="sched-kpi-lbl">Due Within 7 Days</div>
+              <div class="sched-kpi-val" id="kpiDueSoon" style="color: #d97706;">-</div>
+            </div>
+            <div class="sched-kpi-icon" style="background: #fffbeb; color: #d97706;">
+              <i data-lucide="clock"></i>
+            </div>
+          </div>
+          <div class="sched-kpi-card">
+            <div>
+              <div class="sched-kpi-lbl">Overdue Reports</div>
+              <div class="sched-kpi-val" id="kpiOverdue" style="color: #dc2626;">-</div>
+            </div>
+            <div class="sched-kpi-icon" style="background: #fef2f2; color: #dc2626;">
+              <i data-lucide="alert-circle"></i>
+            </div>
+          </div>
+          <div class="sched-kpi-card">
+            <div>
+              <div class="sched-kpi-lbl">Submitted This Month</div>
+              <div class="sched-kpi-val" id="kpiSubmitted" style="color: #087a42;">-</div>
+            </div>
+            <div class="sched-kpi-icon" style="background: #ecfdf5; color: #087a42;">
+              <i data-lucide="check-circle-2"></i>
+            </div>
+          </div>
+          <div class="sched-kpi-card">
+            <div>
+              <div class="sched-kpi-lbl">Total Active Students</div>
+              <div class="sched-kpi-val" id="kpiTotalActive">-</div>
+            </div>
+            <div class="sched-kpi-icon" style="background: #f1f5f9; color: #475569;">
+              <i data-lucide="users"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="sched-toolbar">
+          <div class="sched-tabs" id="schedTabs">
+            <button type="button" class="sched-tab active" data-filter="actionable">
+              Due &amp; Overdue <span class="cnt" id="cntActionable">0</span>
+            </button>
+            <button type="button" class="sched-tab" data-filter="due">
+              Due in 7 Days <span class="cnt" id="cntDue">0</span>
+            </button>
+            <button type="button" class="sched-tab" data-filter="overdue">
+              Overdue <span class="cnt" id="cntOverdue">0</span>
+            </button>
+            <button type="button" class="sched-tab" data-filter="submitted">
+              Submitted <span class="cnt" id="cntSubmitted">0</span>
+            </button>
+          </div>
+
+          <div style="display: flex; gap: 0.65rem; align-items: center; flex-wrap: wrap;">
+            <div style="position: relative; min-width: 240px;">
+              <i data-lucide="search" style="position: absolute; left: 0.7rem; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: #94a3b8;"></i>
+              <input type="text" id="schedSearch" class="form-control" placeholder="Search student, ID, or tutor..." style="padding-left: 2.15rem; height: 36px; font-size: 0.825rem;">
+            </div>
+          </div>
+        </div>
+
+        <!-- Schedule Table -->
+        <div class="sched-table-card">
+          <div class="table-responsive">
+            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Reg No.</th>
+                  <th>Course</th>
+                  <th>Tutor</th>
+                  <th>Cycle Due Date</th>
+                  <th>Schedule Status</th>
+                </tr>
+              </thead>
+              <tbody id="scheduleTableBody">
+                <tr>
+                  <td colspan="6" style="padding: 2.5rem; text-align: center; color: #64748b;">Loading report schedule...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="../js/firebase-config.js"></script>
+  <script type="module" src="../js/layout.js"></script>
+  <script type="module">
+    import { db } from '../js/firebase-config.js';
+    import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const tbody = document.getElementById('scheduleTableBody');
+      const searchInp = document.getElementById('schedSearch');
+      const tabBtns = document.querySelectorAll('.sched-tab');
+
+      let activeFilter = 'actionable';
+      let scheduleRows = [];
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const currentMonthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+      const monthLabel = today.toLocaleString('default', { month: 'long', year: 'numeric' });
+      document.getElementById('scheduleMonthLabel').textContent =
+        `Showing ${monthLabel} cycle — students due within 7 days or overdue for a progress report.`;
+
+      const getClampedDate = (year, month, day) => {
+        const lastDay = new Date(year, month + 1, 0).getDate();
+        return new Date(year, month, Math.min(day, lastDay));
+      };
+
+      async function loadSchedule() {
+        tbody.innerHTML = '<tr><td colspan="6" style="padding: 2.5rem; text-align: center; color: #64748b;">Loading report schedule...</td></tr>';
+        try {
+          const [studentsSnap, tutorsSnap, reportsSnap] = await Promise.all([
+            getDocs(collection(db, 'students')),
+            getDocs(collection(db, 'tutors')),
+            getDocs(collection(db, 'progress_reports'))
+          ]);
+
+          const tutorsMap = {};
+          tutorsSnap.forEach(d => {
+            const t = d.data();
+            tutorsMap[d.id] = t.name || t.tutorId || d.id;
+            if (t.tutorId) tutorsMap[t.tutorId] = t.name || t.tutorId;
+          });
+
+          const submittedThisMonth = new Set();
+          reportsSnap.forEach(d => {
+            const r = d.data();
+            if (r.reportMonth === currentMonthStr) {
+              if (r.studentId) submittedThisMonth.add(r.studentId);
+              if (r.studentName) submittedThisMonth.add(String(r.studentName).trim().toLowerCase());
+            }
+          });
+
+          scheduleRows = [];
+          let dueCount = 0;
+          let overdueCount = 0;
+          let submittedCount = 0;
+          let activeTotal = 0;
+
+          studentsSnap.forEach(docSnap => {
+            const s = docSnap.data();
+            if (String(s.status || '').trim().toLowerCase() !== 'active') return;
+            activeTotal++;
+
+            const tutorDisplay = tutorsMap[s.tutorId] || s.tutorId || '-';
+            const isSubmitted = submittedThisMonth.has(docSnap.id) ||
+                                submittedThisMonth.has(s.studentId) ||
+                                submittedThisMonth.has(String(s.name || '').trim().toLowerCase());
+
+            const startDateStr = s.classStartingDate || s.admissionDate;
+            const startDate = startDateStr ? new Date(startDateStr) : null;
+
+            let category = 'upcoming';
+            let sortOrder = 999;
+            let cycleDateText = '-';
+            let badgeHtml = '<span style="color:#64748b;font-size:0.8rem;">Not due yet</span>';
+
+            if (startDate && !isNaN(startDate.getTime())) {
+              startDate.setHours(0, 0, 0, 0);
+              const startDay = startDate.getDate();
+              const cycleDate = getClampedDate(today.getFullYear(), today.getMonth(), startDay);
+              cycleDateText = cycleDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
+              const diffDays = Math.round((cycleDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+              const daysSinceStart = Math.round((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+
+              if (isSubmitted) {
+                category = 'submitted';
+                submittedCount++;
+                sortOrder = 500;
+                badgeHtml = '<span class="sched-badge submitted"><i data-lucide="check" style="width:13px;height:13px;"></i> Submitted</span>';
+              } else if (daysSinceStart >= 20 && diffDays < 0) {
+                category = 'overdue';
+                overdueCount++;
+                sortOrder = diffDays; // most overdue first
+                const lateDays = Math.abs(diffDays);
+                badgeHtml = `<span class="sched-badge overdue"><i data-lucide="alert-triangle" style="width:13px;height:13px;"></i> ${lateDays} day${lateDays === 1 ? '' : 's'} overdue</span>`;
+              } else if (daysSinceStart >= 20 && diffDays >= 0 && diffDays <= 7) {
+                category = 'due';
+                dueCount++;
+                sortOrder = diffDays;
+                const dueTxt = diffDays === 0 ? 'Due Today' : `Due in ${diffDays} day${diffDays === 1 ? '' : 's'}`;
+                badgeHtml = `<span class="sched-badge due"><i data-lucide="clock" style="width:13px;height:13px;"></i> ${dueTxt}</span>`;
+              }
+            } else if (isSubmitted) {
+              category = 'submitted';
+              submittedCount++;
+              sortOrder = 500;
+              badgeHtml = '<span class="sched-badge submitted"><i data-lucide="check" style="width:13px;height:13px;"></i> Submitted</span>';
+            }
+
+            if (category !== 'upcoming') {
+              scheduleRows.push({
+                name: s.name || '-',
+                regNo: s.studentId || s.regNo || '-',
+                course: s.course || s.courseType || '-',
+                tutor: tutorDisplay,
+                cycleDateText,
+                category,
+                sortOrder,
+                badgeHtml
+              });
+            }
+          });
+
+          scheduleRows.sort((a, b) => a.sortOrder - b.sortOrder);
+
+          document.getElementById('kpiDueSoon').textContent = dueCount;
+          document.getElementById('kpiOverdue').textContent = overdueCount;
+          document.getElementById('kpiSubmitted').textContent = submittedCount;
+          document.getElementById('kpiTotalActive').textContent = activeTotal;
+
+          document.getElementById('cntActionable').textContent = dueCount + overdueCount;
+          document.getElementById('cntDue').textContent = dueCount;
+          document.getElementById('cntOverdue').textContent = overdueCount;
+          document.getElementById('cntSubmitted').textContent = submittedCount;
+
+          renderRows();
+        } catch (err) {
+          console.error('Error loading schedule:', err);
+          tbody.innerHTML = `<tr><td colspan="6" style="padding: 2rem; text-align: center; color: #dc2626;">Error loading schedule: ${err.message}</td></tr>`;
+        }
+      }
+
+      function renderRows() {
+        const q = searchInp.value.trim().toLowerCase();
+        const filtered = scheduleRows.filter(r => {
+          const matchesTab =
+            activeFilter === 'actionable' ? (r.category === 'due' || r.category === 'overdue') :
+            r.category === activeFilter;
+          const matchesSearch = !q ||
+            r.name.toLowerCase().includes(q) ||
+            r.regNo.toLowerCase().includes(q) ||
+            r.tutor.toLowerCase().includes(q) ||
+            r.course.toLowerCase().includes(q);
+          return matchesTab && matchesSearch;
+        });
+
+        if (filtered.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" style="padding: 2.5rem; text-align: center; color: #64748b;">No students match this schedule filter.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = filtered.map(r => `
+          <tr style="border-bottom: 1px solid var(--color-border);">
+            <td style="padding: 0.9rem 1rem; font-weight: 600; color: #0f172a;">${r.name}</td>
+            <td style="padding: 0.9rem 1rem; color: #64748b; font-family: monospace;">${r.regNo}</td>
+            <td style="padding: 0.9rem 1rem;">${r.course}</td>
+            <td style="padding: 0.9rem 1rem; color: #334155;">${r.tutor}</td>
+            <td style="padding: 0.9rem 1rem; color: #475569;">${r.cycleDateText}</td>
+            <td style="padding: 0.9rem 1rem;">${r.badgeHtml}</td>
+          </tr>
+        `).join('');
+
+        if (window.lucide) lucide.createIcons();
+      }
+
+      tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          tabBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          activeFilter = btn.dataset.filter;
+          renderRows();
+        });
+      });
+
+      searchInp.addEventListener('input', renderRows);
+      document.getElementById('refreshScheduleBtn').addEventListener('click', loadSchedule);
+
+      loadSchedule();
+      if (window.lucide) lucide.createIcons();
+    });
+  </script>
+</body>
+</html>
