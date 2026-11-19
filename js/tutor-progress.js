@@ -36,20 +36,38 @@ document.addEventListener('DOMContentLoaded', async () => {
       try {
         let tutorRef = doc(db, "tutors", tutorId);
         let tutorSnap = await getDoc(tutorRef);
-        if (!tutorSnap.exists()) {
+        let tutorData = null;
+        if (tutorSnap.exists()) {
+          tutorData = tutorSnap.data();
+        } else {
           const fallbackQ = query(collection(db, "tutors"), where("tutorId", "==", tutorId));
           const fallbackSnap = await getDocs(fallbackQ);
           if (!fallbackSnap.empty) {
             realTutorDocId = fallbackSnap.docs[0].id;
+            tutorData = fallbackSnap.docs[0].data();
           }
         }
 
-        const studentsQ = query(collection(db, "students"), where("status", "==", "active"));
-        const studentsSnap = await getDocs(studentsQ);
+        const tCode = tutorData?.tutorId || '';
+        const tName = (tutorData?.name || tutorName || '').trim().toLowerCase();
+
+        const studentsSnap = await getDocs(collection(db, "students"));
         studentsSnap.forEach(docSnap => {
           const student = docSnap.data();
-          const isTutorLegacy = student.tutorId === realTutorDocId || student.tutorId === tutorId;
-          const inCourseTutors = student.courseTutors && Object.values(student.courseTutors).some(tId => tId === realTutorDocId || tId === tutorId);
+          if (String(student.status || '').trim().toLowerCase() !== 'active') return;
+
+          const sTutorId = String(student.tutorId || '');
+          const isTutorLegacy = sTutorId.includes(realTutorDocId) ||
+                                sTutorId.includes(tutorId) ||
+                                (tCode && sTutorId.includes(tCode)) ||
+                                (tName && sTutorId.toLowerCase().includes(tName));
+          const inCourseTutors = student.courseTutors && Object.values(student.courseTutors).some(tId => {
+            const val = String(tId || '');
+            return val === realTutorDocId ||
+                   val === tutorId ||
+                   (tCode && val === tCode) ||
+                   (tName && val.toLowerCase().includes(tName));
+          });
           
           if (isTutorLegacy || inCourseTutors) {
             myStudents.push({ id: docSnap.id, ...student });
@@ -105,12 +123,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!isNaN(startDate.getTime())) {
           const startDay = startDate.getDate();
           
-          // Calculate anniversary in the selected month
-          const anniversaryDate = new Date(selYear, selMonthIdx, startDay);
+          // Calculate anniversary in the selected month (clamped to month length)
+          const lastDayOfMonth = new Date(selYear, selMonthIdx + 1, 0).getDate();
+          const anniversaryDate = new Date(selYear, selMonthIdx, Math.min(startDay, lastDayOfMonth));
           
-          // Open date is 2 days before the anniversary
+          // Open date is 7 days before the anniversary
           const openDate = new Date(anniversaryDate);
-          openDate.setDate(openDate.getDate() - 2);
+          openDate.setDate(openDate.getDate() - 7);
           openDate.setHours(0, 0, 0, 0);
           
           if (todayDate.getTime() >= openDate.getTime()) {
