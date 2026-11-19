@@ -567,6 +567,82 @@
       .report-top-header::after { border-top-color: #f59e0b !important; }
       .modern-report::before { display: none; }
     }
+
+    /* Template Studio Green Frame & Borderless Inner Design */
+    .modern-report {
+      background: #ffffff url('reports/report-bg.jpg') center / 100% 100% no-repeat !important;
+      padding: 3.5rem 4rem !important;
+      border-radius: 14px !important;
+      max-width: 820px !important;
+    }
+    .modern-report::before { display: none !important; }
+    .modern-report .report-top-header {
+      background: transparent !important;
+      color: #0f172a !important;
+      padding: 0.5rem 0.25rem 1.1rem !important;
+      border-bottom: 2px solid #d1fae5 !important;
+      align-items: center !important;
+    }
+    .modern-report .report-top-header::before,
+    .modern-report .report-top-header::after {
+      display: none !important;
+    }
+    .modern-report .report-title-main,
+    .modern-report .report-title-sub {
+      color: #0f172a !important;
+      font-size: 1.15rem !important;
+      font-weight: 800 !important;
+      line-height: 1.2 !important;
+    }
+    .modern-report .report-title-motto {
+      color: #d97706 !important;
+      font-size: 0.72rem !important;
+      font-weight: 700 !important;
+    }
+    .modern-report .report-main-body {
+      padding: 1.1rem 0 !important;
+      margin-top: 0 !important;
+      gap: 1rem !important;
+    }
+    .modern-report .report-section-box {
+      background: #f8fafc !important;
+      border: none !important;
+      box-shadow: none !important;
+      border-radius: 12px !important;
+      padding: 0.9rem 1.05rem !important;
+    }
+    .modern-report .student-info-box {
+      border-left: none !important;
+    }
+    .modern-report .att-box {
+      background: #ffffff !important;
+      border: none !important;
+    }
+    .modern-report .topic-item {
+      background: #ffffff !important;
+      border: none !important;
+    }
+    .modern-report .report-footer-section {
+      background: transparent !important;
+      color: #64748b !important;
+      border-top: 1px solid #e2e8f0 !important;
+      padding: 0.85rem 0.25rem 0 !important;
+      margin-top: 0.5rem !important;
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+      text-align: left !important;
+    }
+    .modern-report .report-footer-section::before { display: none !important; }
+    .modern-report .footer-remark {
+      color: #087a42 !important;
+      font-size: 0.75rem !important;
+      margin-bottom: 0 !important;
+    }
+    .modern-report .footer-brand {
+      color: #64748b !important;
+      font-size: 0.74rem !important;
+    }
   </style>
 </head>
 <body>
@@ -625,14 +701,13 @@
       <button class="modal-close no-print" id="closeModalBtn" style="z-index: 10;"><i data-lucide="x"></i></button>
       
       <div class="report-top-header">
-        <div class="report-top-left">
-          <div class="brand-title">ABRAR</div>
-          <div class="brand-subtitle">ONLINE ISLAMIC SCHOOL</div>
+        <div class="report-top-left" style="display: flex; align-items: center;">
+          <img src="logo.png" alt="ABRAR Logo" style="height: 44px; width: auto;">
         </div>
-        <div class="report-top-right">
-          <div class="report-title-main">MONTHLY</div>
-          <div class="report-title-sub">PROGRESS REPORT</div>
-          <div class="report-title-motto">Faith • Knowledge • Character</div>
+        <div class="report-top-right" style="text-align: right;">
+          <div style="display: inline-block; background: #087A42; color: #ffffff; padding: 0.2rem 0.75rem; border-radius: 999px; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.35rem;">Official Academic Record</div>
+          <div class="report-title-main">MONTHLY PROGRESS REPORT</div>
+          <div class="report-title-motto">Faith &bull; Knowledge &bull; Character</div>
         </div>
       </div>
 
