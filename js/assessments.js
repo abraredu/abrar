@@ -269,11 +269,6 @@ document.addEventListener('DOMContentLoaded', () => {
                       <div class="timer-bar ${barClass}" style="width: ${barWidth}%"></div>
                     </div>
                   </div>
-                  <div class="assess-footer">
-                    <a href="../reports/progress.html?studentId=${data.id}" class="btn btn-outline" style="width: 100%; padding: 0.45rem 0.75rem; font-size: 0.8rem;">
-                      Add / View Report
-                    </a>
-                  </div>
                 </div>
               `;
             }).join('');
