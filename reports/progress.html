@@ -679,7 +679,8 @@
   <script type="module" src="../js/layout.js"></script>
   <script type="module" src="../js/progress.js"></script>
   <script>
-    document.getElementById('printBtn').addEventListener('click', async (e) => {
+    const printBtnEl = document.getElementById('printBtn');
+    if (printBtnEl) printBtnEl.addEventListener('click', async (e) => {
       e.preventDefault();
 
       const btn = document.getElementById('printBtn');

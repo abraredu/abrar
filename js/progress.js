@@ -142,11 +142,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const topicsList = document.getElementById('vTopicsList');
     if (topicsList) {
       const topics = report.remarks?.topicsCovered || '-';
-      const splitTopics = topics.split('\\n').filter(t => t.trim() !== '');
+      const splitTopics = topics.split('\n').filter(t => t.trim() !== '');
       if (splitTopics.length > 0) {
-        topicsList.innerHTML = splitTopics.map(t => \`<div class="topic-item"><span class="topic-bullet">&bull;</span> <span>\${t}</span></div>\`).join('');
+        topicsList.innerHTML = splitTopics.map(t => `<div class="topic-item"><span class="topic-bullet">&bull;</span> <span>${t}</span></div>`).join('');
       } else {
-        topicsList.innerHTML = \`<div class="topic-item"><span class="topic-bullet">&bull;</span> <span>\${topics}</span></div>\`;
+        topicsList.innerHTML = `<div class="topic-item"><span class="topic-bullet">&bull;</span> <span>${topics}</span></div>`;
       }
     }
     
@@ -193,7 +193,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         isFirstPage = false;
       }
 
-      pdf.save(\`Progress_Report_\${report.studentName || 'Student'}.pdf\`);
+      pdf.save(`Progress_Report_${report.studentName || 'Student'}.pdf`);
     } catch (error) {
       console.error('PDF generation failed:', error);
       toast.error('Failed to generate PDF.');
