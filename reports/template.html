@@ -514,6 +514,37 @@
       align-items: center;
       gap: 0.35rem;
     }
+
+    @media (max-width: 768px) {
+      .preview-stage {
+        padding: 0.5rem;
+      }
+      .tpl-sheet {
+        background: #ffffff;
+        border: 8px solid var(--tpl-primary);
+        padding: 1.25rem 1rem;
+      }
+      .tpl-banner {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+      }
+      .tpl-doc-badge {
+        text-align: left;
+      }
+      .tpl-student-strip {
+        grid-template-columns: 1fr 1fr;
+      }
+      .tpl-kpi-grid,
+      .tpl-notes-grid {
+        grid-template-columns: 1fr;
+      }
+      .tpl-footer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.35rem;
+      }
+    }
   </style>
 </head>
 <body>

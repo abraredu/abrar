@@ -643,6 +643,58 @@
       color: #64748b !important;
       font-size: 0.74rem !important;
     }
+
+    @media (max-width: 768px) {
+      .modal-overlay {
+        padding: 0.5rem !important;
+        align-items: flex-start !important;
+      }
+      .modern-report {
+        background: #ffffff !important;
+        border: 8px solid #087A42 !important;
+        padding: 1.25rem 1rem !important;
+        border-radius: 16px !important;
+      }
+      .modern-report .report-top-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0.75rem !important;
+        padding: 0.25rem 0 0.9rem !important;
+      }
+      .modern-report .report-top-right {
+        text-align: left !important;
+      }
+      .modern-report .student-info-box {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 0.75rem !important;
+      }
+      .modern-report .report-grid-2 {
+        grid-template-columns: 1fr !important;
+      }
+      .modern-report .attendance-boxes {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 0.45rem !important;
+      }
+      .modern-report .att-box {
+        padding: 0.55rem 0.25rem !important;
+      }
+      .modern-report .att-val {
+        font-size: 1.1rem !important;
+      }
+      .modern-report .flex-row.align-center {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0.85rem !important;
+      }
+      .modern-report .topics-grid {
+        grid-template-columns: 1fr !important;
+      }
+      .modern-report .report-footer-section {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0.35rem !important;
+      }
+    }
   </style>
 </head>
 <body>
