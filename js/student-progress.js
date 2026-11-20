@@ -97,7 +97,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         const attWrap = attEl.closest('.attendance-boxes');
         if (attBox) attBox.style.display = isIndiv ? 'none' : '';
         if (pctBox) pctBox.style.display = isIndiv ? 'none' : '';
-        if (attWrap) attWrap.style.gridTemplateColumns = isIndiv ? '1fr' : '';
+        if (attWrap) {
+          attWrap.style.gridTemplateColumns = isIndiv ? '1fr' : '';
+          attWrap.classList.toggle('is-individual', isIndiv);
+        }
         
         const getStarsAndRemark = (rating) => {
           rating = (rating || '').toLowerCase();

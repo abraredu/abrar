@@ -675,6 +675,40 @@
       font-weight: 800 !important;
       color: #0f172a !important;
     }
+    .modern-report .indiv-track-pill {
+      display: none;
+      background: #ecfdf5;
+      color: #087A42;
+      border: 1px solid #a7f3d0;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.3rem 0.75rem;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+    .modern-report .attendance-boxes.is-individual {
+      display: block !important;
+    }
+    .modern-report .attendance-boxes.is-individual .att-box:first-child {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      gap: 0.75rem !important;
+      padding: 0.9rem 1.15rem !important;
+      background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%) !important;
+      border: 1px solid #d1fae5 !important;
+      text-align: left !important;
+    }
+    .modern-report .attendance-boxes.is-individual .att-val {
+      font-size: 1.65rem !important;
+      color: #087A42 !important;
+      line-height: 1.1 !important;
+    }
+    .modern-report .attendance-boxes.is-individual .indiv-track-pill {
+      display: inline-flex !important;
+      align-items: center;
+      gap: 0.35rem;
+    }
     .modern-report .flex-row.align-center {
       display: flex !important;
       flex-direction: row !important;
@@ -928,8 +962,11 @@
             <h3 class="section-title">1. ATTENDANCE SUMMARY</h3>
             <div class="attendance-boxes">
               <div class="att-box">
-                <div class="att-val" id="vClassesConducted">—</div>
-                <div class="att-label">CONDUCTED</div>
+                <div>
+                  <div class="att-val" id="vClassesConducted">—</div>
+                  <div class="att-label">CLASSES CONDUCTED</div>
+                </div>
+                <span class="indiv-track-pill">1-on-1 Individual</span>
               </div>
               <div class="att-box">
                 <div class="att-val" id="vClassesAttended">—</div>

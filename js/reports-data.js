@@ -92,7 +92,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         const attWrap = attEl ? attEl.closest('.attendance-boxes') : null;
         if (attBox) attBox.style.display = isIndiv ? 'none' : '';
         if (pctBox) pctBox.style.display = isIndiv ? 'none' : '';
-        if (attWrap) attWrap.style.gridTemplateColumns = isIndiv ? '1fr' : '';
+        if (attWrap) {
+          attWrap.style.gridTemplateColumns = isIndiv ? '1fr' : '';
+          attWrap.classList.toggle('is-individual', isIndiv);
+        }
         
         const setRow = (id, val) => {
           if (document.getElementById(id)) document.getElementById(id).innerText = val || '-';
