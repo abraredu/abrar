@@ -7,6 +7,186 @@
   <link rel="icon" type="image/png" href="../icon.png">
   <link rel="stylesheet" href="../css/style.css">
   <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .cert-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 1.5rem;
+      overflow-y: auto;
+    }
+    .cert-modal-overlay.open {
+      display: flex;
+    }
+    .cert-sheet {
+      background: #ffffff url('../reports/report-bg.jpg') center / 100% 100% no-repeat;
+      width: 100%;
+      max-width: 780px;
+      border-radius: 14px;
+      padding: 3.5rem 4rem;
+      position: relative;
+      color: #1e293b;
+      box-shadow: 0 24px 48px -12px rgba(15, 23, 42, 0.3);
+      margin: auto;
+    }
+    .cert-close-btn {
+      position: absolute;
+      top: 1.35rem;
+      right: 1.5rem;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: none;
+      background: #ffffff;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.16);
+      z-index: 10;
+    }
+    .cert-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid #d1fae5;
+      margin-bottom: 1.15rem;
+      gap: 1rem;
+    }
+    .cert-pill {
+      display: inline-block;
+      background: #087A42;
+      color: #ffffff;
+      padding: 0.2rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 0.3rem;
+    }
+    .cert-title {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: #0f172a;
+      line-height: 1.2;
+    }
+    .cert-motto {
+      font-size: 0.72rem;
+      color: #d97706;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+    .cert-student-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.75rem;
+      background: #f8fafc;
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
+      margin-bottom: 1rem;
+    }
+    .cert-lbl {
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .cert-val {
+      font-size: 0.86rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .cert-card {
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 0.95rem 1.05rem;
+      margin-bottom: 1rem;
+    }
+    .cert-sec-head {
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: #087A42;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.7rem;
+    }
+    .cert-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+    }
+    .cert-table th {
+      text-align: left;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      padding: 0.45rem 0.5rem;
+      border-bottom: 1.5px solid #e2e8f0;
+    }
+    .cert-table td {
+      padding: 0.55rem 0.5rem;
+      border-bottom: 1px solid #f1f5f9;
+      color: #1e293b;
+      font-weight: 500;
+    }
+    .cert-table tr:last-child td {
+      border-bottom: none;
+    }
+    .cert-summary-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.65rem;
+      margin-bottom: 1rem;
+    }
+    .cert-stat-box {
+      background: #f8fafc;
+      border-radius: 10px;
+      padding: 0.75rem;
+      text-align: center;
+    }
+    .cert-stat-num {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .cert-footer {
+      border-top: 1px solid #e2e8f0;
+      padding-top: 0.8rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.74rem;
+      color: #64748b;
+      gap: 0.5rem;
+    }
+    @media (max-width: 768px) {
+      .cert-modal-overlay { padding: 0.5rem; align-items: flex-start; }
+      .cert-sheet {
+        background: #ffffff;
+        border: 8px solid #087A42;
+        padding: 1.25rem 1rem;
+      }
+      .cert-header { flex-direction: column; align-items: flex-start; }
+      .cert-header > div:last-child { text-align: left !important; }
+      .cert-student-strip { grid-template-columns: 1fr 1fr; }
+      .cert-summary-strip { grid-template-columns: 1fr; }
+      .cert-footer { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
 </head>
 <body>
   <div class="app-container">
@@ -83,7 +263,7 @@
         <section class="page-hero" style="margin-bottom: 1.25rem;">
           <div class="page-hero-content">
             <h2 class="page-hero-title"><i data-lucide="database" style="width: 22px; height: 22px;"></i> Recorded Assessments</h2>
-            <p class="page-hero-sub">Browse, filter, and manage all submitted student assessment results.</p>
+            <p class="page-hero-sub">Browse, view marklist certificates, and manage all submitted student assessment results.</p>
           </div>
           <div class="page-hero-actions">
             <a href="entry.html" class="btn-white"><i data-lucide="plus" style="width: 16px; height: 16px;"></i> Add Entry</a>
@@ -123,6 +303,88 @@
     </main>
   </div>
 
+  <!-- Certificate / Marklist Modal -->
+  <div class="cert-modal-overlay" id="certModal">
+    <div class="cert-sheet" id="certPrintable">
+      <button type="button" class="cert-close-btn no-print" id="closeCertBtn"><i data-lucide="x" style="width: 16px; height: 16px;"></i></button>
+
+      <div class="cert-header">
+        <img src="../logo.png" alt="ABRAR Logo" style="height: 44px; width: auto;">
+        <div style="text-align: right;">
+          <div class="cert-pill">Official Assessment Record</div>
+          <div class="cert-title">MARKLIST &amp; CERTIFICATE</div>
+          <div class="cert-motto">Faith &bull; Knowledge &bull; Character</div>
+        </div>
+      </div>
+
+      <div class="cert-student-strip">
+        <div>
+          <div class="cert-lbl">Student Name</div>
+          <div class="cert-val" id="cStudentName">—</div>
+        </div>
+        <div>
+          <div class="cert-lbl">Reg No.</div>
+          <div class="cert-val" id="cStudentId">—</div>
+        </div>
+        <div>
+          <div class="cert-lbl">Course</div>
+          <div class="cert-val" id="cCourse">—</div>
+        </div>
+        <div>
+          <div class="cert-lbl">Date</div>
+          <div class="cert-val" id="cDate">—</div>
+        </div>
+      </div>
+
+      <div class="cert-card">
+        <div class="cert-sec-head">Subject-Wise Marks Statement</div>
+        <table class="cert-table">
+          <thead>
+            <tr>
+              <th>Subject / Assessment</th>
+              <th>Marks</th>
+              <th>Max</th>
+              <th style="text-align: right;">Grade</th>
+            </tr>
+          </thead>
+          <tbody id="cSubjectsBody"></tbody>
+        </table>
+      </div>
+
+      <div class="cert-summary-strip">
+        <div class="cert-stat-box">
+          <div class="cert-stat-num" id="cTotalScore">0 / 100</div>
+          <div class="cert-lbl" style="margin-top: 3px;">Total Marks</div>
+        </div>
+        <div class="cert-stat-box">
+          <div class="cert-stat-num" id="cTotalPct" style="color: #087A42;">0%</div>
+          <div class="cert-lbl" style="margin-top: 3px;">Percentage</div>
+        </div>
+        <div class="cert-stat-box">
+          <div class="cert-stat-num" id="cResultStatus" style="font-size: 1rem; padding-top: 4px;">PASSED</div>
+          <div class="cert-lbl" style="margin-top: 3px;">Final Standing</div>
+        </div>
+      </div>
+
+      <div class="cert-card" id="cRemarksBox">
+        <div class="cert-sec-head">Examiner Remarks</div>
+        <div id="cRemarks" style="font-size: 0.84rem; color: #334155; line-height: 1.5;">—</div>
+      </div>
+
+      <div class="cert-footer">
+        <div style="font-weight: 700; color: #087A42;">ABRAR ONLINE ISLAMIC SCHOOL</div>
+        <div>Together We Nurture Faith, Knowledge &amp; Character</div>
+      </div>
+
+      <div class="no-print" style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.15rem;">
+        <button type="button" class="btn btn-primary" id="downloadCertImgBtn">
+          <i data-lucide="image" style="width: 16px; height: 16px;"></i> Download Marklist Image
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script type="module" src="../js/firebase-config.js"></script>
   <script type="module" src="../js/layout.js"></script>
   <script type="module">
@@ -134,7 +396,96 @@
       const tbody = document.getElementById('assessDataBody');
       const searchInp = document.getElementById('searchAssessData');
       const statusSel = document.getElementById('statusFilterData');
+      const certModal = document.getElementById('certModal');
+      const closeCertBtn = document.getElementById('closeCertBtn');
+      const downloadCertImgBtn = document.getElementById('downloadCertImgBtn');
+
       let allRows = [];
+      let currentCertStudent = 'Student';
+
+      const getGrade = (pct) => {
+        if (pct >= 90) return 'A+';
+        if (pct >= 80) return 'A';
+        if (pct >= 70) return 'B+';
+        if (pct >= 60) return 'B';
+        if (pct >= 50) return 'C';
+        return 'Needs Review';
+      };
+
+      const openCertificate = (r) => {
+        currentCertStudent = (r.studentName || 'Student').trim().replace(/\s+/g, '_');
+        document.getElementById('cStudentName').textContent = r.studentName || '-';
+        document.getElementById('cStudentId').textContent = r.studentId || '-';
+        document.getElementById('cCourse').textContent = r.course || '-';
+        document.getElementById('cDate').textContent = r.date || '-';
+
+        const subjects = Array.isArray(r.subjects) && r.subjects.length > 0
+          ? r.subjects
+          : [{ title: r.title || 'Assessment', marksObtained: r.marksObtained ?? 0, maxMarks: r.maxMarks ?? 100 }];
+
+        document.getElementById('cSubjectsBody').innerHTML = subjects.map(sub => {
+          const obt = parseFloat(sub.marksObtained) || 0;
+          const max = parseFloat(sub.maxMarks) || 100;
+          const pct = max > 0 ? Math.round((obt / max) * 100) : 0;
+          const grade = getGrade(pct);
+          return `
+            <tr>
+              <td style="font-weight: 600;">${sub.title || '-'}</td>
+              <td>${obt}</td>
+              <td>${max}</td>
+              <td style="text-align: right;">
+                <span style="background: #ecfdf5; color: #087A42; border: 1px solid #d1fae5; padding: 0.15rem 0.55rem; border-radius: 999px; font-size: 0.72rem; font-weight: 700;">${grade}</span>
+              </td>
+            </tr>
+          `;
+        }).join('');
+
+        document.getElementById('cTotalScore').textContent = `${r.marksObtained ?? 0} / ${r.maxMarks ?? 100}`;
+        document.getElementById('cTotalPct').textContent = `${r.percentage ?? 0}%`;
+        const resEl = document.getElementById('cResultStatus');
+        resEl.textContent = (r.status || 'PASSED').toUpperCase();
+        resEl.style.color = r.status === 'Passed' ? '#087A42' : '#dc2626';
+
+        const remarksBox = document.getElementById('cRemarksBox');
+        if (r.remarks && r.remarks.trim()) {
+          remarksBox.style.display = 'block';
+          document.getElementById('cRemarks').textContent = r.remarks;
+        } else {
+          remarksBox.style.display = 'none';
+        }
+
+        certModal.classList.add('open');
+        if (window.lucide) lucide.createIcons();
+      };
+
+      closeCertBtn.addEventListener('click', () => certModal.classList.remove('open'));
+      certModal.addEventListener('click', (e) => {
+        if (e.target === certModal) certModal.classList.remove('open');
+      });
+
+      downloadCertImgBtn.addEventListener('click', async () => {
+        const sheet = document.getElementById('certPrintable');
+        const noPrints = sheet.querySelectorAll('.no-print');
+        downloadCertImgBtn.disabled = true;
+        downloadCertImgBtn.textContent = 'Generating Image...';
+        try {
+          noPrints.forEach(el => el.style.display = 'none');
+          const canvas = await html2canvas(sheet, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false });
+          noPrints.forEach(el => el.style.display = '');
+          const link = document.createElement('a');
+          link.download = `Marklist_${currentCertStudent}.png`;
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+        } catch (err) {
+          noPrints.forEach(el => el.style.display = '');
+          console.error(err);
+          toast.error('Failed to export image.');
+        } finally {
+          downloadCertImgBtn.disabled = false;
+          downloadCertImgBtn.innerHTML = '<i data-lucide="image" style="width: 16px; height: 16px;"></i> Download Marklist Image';
+          if (window.lucide) lucide.createIcons();
+        }
+      });
 
       async function loadData() {
         try {
@@ -168,20 +519,25 @@
 
         tbody.innerHTML = filtered.map(r => `
           <tr style="border-bottom: 1px solid var(--color-border);">
-            <td style="padding: 0.9rem 1rem; color: #475569;">${r.date || '-'}</td>
+            <td style="padding: 0.9rem 1rem; color: #475569; white-space: nowrap;">${r.date || '-'}</td>
             <td style="padding: 0.9rem 1rem; font-weight: 600; color: #0f172a;">${r.studentName || '-'}</td>
             <td style="padding: 0.9rem 1rem; font-family: monospace; color: #64748b;">${r.studentId || '-'}</td>
             <td style="padding: 0.9rem 1rem;">${r.title || '-'}</td>
-            <td style="padding: 0.9rem 1rem; font-weight: 700;">${r.marksObtained ?? 0}/${r.maxMarks ?? 100} (${r.percentage ?? 0}%)</td>
+            <td style="padding: 0.9rem 1rem; font-weight: 700; white-space: nowrap;">${r.marksObtained ?? 0}/${r.maxMarks ?? 100} (${r.percentage ?? 0}%)</td>
             <td style="padding: 0.9rem 1rem;">
-              <span style="padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.74rem; font-weight: 700; background: ${r.status === 'Passed' ? '#ecfdf5' : '#fef2f2'}; color: ${r.status === 'Passed' ? '#087A42' : '#dc2626'};">
+              <span style="padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.74rem; font-weight: 700; background: ${r.status === 'Passed' ? '#ecfdf5' : '#fef2f2'}; color: ${r.status === 'Passed' ? '#087A42' : '#dc2626'}; white-space: nowrap;">
                 ${r.status || '-'}
               </span>
             </td>
-            <td style="padding: 0.9rem 1rem;">
-              <button type="button" class="del-assess-btn" data-id="${r.id}" title="Delete" style="background: #fef2f2; color: #ef4444; border: 1px solid #fecaca; border-radius: 8px; width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;">
-                <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
-              </button>
+            <td style="padding: 0.9rem 1rem; white-space: nowrap;">
+              <div style="display: inline-flex; align-items: center; gap: 0.4rem;">
+                <button type="button" class="view-cert-btn" data-id="${r.id}" title="View Marklist / Certificate" style="background: #ecfdf5; color: #087A42; border: 1px solid #a7f3d0; border-radius: 8px; padding: 0.35rem 0.65rem; font-size: 0.76rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem; cursor: pointer;">
+                  <i data-lucide="award" style="width: 14px; height: 14px;"></i> Marklist
+                </button>
+                <button type="button" class="del-assess-btn" data-id="${r.id}" title="Delete" style="background: #fef2f2; color: #ef4444; border: 1px solid #fecaca; border-radius: 8px; width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;">
+                  <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                </button>
+              </div>
             </td>
           </tr>
         `).join('');
@@ -189,6 +545,14 @@
       }
 
       tbody.addEventListener('click', async (e) => {
+        const viewBtn = e.target.closest('.view-cert-btn');
+        if (viewBtn) {
+          const id = viewBtn.getAttribute('data-id');
+          const row = allRows.find(r => r.id === id);
+          if (row) openCertificate(row);
+          return;
+        }
+
         const btn = e.target.closest('.del-assess-btn');
         if (!btn) return;
         const id = btn.getAttribute('data-id');
