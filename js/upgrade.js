@@ -1,6 +1,6 @@
 // js/upgrade.js
 import { db, auth } from './firebase-config.js';
-import { collection, getDocs, doc, updateDoc, query, orderBy, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { collection, getDocs, doc, updateDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { toast } from './toast.js';
 
@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let allCourses = [];
   let assessmentsByStudent = {};
   let completedAssessByStudentDiv = {};
-  let overdueStudentIds = new Set();
+  let lastAssessDateByStudentDiv = {};
   let selectedStudentIds = new Set();
   let activeCourseId = 'all';     // 'all' or course.id or 'other'
   let activeDivision = 'all';     // 'all' or specific division name
@@ -247,18 +247,26 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       });
 
-      // 3. Fetch Assessments for Mark List lookup & round completion check
+      // 3. Fetch Assessments for Mark List lookup & round / overdue check
       assessmentsByStudent = {};
       completedAssessByStudentDiv = {};
+      lastAssessDateByStudentDiv = {};
       try {
         const assessSnap = await getDocs(collection(db, "assessments"));
         assessSnap.forEach(aDoc => {
           const a = { id: aDoc.id, ...aDoc.data() };
           const aDiv = String(a.division || '').trim().toLowerCase() || '_any_';
+          const aDate = a.date ? new Date(a.date) : null;
           [a.studentDocId, a.studentId].forEach(k => {
             if (!k) return;
             if (!completedAssessByStudentDiv[k]) completedAssessByStudentDiv[k] = {};
             completedAssessByStudentDiv[k][aDiv] = (completedAssessByStudentDiv[k][aDiv] || 0) + 1;
+            if (aDate && !isNaN(aDate.getTime())) {
+              if (!lastAssessDateByStudentDiv[k]) lastAssessDateByStudentDiv[k] = {};
+              if (!lastAssessDateByStudentDiv[k][aDiv] || aDate > lastAssessDateByStudentDiv[k][aDiv]) {
+                lastAssessDateByStudentDiv[k][aDiv] = aDate;
+              }
+            }
             if (!assessmentsByStudent[k] || String(a.date || '') > String(assessmentsByStudent[k].date || '')) {
               assessmentsByStudent[k] = a;
             }
@@ -266,54 +274,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       } catch (aErr) {
         console.warn("Could not load assessments:", aErr);
-      }
-
-      // 4. Check overdue fees for current month
-      overdueStudentIds = new Set();
-      try {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const currMonth = today.getMonth();
-        const currYear = today.getFullYear();
-        const currMonthStr = `${currYear}-${String(currMonth + 1).padStart(2, '0')}`;
-        const prevMonthDate = new Date(currYear, currMonth - 1, 1);
-        const prevMonthStr = `${prevMonthDate.getFullYear()}-${String(prevMonthDate.getMonth() + 1).padStart(2, '0')}`;
-
-        const [pCurrSnap, pPrevSnap] = await Promise.all([
-          getDocs(query(collection(db, "payments"), where("billingMonth", "==", currMonthStr))),
-          getDocs(query(collection(db, "payments"), where("billingMonth", "==", prevMonthStr)))
-        ]);
-        const allPayments = [];
-        pCurrSnap.forEach(d => allPayments.push(d.data()));
-        pPrevSnap.forEach(d => allPayments.push(d.data()));
-
-        allStudents.forEach(s => {
-          const monthlyFee = parseFloat(s.monthlyFee) || 0;
-          if (monthlyFee <= 0) return;
-          const baseDateStr = s.classStartingDate || s.admissionDate;
-          if (!baseDateStr) return;
-          const baseDate = new Date(baseDateStr);
-          if (isNaN(baseDate.getTime())) return;
-
-          const joinedDate = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate());
-          const dueDay = baseDate.getDate();
-          let dueDate = new Date(currYear, currMonth, dueDay);
-          if (dueDate.getTime() <= joinedDate.getTime()) {
-            dueDate = new Date(currYear, currMonth + 1, dueDay);
-          }
-
-          const diffDays = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-          if (diffDays < 0 && diffDays > -30) {
-            const targetBillingMonth = `${dueDate.getFullYear()}-${String(dueDate.getMonth() + 1).padStart(2, '0')}`;
-            const sPays = allPayments.filter(p => p.studentId === s.id && p.billingMonth === targetBillingMonth);
-            const totalCredited = sPays.reduce((sum, p) => sum + (p.paidAmount || 0) + (p.waivedAmount || 0), 0);
-            if (totalCredited < monthlyFee) {
-              overdueStudentIds.add(s.id);
-            }
-          }
-        });
-      } catch (pErr) {
-        console.warn("Could not check overdue fees:", pErr);
       }
 
       // Render UI
@@ -674,13 +634,30 @@ document.addEventListener('DOMContentLoaded', () => {
       const recommendedNextLevel = getNextLogicalLevel(currentLevel);
       const recommendedNextDivision = getNextLogicalDivision(student, courseObj);
 
-      // Check assessment round completion for student's current division
+      // Check assessment round completion & assessment overdue for student's current division
       const targetAssessCount = parseInt(student.assessmentCount, 10) || 0;
+      const targetAssessMonths = parseFloat(student.assessmentMonths) || 0;
       const curDivKey = String(student.division || '').trim().toLowerCase() || '_any_';
       const divCounts = completedAssessByStudentDiv[student.id] || completedAssessByStudentDiv[student.studentId] || {};
       const completedInDiv = (divCounts[curDivKey] || 0) + (curDivKey !== '_any_' ? (divCounts['_any_'] || 0) + (divCounts['-'] || 0) : 0);
       const isRoundLocked = targetAssessCount > 0 && completedInDiv < targetAssessCount;
-      const isFeeOverdue = overdueStudentIds.has(student.id);
+
+      let isAssessOverdue = false;
+      if (isRoundLocked) {
+        const divDates = lastAssessDateByStudentDiv[student.id] || lastAssessDateByStudentDiv[student.studentId] || {};
+        const lastAssessDate = divDates[curDivKey] || divDates['_any_'] || divDates['-'] || null;
+        const baseStr = student.classStartingDate || student.admissionDate;
+        const baseDate = lastAssessDate || (baseStr ? new Date(baseStr) : null);
+        if (baseDate && !isNaN(baseDate.getTime())) {
+          const cycleDays = (targetAssessMonths > 0 && targetAssessCount > 0)
+            ? Math.max(1, Math.round((targetAssessMonths * 30) / targetAssessCount))
+            : 30;
+          const nextDue = new Date(baseDate.getTime() + cycleDays * 24 * 60 * 60 * 1000);
+          if (new Date() > nextDue) {
+            isAssessOverdue = true;
+          }
+        }
+      }
 
       const card = document.createElement('div');
       card.className = `candidate-card ${isSelected ? 'selected' : ''}`;
@@ -738,9 +715,9 @@ document.addEventListener('DOMContentLoaded', () => {
               ${recommendedNextDivision && recommendedNextDivision !== currentDiv ? `<span class="cand-promo-div">${recommendedNextDivision}</span>` : ''}
             </div>
           </div>
-          ${isFeeOverdue
-            ? `<button type="button" class="btn single-upgrade-btn" disabled style="background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; cursor: not-allowed; box-shadow: none;" title="Monthly fee is overdue — collect payment before upgrading">
-                <i data-lucide="alert-triangle" style="width: 14px; height: 14px;"></i> Overdue Fee — Upgrade Locked
+          ${isAssessOverdue
+            ? `<button type="button" class="btn single-upgrade-btn" disabled style="background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; cursor: not-allowed; box-shadow: none;" title="Assessment is overdue (${completedInDiv}/${targetAssessCount}) — record assessment to unlock">
+                <i data-lucide="alert-triangle" style="width: 14px; height: 14px;"></i> Assessment Overdue (${completedInDiv}/${targetAssessCount})
               </button>`
             : isRoundLocked
             ? `<button type="button" class="btn btn-outline single-upgrade-btn" disabled style="opacity: 0.65; cursor: not-allowed; background: #f1f5f9; color: #64748b; border-color: #cbd5e1; box-shadow: none;" title="Complete ${targetAssessCount} assessments in ${currentDiv} to unlock upgrade">
