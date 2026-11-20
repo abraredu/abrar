@@ -45,17 +45,24 @@ document.addEventListener('DOMContentLoaded', () => {
           console.warn("Using default assessment settings:", e);
         }
 
-        // Fetch recorded assessments to find each student's latest evaluation date & completed count
+        // Fetch recorded assessments to find each student's latest evaluation date & completed count per current division
         const lastAssessmentByStudent = {};
-        const completedCountByStudent = {};
+        const completedCountByStudentDiv = {};
         try {
           const assessSnap = await getDocs(collection(db, "assessments"));
           assessSnap.forEach(aDoc => {
             const a = aDoc.data();
             const k1 = a.studentDocId;
             const k2 = a.studentId;
-            if (k1) completedCountByStudent[k1] = (completedCountByStudent[k1] || 0) + 1;
-            if (k2 && k2 !== k1) completedCountByStudent[k2] = (completedCountByStudent[k2] || 0) + 1;
+            const aDiv = String(a.division || '').trim().toLowerCase() || '_any_';
+            if (k1) {
+              if (!completedCountByStudentDiv[k1]) completedCountByStudentDiv[k1] = {};
+              completedCountByStudentDiv[k1][aDiv] = (completedCountByStudentDiv[k1][aDiv] || 0) + 1;
+            }
+            if (k2 && k2 !== k1) {
+              if (!completedCountByStudentDiv[k2]) completedCountByStudentDiv[k2] = {};
+              completedCountByStudentDiv[k2][aDiv] = (completedCountByStudentDiv[k2][aDiv] || 0) + 1;
+            }
 
             const d = a.date ? new Date(a.date) : null;
             if (d && !isNaN(d.getTime())) {
@@ -139,7 +146,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
           }
 
-          const completedCount = completedCountByStudent[docSnap.id] || completedCountByStudent[data.studentId] || 0;
+          const curDivKey = String(data.division || '').trim().toLowerCase() || '_any_';
+          const divMap = completedCountByStudentDiv[docSnap.id] || completedCountByStudentDiv[data.studentId] || {};
+          const completedCount = (divMap[curDivKey] || 0) + (curDivKey !== '_any_' ? (divMap['_any_'] || 0) + (divMap['-'] || 0) : 0);
 
           allStudents.push({ 
             id: docSnap.id, 

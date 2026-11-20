@@ -51,6 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let allStudents = [];
   let allCourses = [];
   let assessmentsByStudent = {};
+  let completedAssessByStudentDiv = {};
   let selectedStudentIds = new Set();
   let activeCourseId = 'all';     // 'all' or course.id or 'other'
   let activeDivision = 'all';     // 'all' or specific division name
@@ -245,14 +246,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       });
 
-      // 3. Fetch Assessments for Mark List lookup
+      // 3. Fetch Assessments for Mark List lookup & round completion check
       assessmentsByStudent = {};
+      completedAssessByStudentDiv = {};
       try {
         const assessSnap = await getDocs(collection(db, "assessments"));
         assessSnap.forEach(aDoc => {
           const a = { id: aDoc.id, ...aDoc.data() };
+          const aDiv = String(a.division || '').trim().toLowerCase() || '_any_';
           [a.studentDocId, a.studentId].forEach(k => {
             if (!k) return;
+            if (!completedAssessByStudentDiv[k]) completedAssessByStudentDiv[k] = {};
+            completedAssessByStudentDiv[k][aDiv] = (completedAssessByStudentDiv[k][aDiv] || 0) + 1;
             if (!assessmentsByStudent[k] || String(a.date || '') > String(assessmentsByStudent[k].date || '')) {
               assessmentsByStudent[k] = a;
             }
@@ -620,6 +625,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const recommendedNextLevel = getNextLogicalLevel(currentLevel);
       const recommendedNextDivision = getNextLogicalDivision(student, courseObj);
 
+      // Check assessment round completion for student's current division
+      const targetAssessCount = parseInt(student.assessmentCount, 10) || 0;
+      const curDivKey = String(student.division || '').trim().toLowerCase() || '_any_';
+      const divCounts = completedAssessByStudentDiv[student.id] || completedAssessByStudentDiv[student.studentId] || {};
+      const completedInDiv = (divCounts[curDivKey] || 0) + (curDivKey !== '_any_' ? (divCounts['_any_'] || 0) + (divCounts['-'] || 0) : 0);
+      const isRoundLocked = targetAssessCount > 0 && completedInDiv < targetAssessCount;
+
       const card = document.createElement('div');
       card.className = `candidate-card ${isSelected ? 'selected' : ''}`;
       card.dataset.id = student.id;
@@ -676,9 +688,13 @@ document.addEventListener('DOMContentLoaded', () => {
               ${recommendedNextDivision && recommendedNextDivision !== currentDiv ? `<span class="cand-promo-div">${recommendedNextDivision}</span>` : ''}
             </div>
           </div>
-          <button class="btn btn-primary single-upgrade-btn" data-id="${student.id}" data-target-level="${recommendedNextLevel}" data-target-division="${recommendedNextDivision || currentDiv}">
-            <i data-lucide="trending-up" style="width: 15px; height: 15px;"></i> Upgrade to ${recommendedNextLevel}
-          </button>
+          ${isRoundLocked
+            ? `<button type="button" class="btn btn-outline single-upgrade-btn" disabled style="opacity: 0.65; cursor: not-allowed; background: #f1f5f9; color: #64748b; border-color: #cbd5e1; box-shadow: none;" title="Complete ${targetAssessCount} assessments in ${currentDiv} to unlock upgrade">
+                <i data-lucide="lock" style="width: 14px; height: 14px;"></i> Complete ${completedInDiv}/${targetAssessCount} Assessments
+              </button>`
+            : `<button class="btn btn-primary single-upgrade-btn" data-id="${student.id}" data-target-level="${recommendedNextLevel}" data-target-division="${recommendedNextDivision || currentDiv}">
+                <i data-lucide="trending-up" style="width: 15px; height: 15px;"></i> Upgrade to ${recommendedNextLevel}
+              </button>`}
         </div>
       `;
 
