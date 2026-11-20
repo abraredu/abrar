@@ -50,6 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // State
   let allStudents = [];
   let allCourses = [];
+  let assessmentsByStudent = {};
   let selectedStudentIds = new Set();
   let activeCourseId = 'all';     // 'all' or course.id or 'other'
   let activeDivision = 'all';     // 'all' or specific division name
@@ -243,6 +244,23 @@ document.addEventListener('DOMContentLoaded', () => {
           level: normalizeLevel(data.level, data.division)
         });
       });
+
+      // 3. Fetch Assessments for Mark List lookup
+      assessmentsByStudent = {};
+      try {
+        const assessSnap = await getDocs(collection(db, "assessments"));
+        assessSnap.forEach(aDoc => {
+          const a = { id: aDoc.id, ...aDoc.data() };
+          [a.studentDocId, a.studentId].forEach(k => {
+            if (!k) return;
+            if (!assessmentsByStudent[k] || String(a.date || '') > String(assessmentsByStudent[k].date || '')) {
+              assessmentsByStudent[k] = a;
+            }
+          });
+        });
+      } catch (aErr) {
+        console.warn("Could not load assessments:", aErr);
+      }
 
       // Render UI
       renderCourseTabs();
@@ -632,7 +650,20 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
           <div class="cand-meta-item">
             <span class="cand-meta-label">Division</span>
-            <span class="cand-div-pill">${currentDiv}</span>
+            <div class="cand-div-wrap">
+              <span class="cand-div-pill">${currentDiv}</span>
+              <button type="button" class="cand-dots-btn" data-id="${student.id}" title="Options">
+                <i data-lucide="more-vertical" style="width: 14px; height: 14px;"></i>
+              </button>
+              <div class="cand-dots-menu">
+                <button type="button" class="cand-dots-item open-marklist-btn" data-id="${student.id}">
+                  <i data-lucide="file-spreadsheet" style="width: 14px; height: 14px; color: #087A42;"></i> Mark List
+                </button>
+                <button type="button" class="cand-dots-item open-cert-btn" data-id="${student.id}">
+                  <i data-lucide="award" style="width: 14px; height: 14px; color: #d97706;"></i> Certificate
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -942,6 +973,204 @@ document.addEventListener('DOMContentLoaded', () => {
     toast("Refreshing candidate records...", "info");
     await loadData();
   });
+
+  // 3-Dot Menu & Mark List / Certificate Modals
+  const docModalOverlay = document.getElementById('docModalOverlay');
+  const docModalContent = document.getElementById('docModalContent');
+  const closeDocModalBtn = document.getElementById('closeDocModalBtn');
+  const downloadDocImgBtn = document.getElementById('downloadDocImgBtn');
+  let activeDocFilename = 'Document.png';
+
+  const getGrade = (pct) => {
+    if (pct >= 90) return 'A+';
+    if (pct >= 80) return 'A';
+    if (pct >= 70) return 'B+';
+    if (pct >= 60) return 'B';
+    if (pct >= 50) return 'C';
+    return 'Needs Review';
+  };
+
+  const openStudentDocModal = (sid, mode) => {
+    const s = allStudents.find(st => st.id === sid);
+    if (!s) return;
+    const courseObj = getStudentCourse(s);
+    const courseName = courseObj ? courseObj.courseName : (s.course || s.courseType || 'General Course');
+    const regNo = s.studentId || s.admNo || '-';
+    const sName = s.name || 'Student';
+    const safeName = sName.trim().replace(/\s+/g, '_');
+
+    if (mode === 'marklist') {
+      const assess = assessmentsByStudent[s.id] || assessmentsByStudent[s.studentId] || null;
+      activeDocFilename = `MarkList_${safeName}.png`;
+      const subjects = assess && Array.isArray(assess.subjects) && assess.subjects.length > 0
+        ? assess.subjects
+        : (assess ? [{ title: assess.title || 'Assessment', marksObtained: assess.marksObtained ?? 0, maxMarks: assess.maxMarks ?? 100 }] : []);
+
+      const rowsHtml = subjects.length > 0
+        ? subjects.map(sub => {
+            const obt = parseFloat(sub.marksObtained) || 0;
+            const max = parseFloat(sub.maxMarks) || 100;
+            const pct = max > 0 ? Math.round((obt / max) * 100) : 0;
+            return `
+              <tr style="border-bottom: 1px solid #f1f5f9;">
+                <td style="padding: 0.55rem 0.5rem; font-weight: 600;">${sub.title || '-'}</td>
+                <td style="padding: 0.55rem 0.5rem;">${obt}</td>
+                <td style="padding: 0.55rem 0.5rem;">${max}</td>
+                <td style="padding: 0.55rem 0.5rem; text-align: right;">
+                  <span style="background:#ecfdf5;color:#087A42;border:1px solid #d1fae5;padding:0.15rem 0.55rem;border-radius:999px;font-size:0.72rem;font-weight:700;">${getGrade(pct)}</span>
+                </td>
+              </tr>
+            `;
+          }).join('')
+        : '<tr><td colspan="4" style="padding: 1.5rem; text-align: center; color: #64748b;">No assessment marks recorded for this student yet.</td></tr>';
+
+      docModalContent.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:1rem;border-bottom:2px solid #d1fae5;margin-bottom:1.15rem;gap:1rem;flex-wrap:wrap;">
+          <img src="../logo.png" alt="ABRAR Logo" style="height:44px;width:auto;">
+          <div style="text-align:right;">
+            <div style="display:inline-block;background:#087A42;color:#fff;padding:0.2rem 0.75rem;border-radius:999px;font-size:0.65rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.3rem;">Official Mark List</div>
+            <div style="font-size:1.15rem;font-weight:800;color:#0f172a;">ASSESSMENT MARK LIST</div>
+            <div style="font-size:0.72rem;color:#d97706;font-weight:700;">Faith &bull; Knowledge &bull; Character</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0.75rem;background:#f8fafc;border-radius:10px;padding:0.85rem 1rem;margin-bottom:1rem;">
+          <div><div style="font-size:0.65rem;font-weight:700;color:#64748b;text-transform:uppercase;">Student Name</div><div style="font-size:0.86rem;font-weight:700;color:#0f172a;">${sName}</div></div>
+          <div><div style="font-size:0.65rem;font-weight:700;color:#64748b;text-transform:uppercase;">Reg No.</div><div style="font-size:0.86rem;font-weight:700;color:#0f172a;">${regNo}</div></div>
+          <div><div style="font-size:0.65rem;font-weight:700;color:#64748b;text-transform:uppercase;">Course</div><div style="font-size:0.86rem;font-weight:700;color:#0f172a;">${courseName}</div></div>
+          <div><div style="font-size:0.65rem;font-weight:700;color:#64748b;text-transform:uppercase;">Division</div><div style="font-size:0.86rem;font-weight:700;color:#0f172a;">${s.division || '-'}</div></div>
+        </div>
+        <div style="background:#f8fafc;border-radius:12px;padding:0.95rem 1.05rem;margin-bottom:1rem;">
+          <div style="font-size:0.75rem;font-weight:800;color:#087A42;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.65rem;">Subject-Wise Marks</div>
+          <table style="width:100%;border-collapse:collapse;font-size:0.84rem;">
+            <thead><tr style="border-bottom:1.5px solid #e2e8f0;color:#64748b;font-size:0.68rem;text-transform:uppercase;">
+              <th style="text-align:left;padding:0.45rem 0.5rem;">Subject</th>
+              <th style="text-align:left;padding:0.45rem 0.5rem;">Marks</th>
+              <th style="text-align:left;padding:0.45rem 0.5rem;">Max</th>
+              <th style="text-align:right;padding:0.45rem 0.5rem;">Grade</th>
+            </tr></thead>
+            <tbody>${rowsHtml}</tbody>
+          </table>
+        </div>
+        ${assess ? `
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.65rem;margin-bottom:1rem;">
+            <div style="background:#f8fafc;border-radius:10px;padding:0.75rem;text-align:center;">
+              <div style="font-size:1.2rem;font-weight:800;color:#0f172a;">${assess.marksObtained ?? 0} / ${assess.maxMarks ?? 100}</div>
+              <div style="font-size:0.65rem;font-weight:700;color:#64748b;text-transform:uppercase;">Total Marks</div>
+            </div>
+            <div style="background:#f8fafc;border-radius:10px;padding:0.75rem;text-align:center;">
+              <div style="font-size:1.2rem;font-weight:800;color:#087A42;">${assess.percentage ?? 0}%</div>
+              <div style="font-size:0.65rem;font-weight:700;color:#64748b;text-transform:uppercase;">Percentage</div>
+            </div>
+            <div style="background:#f8fafc;border-radius:10px;padding:0.75rem;text-align:center;">
+              <div style="font-size:1rem;font-weight:800;color:${assess.status === 'Passed' ? '#087A42' : '#dc2626'};padding-top:4px;">${(assess.status || 'PASSED').toUpperCase()}</div>
+              <div style="font-size:0.65rem;font-weight:700;color:#64748b;text-transform:uppercase;">Standing</div>
+            </div>
+          </div>
+        ` : ''}
+        <div style="border-top:1px solid #e2e8f0;padding-top:0.8rem;display:flex;justify-content:space-between;align-items:center;font-size:0.74rem;color:#64748b;">
+          <div style="font-weight:700;color:#087A42;">ABRAR ONLINE ISLAMIC SCHOOL</div>
+          <div>Together We Nurture Faith, Knowledge &amp; Character</div>
+        </div>
+      `;
+    } else {
+      activeDocFilename = `Certificate_${safeName}.png`;
+      const todayStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+      docModalContent.innerHTML = `
+        <div style="text-align:center;padding:1rem 0.5rem;">
+          <img src="../logo.png" alt="ABRAR Logo" style="height:52px;width:auto;margin:0 auto 0.85rem;">
+          <div style="display:inline-block;background:#ecfdf5;color:#087A42;border:1px solid #a7f3d0;padding:0.25rem 0.9rem;border-radius:999px;font-size:0.7rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.75rem;">
+            Certificate of Achievement
+          </div>
+          <h2 style="font-size:1.55rem;font-weight:800;color:#0f172a;margin:0 0 0.5rem;">CERTIFICATE OF COMPLETION</h2>
+          <p style="font-size:0.88rem;color:#64748b;margin-bottom:1.25rem;">This is proudly presented to</p>
+          <div style="font-size:1.75rem;font-weight:800;color:#087A42;letter-spacing:0.02em;margin-bottom:0.25rem;">${sName}</div>
+          <div style="font-size:0.8rem;font-family:monospace;color:#64748b;margin-bottom:1.25rem;">Reg No: ${regNo}</div>
+          <p style="font-size:0.92rem;color:#334155;line-height:1.65;max-width:540px;margin:0 auto 1.5rem;">
+            for successfully completing and demonstrating commendable dedication in
+            <strong>${courseName}</strong> (${s.level || s.division || 'Active Level'}).
+          </p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;max-width:480px;margin:0 auto 1.25rem;padding-top:1rem;border-top:1px solid #e2e8f0;font-size:0.78rem;color:#475569;">
+            <div>
+              <div style="font-weight:700;color:#0f172a;">${todayStr}</div>
+              <div style="color:#64748b;font-size:0.7rem;">Date of Issue</div>
+            </div>
+            <div>
+              <div style="font-weight:700;color:#087A42;">ABRAR Administration</div>
+              <div style="color:#64748b;font-size:0.7rem;">Authorized Signatory</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    docModalOverlay.classList.add('open');
+    if (window.lucide) lucide.createIcons();
+  };
+
+  candidatesGrid.addEventListener('click', (e) => {
+    const dotsBtn = e.target.closest('.cand-dots-btn');
+    if (dotsBtn) {
+      e.stopPropagation();
+      const menu = dotsBtn.nextElementSibling;
+      const wasOpen = menu.classList.contains('open');
+      document.querySelectorAll('.cand-dots-menu.open').forEach(m => m.classList.remove('open'));
+      if (!wasOpen) menu.classList.add('open');
+      return;
+    }
+
+    const markBtn = e.target.closest('.open-marklist-btn');
+    if (markBtn) {
+      document.querySelectorAll('.cand-dots-menu.open').forEach(m => m.classList.remove('open'));
+      openStudentDocModal(markBtn.getAttribute('data-id'), 'marklist');
+      return;
+    }
+
+    const certBtn = e.target.closest('.open-cert-btn');
+    if (certBtn) {
+      document.querySelectorAll('.cand-dots-menu.open').forEach(m => m.classList.remove('open'));
+      openStudentDocModal(certBtn.getAttribute('data-id'), 'certificate');
+    }
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.cand-div-wrap')) {
+      document.querySelectorAll('.cand-dots-menu.open').forEach(m => m.classList.remove('open'));
+    }
+  });
+
+  if (closeDocModalBtn) {
+    closeDocModalBtn.addEventListener('click', () => docModalOverlay.classList.remove('open'));
+  }
+  if (docModalOverlay) {
+    docModalOverlay.addEventListener('click', (e) => {
+      if (e.target === docModalOverlay) docModalOverlay.classList.remove('open');
+    });
+  }
+  if (downloadDocImgBtn) {
+    downloadDocImgBtn.addEventListener('click', async () => {
+      const sheet = document.getElementById('docPrintableSheet');
+      const noPrints = sheet.querySelectorAll('.no-print');
+      downloadDocImgBtn.disabled = true;
+      downloadDocImgBtn.textContent = 'Generating Image...';
+      try {
+        noPrints.forEach(el => el.style.display = 'none');
+        const canvas = await html2canvas(sheet, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false });
+        noPrints.forEach(el => el.style.display = '');
+        const link = document.createElement('a');
+        link.download = activeDocFilename;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      } catch (err) {
+        noPrints.forEach(el => el.style.display = '');
+        console.error(err);
+        toast('Failed to generate image.', 'error');
+      } finally {
+        downloadDocImgBtn.disabled = false;
+        downloadDocImgBtn.innerHTML = '<i data-lucide="image" style="width: 16px; height: 16px;"></i> Download Image';
+        if (window.lucide) lucide.createIcons();
+      }
+    });
+  }
 
   // Auth Guard & Init
   onAuthStateChanged(auth, (user) => {
