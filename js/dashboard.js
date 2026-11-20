@@ -104,27 +104,25 @@ document.addEventListener('DOMContentLoaded', () => {
           
           const balance = Math.max(0, monthlyFee - totalCredited);
           
-          if (balance > 0) {
+          if (balance > 0 && currentMonth >= FEE_START_MONTH) {
             totalPending += balance;
             pendingStudentsCount++;
             
             // Check if overdue (only active from December 2026 cycle onwards)
-            if (currentMonth >= FEE_START_MONTH) {
-              const baseDateStr = student.classStartingDate || student.admissionDate;
-              if (baseDateStr) {
-                const baseDate = new Date(baseDateStr);
-                if (!isNaN(baseDate.getTime())) {
-                  const daysSinceJoined = (today.getTime() - baseDate.getTime()) / (1000 * 3600 * 24);
-                  if (daysSinceJoined >= 28) {
-                    const dueDay = baseDate.getDate();
-                    const currentMonthDueDate = new Date(currYear, currMonthIdx, dueDay);
-                    const diffTime = currentMonthDueDate.getTime() - today.getTime();
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                    
-                    if (diffDays < 0) {
-                      totalOverdue += balance;
-                      overdueStudentsCount++;
-                    }
+            const baseDateStr = student.classStartingDate || student.admissionDate;
+            if (baseDateStr) {
+              const baseDate = new Date(baseDateStr);
+              if (!isNaN(baseDate.getTime())) {
+                const daysSinceJoined = (today.getTime() - baseDate.getTime()) / (1000 * 3600 * 24);
+                if (daysSinceJoined >= 28) {
+                  const dueDay = baseDate.getDate();
+                  const currentMonthDueDate = new Date(currYear, currMonthIdx, dueDay);
+                  const diffTime = currentMonthDueDate.getTime() - today.getTime();
+                  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                  
+                  if (diffDays < 0) {
+                    totalOverdue += balance;
+                    overdueStudentsCount++;
                   }
                 }
               }
