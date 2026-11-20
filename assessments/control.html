@@ -159,7 +159,7 @@
   <script type="module" src="../js/layout.js"></script>
   <script type="module">
     import { db } from '../js/firebase-config.js';
-    import { collection, getDocs, doc, updateDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { collection, getDocs, doc, updateDoc, writeBatch, deleteField } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
     import { toast } from '../js/toast.js';
 
     document.addEventListener('DOMContentLoaded', async () => {
@@ -219,15 +219,47 @@
               <input type="number" class="ctrl-input inp-count" min="1" placeholder="e.g. 4" value="${s.assessmentCount || ''}">
             </td>
             <td style="text-align: right; white-space: nowrap;">
-              <button type="button" class="btn btn-primary btn-save-row" data-id="${s.id}" style="padding: 0.4rem 0.9rem; font-size: 0.8rem;">
-                Save
-              </button>
+              <div style="display: inline-flex; align-items: center; gap: 0.45rem;">
+                ${(s.assessmentMonths || s.assessmentCount) ? `<button type="button" class="btn btn-clear-row" data-id="${s.id}" style="padding: 0.4rem 0.75rem; font-size: 0.8rem; background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; border-radius: 8px; cursor: pointer;">Clear</button>` : ''}
+                <button type="button" class="btn btn-primary btn-save-row" data-id="${s.id}" style="padding: 0.4rem 0.9rem; font-size: 0.8rem;">
+                  Save
+                </button>
+              </div>
             </td>
           </tr>
         `).join('');
       }
 
       tbody.addEventListener('click', async (e) => {
+        const clearBtn = e.target.closest('.btn-clear-row');
+        if (clearBtn) {
+          const row = clearBtn.closest('tr');
+          const id = clearBtn.getAttribute('data-id');
+          clearBtn.disabled = true;
+          clearBtn.textContent = 'Clearing...';
+          try {
+            await updateDoc(doc(db, 'students', id), {
+              assessmentMonths: deleteField(),
+              assessmentCount: deleteField()
+            });
+            const st = allStudents.find(x => x.id === id);
+            if (st) {
+              delete st.assessmentMonths;
+              delete st.assessmentCount;
+            }
+            row.querySelector('.inp-months').value = '';
+            row.querySelector('.inp-count').value = '';
+            clearBtn.remove();
+            toast.success('Cleared!');
+          } catch (err) {
+            console.error(err);
+            toast.error('Failed to clear: ' + err.message);
+            clearBtn.disabled = false;
+            clearBtn.textContent = 'Clear';
+          }
+          return;
+        }
+
         const btn = e.target.closest('.btn-save-row');
         if (!btn) return;
         const row = btn.closest('tr');
@@ -252,6 +284,7 @@
             st.assessmentMonths = monthsVal;
             st.assessmentCount = countVal;
           }
+          render();
           toast.success('Saved!');
         } catch (err) {
           console.error(err);

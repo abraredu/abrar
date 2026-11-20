@@ -51,6 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let allStudents = [];
   let allCourses = [];
   let assessmentsByStudent = {};
+  let allAssessByStudentDiv = {};
   let completedAssessByStudentDiv = {};
   let lastAssessDateByStudentDiv = {};
   let defaultAssessCycleDays = 30;
@@ -250,6 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // 3. Fetch Assessments & Control Settings for Mark List / Overdue check
       assessmentsByStudent = {};
+      allAssessByStudentDiv = {};
       completedAssessByStudentDiv = {};
       lastAssessDateByStudentDiv = {};
       defaultAssessCycleDays = 30;
@@ -270,6 +272,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!k) return;
             if (!completedAssessByStudentDiv[k]) completedAssessByStudentDiv[k] = {};
             completedAssessByStudentDiv[k][aDiv] = (completedAssessByStudentDiv[k][aDiv] || 0) + 1;
+            if (!allAssessByStudentDiv[k]) allAssessByStudentDiv[k] = {};
+            if (!allAssessByStudentDiv[k][aDiv]) allAssessByStudentDiv[k][aDiv] = [];
+            allAssessByStudentDiv[k][aDiv].push(a);
             if (aDate && !isNaN(aDate.getTime())) {
               if (!lastAssessDateByStudentDiv[k]) lastAssessDateByStudentDiv[k] = {};
               if (!lastAssessDateByStudentDiv[k][aDiv] || aDate > lastAssessDateByStudentDiv[k][aDiv]) {
@@ -1078,35 +1083,57 @@ document.addEventListener('DOMContentLoaded', () => {
     const safeName = sName.trim().replace(/\s+/g, '_');
 
     if (mode === 'marklist') {
-      const assess = assessmentsByStudent[s.id] || assessmentsByStudent[s.studentId] || null;
-      activeDocFilename = `MarkList_${safeName}.png`;
-      const subjects = assess && Array.isArray(assess.subjects) && assess.subjects.length > 0
-        ? assess.subjects
-        : (assess ? [{ title: assess.title || 'Assessment', marksObtained: assess.marksObtained ?? 0, maxMarks: assess.maxMarks ?? 100 }] : []);
+      const curDivKey = String(s.division || '').trim().toLowerCase() || '_any_';
+      const divMap = allAssessByStudentDiv[s.id] || allAssessByStudentDiv[s.studentId] || {};
+      const list = [
+        ...(divMap[curDivKey] || []),
+        ...(curDivKey !== '_any_' ? [...(divMap['_any_'] || []), ...(divMap['-'] || [])] : [])
+      ].sort((a, b) => String(a.date || '').localeCompare(String(b.date || '')));
 
-      const rowsHtml = subjects.length > 0
-        ? subjects.map(sub => {
-            const obt = parseFloat(sub.marksObtained) || 0;
-            const max = parseFloat(sub.maxMarks) || 100;
-            const pct = max > 0 ? Math.round((obt / max) * 100) : 0;
-            return `
-              <tr style="border-bottom: 1px solid #f1f5f9;">
-                <td style="padding: 0.55rem 0.5rem; font-weight: 600;">${sub.title || '-'}</td>
-                <td style="padding: 0.55rem 0.5rem;">${obt}</td>
-                <td style="padding: 0.55rem 0.5rem;">${max}</td>
-                <td style="padding: 0.55rem 0.5rem; text-align: right;">
-                  <span style="background:#ecfdf5;color:#087A42;border:1px solid #d1fae5;padding:0.15rem 0.55rem;border-radius:999px;font-size:0.72rem;font-weight:700;">${getGrade(pct)}</span>
-                </td>
-              </tr>
-            `;
-          }).join('')
-        : '<tr><td colspan="4" style="padding: 1.5rem; text-align: center; color: #64748b;">No assessment marks recorded for this student yet.</td></tr>';
+      activeDocFilename = `MarkList_${safeName}.png`;
+      let grandObt = 0;
+      let grandMax = 0;
+      const allRowsHtml = [];
+
+      list.forEach((assess, aIdx) => {
+        const subs = Array.isArray(assess.subjects) && assess.subjects.length > 0
+          ? assess.subjects
+          : [{ title: assess.title || 'Assessment', marksObtained: assess.marksObtained ?? 0, maxMarks: assess.maxMarks ?? 100 }];
+
+        subs.forEach(sub => {
+          const obt = parseFloat(sub.marksObtained) || 0;
+          const max = parseFloat(sub.maxMarks) || 100;
+          grandObt += obt;
+          grandMax += max;
+          const pct = max > 0 ? Math.round((obt / max) * 100) : 0;
+          allRowsHtml.push(`
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+              <td style="padding: 0.55rem 0.5rem; font-weight: 600;">
+                <span style="background:#f1f5f9;color:#475569;font-size:0.68rem;font-weight:700;padding:0.1rem 0.4rem;border-radius:4px;margin-right:0.35rem;">A${aIdx + 1}</span>
+                ${sub.title || '-'}
+                ${assess.date ? `<span style="font-size:0.7rem;color:#94a3b8;font-weight:500;margin-left:0.3rem;">(${assess.date})</span>` : ''}
+              </td>
+              <td style="padding: 0.55rem 0.5rem;">${obt}</td>
+              <td style="padding: 0.55rem 0.5rem;">${max}</td>
+              <td style="padding: 0.55rem 0.5rem; text-align: right;">
+                <span style="background:#ecfdf5;color:#087A42;border:1px solid #d1fae5;padding:0.15rem 0.55rem;border-radius:999px;font-size:0.72rem;font-weight:700;">${getGrade(pct)}</span>
+              </td>
+            </tr>
+          `);
+        });
+      });
+
+      const rowsHtml = allRowsHtml.length > 0
+        ? allRowsHtml.join('')
+        : '<tr><td colspan="4" style="padding: 1.5rem; text-align: center; color: #64748b;">No assessment marks recorded for this class/division yet.</td></tr>';
+      const grandPct = grandMax > 0 ? Math.round((grandObt / grandMax) * 100) : 0;
+      const grandStatus = grandPct >= 60 ? 'PASSED' : 'NEEDS REVIEW';
 
       docModalContent.innerHTML = `
         <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:1rem;border-bottom:2px solid #d1fae5;margin-bottom:1.15rem;gap:1rem;flex-wrap:wrap;">
           <img src="../logo.png" alt="ABRAR Logo" style="height:44px;width:auto;">
           <div style="text-align:right;">
-            <div style="display:inline-block;background:#087A42;color:#fff;padding:0.2rem 0.75rem;border-radius:999px;font-size:0.65rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.3rem;">Official Mark List</div>
+            <div style="display:inline-block;background:#087A42;color:#fff;padding:0.2rem 0.75rem;border-radius:999px;font-size:0.65rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.3rem;">Official Mark List (${list.length} Assessment${list.length === 1 ? '' : 's'})</div>
             <div style="font-size:1.15rem;font-weight:800;color:#0f172a;">ASSESSMENT MARK LIST</div>
             <div style="font-size:0.72rem;color:#d97706;font-weight:700;">Faith &bull; Knowledge &bull; Character</div>
           </div>
@@ -1118,7 +1145,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div><div style="font-size:0.65rem;font-weight:700;color:#64748b;text-transform:uppercase;">Division</div><div style="font-size:0.86rem;font-weight:700;color:#0f172a;">${s.division || '-'}</div></div>
         </div>
         <div style="background:#f8fafc;border-radius:12px;padding:0.95rem 1.05rem;margin-bottom:1rem;">
-          <div style="font-size:0.75rem;font-weight:800;color:#087A42;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.65rem;">Subject-Wise Marks</div>
+          <div style="font-size:0.75rem;font-weight:800;color:#087A42;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.65rem;">All Recorded Assessment Marks (${s.division || 'Current Class'})</div>
           <table style="width:100%;border-collapse:collapse;font-size:0.84rem;">
             <thead><tr style="border-bottom:1.5px solid #e2e8f0;color:#64748b;font-size:0.68rem;text-transform:uppercase;">
               <th style="text-align:left;padding:0.45rem 0.5rem;">Subject</th>
@@ -1129,19 +1156,19 @@ document.addEventListener('DOMContentLoaded', () => {
             <tbody>${rowsHtml}</tbody>
           </table>
         </div>
-        ${assess ? `
+        ${list.length > 0 ? `
           <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.65rem;margin-bottom:1rem;">
             <div style="background:#f8fafc;border-radius:10px;padding:0.75rem;text-align:center;">
-              <div style="font-size:1.2rem;font-weight:800;color:#0f172a;">${assess.marksObtained ?? 0} / ${assess.maxMarks ?? 100}</div>
+              <div style="font-size:1.2rem;font-weight:800;color:#0f172a;">${grandObt} / ${grandMax}</div>
               <div style="font-size:0.65rem;font-weight:700;color:#64748b;text-transform:uppercase;">Total Marks</div>
             </div>
             <div style="background:#f8fafc;border-radius:10px;padding:0.75rem;text-align:center;">
-              <div style="font-size:1.2rem;font-weight:800;color:#087A42;">${assess.percentage ?? 0}%</div>
-              <div style="font-size:0.65rem;font-weight:700;color:#64748b;text-transform:uppercase;">Percentage</div>
+              <div style="font-size:1.2rem;font-weight:800;color:#087A42;">${grandPct}%</div>
+              <div style="font-size:0.65rem;font-weight:700;color:#64748b;text-transform:uppercase;">Overall Percentage</div>
             </div>
             <div style="background:#f8fafc;border-radius:10px;padding:0.75rem;text-align:center;">
-              <div style="font-size:1rem;font-weight:800;color:${assess.status === 'Passed' ? '#087A42' : '#dc2626'};padding-top:4px;">${(assess.status || 'PASSED').toUpperCase()}</div>
-              <div style="font-size:0.65rem;font-weight:700;color:#64748b;text-transform:uppercase;">Standing</div>
+              <div style="font-size:1rem;font-weight:800;color:${grandPct >= 60 ? '#087A42' : '#dc2626'};padding-top:4px;">${grandStatus}</div>
+              <div style="font-size:0.65rem;font-weight:700;color:#64748b;text-transform:uppercase;">Final Standing</div>
             </div>
           </div>
         ` : ''}
