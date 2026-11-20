@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Leave - ABRAR Management System</title>
+  <link rel="icon" type="image/png" href="../icon.png">
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div class="app-container">
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <img src="../logo.png" alt="ABRAR Logo" style="height: 32px; width: auto;">
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="../dashboard.html" class="nav-item">
+          <i data-lucide="layout-dashboard"></i> Dashboard
+        </a>
+        <a href="../students/students.html" class="nav-item active">
+          <i data-lucide="users"></i> Students
+        </a>
+        <div class="submenu">
+          <a href="../students/admission.html" class="submenu-item">Admission</a>
+          <a href="../students/leave.html" class="submenu-item active" style="font-weight: 600; color: var(--color-primary);">Leave</a>
+        </div>
+        <a href="../courses/classes.html" class="nav-item">
+          <i data-lucide="library"></i> Courses
+        </a>
+        <div class="submenu">
+          <a href="../courses/manage.html" class="submenu-item">Manage</a>
+          <a href="../courses/upgrade.html" class="submenu-item">Upgrade</a>
+        </div>
+        <a href="../tutors/tutors.html" class="nav-item">
+          <i data-lucide="graduation-cap"></i> Tutors
+        </a>
+        <a href="../finance/accounts.html" class="nav-item">
+          <i data-lucide="wallet"></i> Finance
+        </a>
+        <div class="submenu">
+          <a href="../finance/fees.html" class="submenu-item">Fees</a>
+          <a href="../finance/salaries.html" class="submenu-item">Salary</a>
+          <a href="../finance/accounts.html" class="submenu-item">Account</a>
+        </div>
+        <a href="../reports/progress.html" class="nav-item">
+          <i data-lucide="line-chart"></i> Progress
+        </a>
+        <div class="submenu">
+          <a href="../reports/data.html" class="submenu-item">Data</a>
+          <a href="../reports/template.html" class="submenu-item">Template</a>
+          <a href="../reports/schedule.html" class="submenu-item">Schedule</a>
+        </div>
+        <a href="../assessments/assessments.html" class="nav-item">
+          <i data-lucide="clipboard-check"></i> Assessments
+        </a>
+        <div class="submenu">
+          <a href="../assessments/control.html" class="submenu-item">Control</a>
+          <a href="../assessments/entry.html" class="submenu-item">Entry</a>
+          <a href="../assessments/data.html" class="submenu-item">Data</a>
+        </div>
+        <a href="../reports/reports.html" class="nav-item">
+          <i data-lucide="bar-chart-3"></i> Reports
+        </a>
+        <a href="../notifications/notifications.html" class="nav-item">
+          <i data-lucide="bell"></i> Notifications
+        </a>
+        <a href="../messages/messages.html" class="nav-item">
+          <i data-lucide="mail"></i> Messages
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <a href="../settings.html" class="nav-item">
+          <i data-lucide="settings"></i> Settings
+        </a>
+        <a href="#" id="logoutBtn" class="nav-item text-danger">
+          <i data-lucide="log-out"></i> Logout
+        </a>
+      </div>
+    </aside>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <main class="main-content">
+      <header class="top-header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobileMenuBtn">
+            <i data-lucide="menu"></i>
+          </button>
+          <h1 class="page-title">Student Leave</h1>
+        </div>
+        <div class="header-right">
+          <a href="students.html" class="btn btn-outline" style="font-size: 0.75rem;">All Students</a>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <!-- Page Hero -->
+        <section class="page-hero">
+          <div class="page-hero-content">
+            <h2 class="page-hero-title"><i data-lucide="calendar-off" style="width: 22px; height: 22px;"></i> Student Leave Management</h2>
+            <p class="page-hero-sub">Record student leave dates, track 2-day ending reminders, and monitor overdue returns.</p>
+          </div>
+        </section>
+
+        <!-- Notifications: Overdue & 2-Day Reminders -->
+        <div id="leaveAlertsContainer" style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.25rem;">
+          <div id="overdueAlertBox" style="display: none; background: #fef2f2; border: 1px solid #fecaca; border-left: 4px solid #dc2626; border-radius: 10px; padding: 1rem 1.25rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; font-weight: 700; color: #991b1b; margin-bottom: 0.5rem;">
+              <i data-lucide="alert-octagon" style="width: 18px; height: 18px;"></i>
+              <span id="overdueAlertTitle">Overdue Leave Notifications</span>
+            </div>
+            <div id="overdueAlertList" style="display: flex; flex-direction: column; gap: 0.45rem;"></div>
+          </div>
+
+          <div id="twoDayAlertBox" style="display: none; background: #fffbeb; border: 1px solid #fde68a; border-left: 4px solid #d97706; border-radius: 10px; padding: 1rem 1.25rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; font-weight: 700; color: #92400e; margin-bottom: 0.5rem;">
+              <i data-lucide="clock" style="width: 18px; height: 18px;"></i>
+              <span id="twoDayAlertTitle">Leave Ending Within 2 Days</span>
+            </div>
+            <div id="twoDayAlertList" style="display: flex; flex-direction: column; gap: 0.45rem;"></div>
+          </div>
+        </div>
+
+        <!-- KPI Row -->
+        <div class="kpi-row">
+          <div class="kpi-box">
+            <div>
+              <div class="kpi-box-label">Total Leave Records</div>
+              <div class="kpi-box-value" id="statTotalLeaves">0</div>
+            </div>
+            <div class="kpi-box-icon" style="background: #E0F2FE; color: #0284C7;">
+              <i data-lucide="calendar" style="width: 22px; height: 22px;"></i>
+            </div>
+          </div>
+          <div class="kpi-box">
+            <div>
+              <div class="kpi-box-label">Active Leave</div>
+              <div class="kpi-box-value text-success" id="statActiveLeaves">0</div>
+            </div>
+            <div class="kpi-box-icon" style="background: #DCFCE7; color: #16A34A;">
+              <i data-lucide="user-minus" style="width: 22px; height: 22px;"></i>
+            </div>
+          </div>
+          <div class="kpi-box">
+            <div>
+              <div class="kpi-box-label">Ending in 2 Days</div>
+              <div class="kpi-box-value text-warning" id="statTwoDayLeaves">0</div>
+            </div>
+            <div class="kpi-box-icon" style="background: #FEF3C7; color: #D97706;">
+              <i data-lucide="bell-ring" style="width: 22px; height: 22px;"></i>
+            </div>
+          </div>
+          <div class="kpi-box">
+            <div>
+              <div class="kpi-box-label">Overdue</div>
+              <div class="kpi-box-value text-danger" id="statOverdueLeaves">0</div>
+            </div>
+            <div class="kpi-box-icon" style="background: #FEE2E2; color: #DC2626;">
+              <i data-lucide="alert-triangle" style="width: 22px; height: 22px;"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Leave Form -->
+        <div class="card" style="margin-bottom: 1.5rem; padding: 1.25rem 1.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 id="leaveFormTitle" style="margin: 0; font-size: 1.05rem; color: #0f172a;">Add Student Leave</h3>
+            <button type="button" id="cancelEditLeaveBtn" class="btn btn-outline" style="display: none; font-size: 0.8rem; padding: 0.35rem 0.75rem;">Cancel Edit</button>
+          </div>
+
+          <form id="leaveForm">
+            <input type="hidden" id="editLeaveId">
+            <input type="hidden" id="selectedStudentId">
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1rem; align-items: start;">
+              <!-- Student Search & Select -->
+              <div class="form-group" style="margin-bottom: 0; position: relative;">
+                <label class="form-label">Select Student *</label>
+                <input type="text" id="studentSearchInput" class="form-control" placeholder="Search student by name or ID..." autocomplete="off">
+                <div id="studentDropdownList" style="display: none; position: absolute; left: 0; right: 0; top: 100%; z-index: 30; max-height: 210px; overflow-y: auto; background: #fff; border: 1px solid var(--color-border); border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); margin-top: 4px;"></div>
+                <div id="selectedStudentBadge" style="display: none; margin-top: 0.45rem; padding: 0.5rem 0.75rem; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; justify-content: space-between; align-items: center;">
+                  <span id="selectedStudentText" style="font-weight: 600; color: #065f46; font-size: 0.85rem;"></span>
+                  <button type="button" id="clearSelectedStudentBtn" style="background: none; border: none; color: #059669; font-size: 0.75rem; font-weight: 600; cursor: pointer;">Change</button>
+                </div>
+              </div>
+
+              <!-- From Date -->
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">From Date *</label>
+                <input type="date" id="leaveFromDate" class="form-control" required>
+              </div>
+
+              <!-- To Date -->
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">To Date *</label>
+                <input type="date" id="leaveToDate" class="form-control" required>
+              </div>
+
+              <!-- Reason -->
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">Reason (Optional)</label>
+                <input type="text" id="leaveReason" class="form-control" placeholder="e.g., Family function, Travel...">
+              </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; margin-top: 1rem;">
+              <button type="submit" id="saveLeaveBtn" class="btn btn-primary">Save Leave</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Filters -->
+        <div class="filter-card">
+          <div style="display: flex; gap: 1rem; flex-wrap: wrap; width: 100%; align-items: center;">
+            <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 220px;">
+              <input type="text" id="tableSearchInput" class="form-control" placeholder="Search saved leaves by student name or ID..." style="height: 38px;">
+            </div>
+            <div class="form-group" style="margin-bottom: 0; min-width: 180px;">
+              <select id="statusFilter" class="form-control" style="height: 38px;">
+                <option value="all">All Statuses</option>
+                <option value="overdue">Overdue</option>
+                <option value="two_days">Ending Within 2 Days</option>
+                <option value="active">Active Leave</option>
+                <option value="upcoming">Upcoming</option>
+                <option value="returned">Returned</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Saved Leaves Table -->
+        <div class="table-card">
+          <div class="table-responsive">
+            <table style="width: 100%; text-align: left; border-collapse: collapse;">
+              <thead>
+                <tr style="border-bottom: 1px solid var(--color-border);">
+                  <th style="padding: 0.75rem; font-weight: 600; color: var(--color-text-secondary);">Student</th>
+                  <th style="padding: 0.75rem; font-weight: 600; color: var(--color-text-secondary);">From Date</th>
+                  <th style="padding: 0.75rem; font-weight: 600; color: var(--color-text-secondary);">To Date</th>
+                  <th style="padding: 0.75rem; font-weight: 600; color: var(--color-text-secondary);">Days</th>
+                  <th style="padding: 0.75rem; font-weight: 600; color: var(--color-text-secondary);">Status / Alert</th>
+                  <th style="padding: 0.75rem; font-weight: 600; color: var(--color-text-secondary);">Reason</th>
+                  <th style="padding: 0.75rem; font-weight: 600; color: var(--color-text-secondary);">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="leavesTableBody">
+                <tr><td colspan="7" style="text-align: center; padding: 2rem;">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script>lucide.createIcons();</script>
+  <script type="module" src="../js/firebase-config.js"></script>
+  <script type="module" src="../js/layout.js"></script>
+  <script type="module" src="../js/leave.js"></script>
+</body>
+</html>
