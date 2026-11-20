@@ -350,7 +350,8 @@
           return;
         }
         const doneCount = completedByStudent[sid] || completedByStudent[s.studentId] || 0;
-        const totalTarget = Math.max(parseInt(s.assessmentCount, 10) || 1, doneCount + 1);
+        const configuredTarget = parseInt(s.assessmentCount, 10) || 0;
+        const totalTarget = configuredTarget > 0 ? configuredTarget : Math.max(1, doneCount + 1);
         const currentStep = Math.min(totalTarget, doneCount + 1);
 
         badge.textContent = s.assessmentCount > 0
@@ -492,14 +493,13 @@
           const a = aDoc.data();
           const aDiv = String(a.division || '').trim().toLowerCase();
           const k1 = a.studentDocId;
-          const k2 = a.studentId;
-          const sObj = studentsMap[k1] || null;
+          const k2 = !k1 ? a.studentId : null;
+          const sObj = k1 ? (studentsMap[k1] || null) : null;
           const sDiv = sObj ? String(sObj.division || '').trim().toLowerCase() : '';
-          // Only count assessments matching student's current division if division is known
           const divMatches = !aDiv || aDiv === '-' || !sDiv || aDiv === sDiv;
           if (!divMatches) return;
           if (k1) completedByStudent[k1] = (completedByStudent[k1] || 0) + 1;
-          if (k2 && k2 !== k1) completedByStudent[k2] = (completedByStudent[k2] || 0) + 1;
+          else if (k2) completedByStudent[k2] = (completedByStudent[k2] || 0) + 1;
         });
         studentsList = [];
         snap.forEach(d => {

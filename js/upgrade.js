@@ -265,7 +265,8 @@ document.addEventListener('DOMContentLoaded', () => {
           const a = { id: aDoc.id, ...aDoc.data() };
           const aDiv = String(a.division || '').trim().toLowerCase() || '_any_';
           const aDate = a.date ? new Date(a.date) : null;
-          [a.studentDocId, a.studentId].forEach(k => {
+          const keys = a.studentDocId ? [a.studentDocId] : (a.studentId ? [a.studentId] : []);
+          keys.forEach(k => {
             if (!k) return;
             if (!completedAssessByStudentDiv[k]) completedAssessByStudentDiv[k] = {};
             completedAssessByStudentDiv[k][aDiv] = (completedAssessByStudentDiv[k][aDiv] || 0) + 1;

@@ -53,13 +53,12 @@ document.addEventListener('DOMContentLoaded', () => {
           assessSnap.forEach(aDoc => {
             const a = aDoc.data();
             const k1 = a.studentDocId;
-            const k2 = a.studentId;
+            const k2 = !k1 ? a.studentId : null;
             const aDiv = String(a.division || '').trim().toLowerCase() || '_any_';
             if (k1) {
               if (!completedCountByStudentDiv[k1]) completedCountByStudentDiv[k1] = {};
               completedCountByStudentDiv[k1][aDiv] = (completedCountByStudentDiv[k1][aDiv] || 0) + 1;
-            }
-            if (k2 && k2 !== k1) {
+            } else if (k2) {
               if (!completedCountByStudentDiv[k2]) completedCountByStudentDiv[k2] = {};
               completedCountByStudentDiv[k2][aDiv] = (completedCountByStudentDiv[k2][aDiv] || 0) + 1;
             }
@@ -327,12 +326,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     ${(() => {
                       const doneCnt = data.completedCount || 0;
-                      const targetCnt = Math.max(parseInt(data.assessmentCount, 10) || 1, doneCnt + 1);
+                      const configuredCnt = parseInt(data.assessmentCount, 10) || 0;
+                      const targetCnt = configuredCnt > 0 ? configuredCnt : Math.max(1, doneCnt + 1);
                       const currStep = Math.min(targetCnt, doneCnt + 1);
                       let trackHtml = '';
                       for (let i = 1; i <= targetCnt; i++) {
                         const isDone = i <= doneCnt;
-                        const isCurr = i === currStep;
+                        const isCurr = !isDone && i === currStep;
                         const dotCls = isDone ? 'done' : (isCurr ? `current ${barClass}` : '');
                         trackHtml += `
                           <div class="card-step-node">
@@ -341,10 +341,10 @@ document.addEventListener('DOMContentLoaded', () => {
                           </div>
                         `;
                         if (i < targetCnt) {
-                          const lineIsDone = i < currStep;
-                          const lineIsCurr = i === currStep - 1 || (currStep === 1 && i === 1);
-                          const fillPct = lineIsDone ? 100 : (i === currStep - 1 || (currStep === 1 && i === 1) ? barWidth : 0);
-                          const fillCls = lineIsDone ? 'done' : (fillPct > 0 ? barClass : '');
+                          const lineIsDone = i <= doneCnt && (i + 1 <= doneCnt || doneCnt >= targetCnt);
+                          const isActivePeriodLine = !lineIsDone && i === doneCnt + 1 - 1 && doneCnt < targetCnt;
+                          const fillPct = i <= doneCnt ? (i < doneCnt ? 100 : barWidth) : (doneCnt === 0 && i === 1 ? barWidth : 0);
+                          const fillCls = i < doneCnt ? 'done' : (fillPct > 0 ? barClass : '');
                           trackHtml += `
                             <div class="card-step-line">
                               <div class="card-step-fill ${fillCls}" style="width: ${fillPct}%;"></div>
