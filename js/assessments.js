@@ -1,6 +1,6 @@
 // js/assessments.js
 import { db } from './firebase-config.js';
-import { collection, getDocs, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { collection, getDocs, query, orderBy, where, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -31,13 +31,43 @@ document.addEventListener('DOMContentLoaded', () => {
           tutorsData[doc.id] = doc.data();
         });
 
+        // Load assessment cycle settings from Assessments -> Control (default 30 days / 7 days warning)
+        let CYCLE_DAYS = 30;
+        let WARNING_DAYS = 7;
+        try {
+          const ctrlSnap = await getDoc(doc(db, "settings", "assessments"));
+          if (ctrlSnap.exists()) {
+            const ctrl = ctrlSnap.data();
+            if (ctrl.cycleDays > 0) CYCLE_DAYS = parseInt(ctrl.cycleDays, 10);
+            if (ctrl.warningDays > 0) WARNING_DAYS = parseInt(ctrl.warningDays, 10);
+          }
+        } catch (e) {
+          console.warn("Using default assessment settings:", e);
+        }
+
+        // Fetch recorded assessments to find each student's latest evaluation date
+        const lastAssessmentByStudent = {};
+        try {
+          const assessSnap = await getDocs(collection(db, "assessments"));
+          assessSnap.forEach(aDoc => {
+            const a = aDoc.data();
+            const d = a.date ? new Date(a.date) : null;
+            if (d && !isNaN(d.getTime())) {
+              const key = a.studentDocId || a.studentId;
+              if (key && (!lastAssessmentByStudent[key] || d > lastAssessmentByStudent[key])) {
+                lastAssessmentByStudent[key] = d;
+              }
+            }
+          });
+        } catch (e) {
+          console.warn("Could not load assessments history:", e);
+        }
+
         // Fetch students (only active)
-        const q = query(collection(db, "students"), where("status", "==", "active"));
-        const snapshot = await getDocs(q);
+        const studentsSnap = await getDocs(collection(db, "students"));
         
         let allStudents = [];
         const now = new Date();
-        const WARNING_DAYS = 15; // Show warning if assessment is due in 15 days
         
         const parseFlexibleDate = (raw) => {
           if (!raw) return null;
@@ -62,29 +92,25 @@ document.addEventListener('DOMContentLoaded', () => {
           return isNaN(fallback.getTime()) ? null : fallback;
         };
 
-        snapshot.forEach((doc) => {
-          const data = doc.data();
-          let startDateObj = parseFlexibleDate(data.classStartingDate) || parseFlexibleDate(data.admissionDate);
+        studentsSnap.forEach((docSnap) => {
+          const data = docSnap.data();
+          if (String(data.status || '').trim().toLowerCase() !== 'active') return;
+
+          const baseDateObj =
+            lastAssessmentByStudent[docSnap.id] ||
+            lastAssessmentByStudent[data.studentId] ||
+            parseFlexibleDate(data.classStartingDate) ||
+            parseFlexibleDate(data.admissionDate);
           
           let nextAssessmentDate = null;
           let daysLeft = 0;
           let progressPercent = 0;
           let statusCategory = 'safe';
           
-          if (startDateObj && !isNaN(startDateObj.getTime())) {
-            // Find next assessment date (every 3 months from start date)
-            // 4 assessments a year
-            const monthsDiff = (now.getFullYear() - startDateObj.getFullYear()) * 12 + (now.getMonth() - startDateObj.getMonth());
-            const periodsPassed = Math.floor(Math.max(0, monthsDiff) / 3);
-            
-            nextAssessmentDate = new Date(startDateObj);
-            nextAssessmentDate.setMonth(nextAssessmentDate.getMonth() + ((periodsPassed + 1) * 3));
-            
-            const prevAssessmentDate = new Date(startDateObj);
-            prevAssessmentDate.setMonth(prevAssessmentDate.getMonth() + (periodsPassed * 3));
-            
-            const totalPeriodDuration = nextAssessmentDate.getTime() - prevAssessmentDate.getTime();
-            const timePassed = now.getTime() - prevAssessmentDate.getTime();
+          if (baseDateObj && !isNaN(baseDateObj.getTime())) {
+            nextAssessmentDate = new Date(baseDateObj.getTime() + CYCLE_DAYS * 24 * 60 * 60 * 1000);
+            const totalPeriodDuration = CYCLE_DAYS * 24 * 60 * 60 * 1000;
+            const timePassed = now.getTime() - baseDateObj.getTime();
             
             progressPercent = Math.min(100, Math.max(0, (timePassed / totalPeriodDuration) * 100));
             
@@ -102,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }
 
           allStudents.push({ 
-            id: doc.id, 
+            id: docSnap.id, 
             ...data, 
             nextAssessmentDate, 
             daysLeft, 
