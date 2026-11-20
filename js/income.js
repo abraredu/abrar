@@ -19,10 +19,40 @@ document.addEventListener('DOMContentLoaded', () => {
   // Default to today
   document.getElementById('date').value = new Date().toISOString().split('T')[0];
 
-  // Auto-generate reference number
+  // Auto-generate gap-free sequential reference number starting from INC-001
+  async function getNextAvailableIncomeRef() {
+    try {
+      const snap = await getDocs(collection(db, 'transactions'));
+      const usedNumbers = new Set();
+      snap.forEach((docSnap) => {
+        const ref = docSnap.data()?.referenceNumber;
+        if (typeof ref === 'string') {
+          const match = ref.trim().match(/^INC-(\d+)$/i);
+          if (match) {
+            const num = parseInt(match[1], 10);
+            if (num > 0) usedNumbers.add(num);
+          }
+        }
+      });
+      let nextNum = 1;
+      while (usedNumbers.has(nextNum)) {
+        nextNum++;
+      }
+      return `INC-${String(nextNum).padStart(3, '0')}`;
+    } catch (err) {
+      console.error('Failed to compute next income reference:', err);
+      return 'INC-001';
+    }
+  }
+
   const refInput = document.getElementById('reference');
   if (refInput && !refInput.value) {
-    refInput.value = 'INC-' + Date.now().toString().slice(-6) + Math.floor(Math.random() * 1000);
+    refInput.value = 'INC-001';
+    getNextAvailableIncomeRef().then((nextRef) => {
+      if (refInput && (!refInput.value || refInput.value === 'INC-001')) {
+        refInput.value = nextRef;
+      }
+    });
   }
 
   if (!form) return;
@@ -141,7 +171,63 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       
       toast.success('Manual income recorded successfully!');
-      window.location.href = 'accounts.html';
+
+      const modal = document.getElementById('incomeReceiptModal');
+      if (modal) {
+        const refText = transactionData.referenceNumber || 'INC-001';
+        const fmtAmount = Number(transactionData.amount || 0).toLocaleString('en-IN', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        });
+
+        document.getElementById('incRcpNumber').textContent = refText;
+        document.getElementById('incRcpDate').textContent = transactionData.date || '—';
+        document.getElementById('incRcpCategory').textContent = transactionData.category || 'General Income';
+        document.getElementById('incRcpMethod').textContent = transactionData.paymentMethod || '—';
+        document.getElementById('incRcpDesc').textContent = transactionData.description || '—';
+        document.getElementById('incRcpAmount').textContent = `₹${fmtAmount}`;
+
+        const goToAccounts = () => {
+          window.location.href = 'accounts.html';
+        };
+        document.getElementById('doneIncReceiptBtn').onclick = goToAccounts;
+        document.getElementById('closeIncReceiptBtn').onclick = goToAccounts;
+
+        const downloadBtn = document.getElementById('downloadIncReceiptBtn');
+        downloadBtn.onclick = async () => {
+          if (typeof html2canvas !== 'function') {
+            toast.error('Image generator is not loaded yet.');
+            return;
+          }
+          const originalText = downloadBtn.textContent;
+          downloadBtn.disabled = true;
+          downloadBtn.textContent = 'Generating PNG...';
+          try {
+            const captureEl = document.getElementById('incReceiptCaptureArea');
+            const canvas = await html2canvas(captureEl, {
+              scale: 2,
+              useCORS: true,
+              backgroundColor: null
+            });
+            const link = document.createElement('a');
+            link.download = `Income_Receipt_${refText}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+          } catch (err) {
+            console.error('Receipt download failed:', err);
+            toast.error('Could not generate receipt image.');
+          } finally {
+            downloadBtn.disabled = false;
+            downloadBtn.textContent = originalText;
+          }
+        };
+
+        modal.style.display = 'flex';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Save Income';
+      } else {
+        window.location.href = 'accounts.html';
+      }
       
     } catch (error) {
       console.error("Error saving income: ", error);

@@ -172,6 +172,84 @@
     </main>
   </div>
 
+  <!-- Income Receipt Modal -->
+  <div id="incomeReceiptModal" class="modal-backdrop" style="display: none; align-items: center; justify-content: center; padding: 1rem; z-index: 1000; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px);">
+    <style>
+      .inc-receipt-card {
+        position: relative;
+        width: 100%;
+        max-width: 680px;
+        background: url('../reports/report-bg.jpg') center/100% 100% no-repeat;
+        padding: 3.5rem 4rem;
+        border-radius: 12px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+        font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+        color: #0f172a;
+      }
+      @media (max-width: 768px) {
+        .inc-receipt-card {
+          background: #ffffff;
+          border: 8px solid #087A42;
+          padding: 1.5rem 1.25rem;
+        }
+      }
+    </style>
+    <div id="incReceiptCaptureArea" class="inc-receipt-card">
+      <button id="closeIncReceiptBtn" data-html2canvas-ignore="true" title="Close &amp; Go to Accounts" style="position: absolute; top: 1.25rem; right: 1.25rem; width: 36px; height: 36px; border-radius: 50%; border: none; background: #ffffff; color: #334155; font-size: 1.25rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.12);">&times;</button>
+
+      <!-- Header -->
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; padding-bottom: 1.15rem; border-bottom: 1px solid #d1fae5; flex-wrap: wrap;">
+        <div>
+          <img src="../logo.png" alt="Abrar Logo" style="height: 46px; width: auto; object-fit: contain; display: block;">
+        </div>
+        <div style="text-align: right;">
+          <span style="display: inline-block; background: #087A42; color: #ffffff; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; padding: 0.32rem 0.9rem; border-radius: 999px; text-transform: uppercase;">OFFICIAL INCOME RECEIPT</span>
+          <div id="incRcpNumber" style="font-family: 'JetBrains Mono', monospace; font-size: 1rem; font-weight: 800; color: #0f172a; margin-top: 0.4rem;">INC-001</div>
+          <div style="font-size: 0.78rem; color: #d97706; font-weight: 600; margin-top: 0.15rem;">Faith &bull; Knowledge &bull; Character</div>
+        </div>
+      </div>
+
+      <!-- Summary Grid -->
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.9rem 1.5rem; background: #f8fafc; padding: 1.1rem 1.25rem; border-radius: 10px; margin-top: 1.25rem;">
+        <div>
+          <div style="font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em;">PAYMENT DATE</div>
+          <div id="incRcpDate" style="font-size: 0.95rem; font-weight: 700; color: #0f172a; margin-top: 0.2rem;">—</div>
+        </div>
+        <div>
+          <div style="font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em;">CATEGORY</div>
+          <div id="incRcpCategory" style="font-size: 0.95rem; font-weight: 700; color: #087A42; margin-top: 0.2rem;">—</div>
+        </div>
+        <div>
+          <div style="font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em;">PAYMENT METHOD</div>
+          <div id="incRcpMethod" style="font-size: 0.95rem; font-weight: 700; color: #0f172a; margin-top: 0.2rem;">—</div>
+        </div>
+        <div>
+          <div style="font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em;">DESCRIPTION</div>
+          <div id="incRcpDesc" style="font-size: 0.95rem; font-weight: 600; color: #0f172a; margin-top: 0.2rem; word-break: break-word;">—</div>
+        </div>
+      </div>
+
+      <!-- Amount Box -->
+      <div style="background: #f8fafc; padding: 1.15rem 1.25rem; border-radius: 10px; margin-top: 1rem; display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 0.95rem; font-weight: 700; color: #334155;">Amount Paid</span>
+        <span id="incRcpAmount" style="font-size: 1.5rem; font-weight: 800; color: #087A42;">&#8377;0.00</span>
+      </div>
+
+      <!-- Footer -->
+      <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; margin-top: 1.35rem; padding-top: 1rem; border-top: 1px solid #e2e8f0; flex-wrap: wrap;">
+        <div style="font-size: 0.72rem; font-weight: 700; color: #087A42; letter-spacing: 0.03em;">ABRAR ONLINE ISLAMIC SCHOOL</div>
+        <div style="font-size: 0.72rem; color: #64748b;">Together We Nurture Faith, Knowledge &amp; Character</div>
+      </div>
+
+      <!-- Actions -->
+      <div data-html2canvas-ignore="true" style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.25rem; flex-wrap: wrap;">
+        <button id="doneIncReceiptBtn" class="btn btn-secondary" type="button">Done / Go to Accounts</button>
+        <button id="downloadIncReceiptBtn" class="btn btn-primary" type="button">Download Receipt Image</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script>lucide.createIcons();</script>
   <script type="module" src="../js/firebase-config.js"></script>
   <script type="module" src="../js/layout.js"></script>
