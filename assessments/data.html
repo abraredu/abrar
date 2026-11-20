@@ -173,6 +173,14 @@
       color: #64748b;
       gap: 0.5rem;
     }
+    .assess-data-wrap {
+      width: 100%;
+      overflow-x: auto;
+    }
+    .assess-data-table th {
+      padding: 0.85rem 1rem;
+      white-space: nowrap;
+    }
     @media (max-width: 768px) {
       .cert-modal-overlay { padding: 0.5rem; align-items: flex-start; }
       .cert-sheet {
@@ -280,8 +288,8 @@
         </div>
 
         <div class="card" style="padding: 0; overflow: hidden;">
-          <div class="table-responsive">
-            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+          <div class="assess-data-wrap">
+            <table class="assess-data-table" style="width: 100%; border-collapse: collapse; text-align: left;">
               <thead>
                 <tr>
                   <th>Date</th>
