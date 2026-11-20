@@ -574,8 +574,18 @@
       padding: 3.5rem 4rem !important;
       border-radius: 14px !important;
       max-width: 820px !important;
+      font-family: inherit !important;
     }
     .modern-report::before { display: none !important; }
+    .modern-report .modal-close {
+      top: 1.35rem !important;
+      right: 1.5rem !important;
+      background: #ffffff !important;
+      color: #0f172a !important;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+      width: 32px !important;
+      height: 32px !important;
+    }
     .modern-report .report-top-header {
       background: transparent !important;
       color: #0f172a !important;
@@ -602,7 +612,7 @@
     .modern-report .report-main-body {
       padding: 1.1rem 0 !important;
       margin-top: 0 !important;
-      gap: 1rem !important;
+      gap: 0.95rem !important;
     }
     .modern-report .report-section-box {
       background: #f8fafc !important;
@@ -611,23 +621,141 @@
       border-radius: 12px !important;
       padding: 0.9rem 1.05rem !important;
     }
+    .modern-report .section-title {
+      font-size: 0.75rem !important;
+      font-weight: 800 !important;
+      color: #087A42 !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.06em !important;
+      margin-bottom: 0.75rem !important;
+      border: none !important;
+      padding: 0 !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 0.4rem !important;
+    }
     .modern-report .student-info-box {
       border-left: none !important;
+      padding: 0.9rem 1.1rem !important;
+    }
+    .modern-report .info-col-label {
+      font-size: 0.66rem !important;
+      font-weight: 700 !important;
+      color: #64748b !important;
+      letter-spacing: 0.05em !important;
+    }
+    .modern-report .info-col-val {
+      font-size: 0.88rem !important;
+      font-weight: 700 !important;
+      color: #0f172a !important;
+    }
+    .modern-report .report-grid-2 {
+      gap: 0.95rem !important;
+    }
+    .modern-report .attendance-boxes {
+      gap: 0.6rem !important;
     }
     .modern-report .att-box {
       background: #ffffff !important;
       border: none !important;
+      border-radius: 9px !important;
+      padding: 0.65rem 0.5rem !important;
+    }
+    .modern-report .att-label {
+      font-size: 0.64rem !important;
+      color: #64748b !important;
+      font-weight: 600 !important;
+    }
+    .modern-report .att-val {
+      font-size: 1.25rem !important;
+      font-weight: 800 !important;
+      color: #0f172a !important;
+    }
+    .modern-report .flex-row.align-center {
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      gap: 1rem !important;
+    }
+    .modern-report .circular-progress {
+      width: 78px !important;
+      height: 78px !important;
+      background: conic-gradient(#087A42 0% 85%, #e2e8f0 85% 100%) !important;
+      margin: 0 !important;
+      flex-shrink: 0 !important;
+    }
+    .modern-report .circle-inner {
+      width: 62px !important;
+      height: 62px !important;
+    }
+    .modern-report .inner-text {
+      font-size: 0.7rem !important;
+      font-weight: 800 !important;
+      color: #087A42 !important;
+    }
+    .modern-report .inner-stars {
+      font-size: 0.6rem !important;
+      color: #d97706 !important;
+    }
+    .modern-report .progress-remark {
+      border: none !important;
+      background: transparent !important;
+      padding: 0 !important;
+      font-size: 0.78rem !important;
+      color: #475569 !important;
+      line-height: 1.45 !important;
+      text-align: left !important;
+    }
+    .modern-report .perf-table th {
+      font-size: 0.68rem !important;
+      color: #64748b !important;
+      border-bottom: 1.5px solid #e2e8f0 !important;
+      padding: 0.45rem 0.5rem !important;
+    }
+    .modern-report .perf-table td {
+      font-size: 0.84rem !important;
+      padding: 0.55rem 0.5rem !important;
+      border-bottom: 1px solid #f1f5f9 !important;
+      color: #1e293b !important;
+    }
+    .modern-report .rating-stars {
+      color: #d97706 !important;
+      font-size: 0.92rem !important;
+    }
+    .modern-report .remark-pill {
+      background: #ecfdf5 !important;
+      color: #087A42 !important;
+      border: 1px solid #d1fae5 !important;
+      font-size: 0.68rem !important;
+      font-weight: 700 !important;
+      padding: 0.18rem 0.6rem !important;
+    }
+    .modern-report .topics-grid {
+      grid-template-columns: 1fr !important;
+      gap: 0.35rem !important;
     }
     .modern-report .topic-item {
-      background: #ffffff !important;
+      background: transparent !important;
       border: none !important;
+      padding: 0.15rem 0 !important;
+      font-size: 0.82rem !important;
+      font-weight: 500 !important;
+      color: #334155 !important;
+    }
+    .modern-report .topic-bullet {
+      color: #087A42 !important;
+    }
+    .modern-report .obs-text {
+      font-size: 0.82rem !important;
+      line-height: 1.55 !important;
+      color: #334155 !important;
     }
     .modern-report .report-footer-section {
       background: transparent !important;
       color: #64748b !important;
       border-top: 1px solid #e2e8f0 !important;
       padding: 0.85rem 0.25rem 0 !important;
-      margin-top: 0.5rem !important;
+      margin-top: 0.25rem !important;
       display: flex !important;
       justify-content: space-between !important;
       align-items: center !important;
@@ -636,7 +764,8 @@
     .modern-report .report-footer-section::before { display: none !important; }
     .modern-report .footer-remark {
       color: #087a42 !important;
-      font-size: 0.75rem !important;
+      font-size: 0.74rem !important;
+      font-weight: 700 !important;
       margin-bottom: 0 !important;
     }
     .modern-report .footer-brand {
@@ -784,37 +913,37 @@
           </div>
         </div>
 
-        <div class="report-grid-2">
+        <div class="report-grid-2" style="grid-template-columns: 1.2fr 1fr;">
           <div class="report-section-box">
-            <h3 class="section-title">1. ATTENDANCE</h3>
+            <h3 class="section-title">1. ATTENDANCE SUMMARY</h3>
             <div class="attendance-boxes">
               <div class="att-box">
-                <div class="att-label">CLASSES<br>CONDUCTED</div>
                 <div class="att-val" id="vClassesConducted">—</div>
+                <div class="att-label">CONDUCTED</div>
               </div>
               <div class="att-box">
-                <div class="att-label">CLASSES<br>ATTENDED</div>
                 <div class="att-val" id="vClassesAttended">—</div>
+                <div class="att-label">ATTENDED</div>
               </div>
               <div class="att-box">
-                <div class="att-label">ATTENDANCE<br>PERCENTAGE</div>
-                <div class="att-val" id="vAttendancePct">—</div>
+                <div class="att-val" id="vAttendancePct" style="color: #087A42 !important;">—</div>
+                <div class="att-label">ATTENDANCE</div>
               </div>
             </div>
           </div>
 
-          <div class="report-section-box flex-row align-center">
-            <div class="progress-col">
-              <h3 class="section-title">OVERALL PROGRESS</h3>
+          <div class="report-section-box">
+            <h3 class="section-title">OVERALL STANDING</h3>
+            <div class="flex-row align-center">
               <div class="circular-progress">
                  <div class="circle-inner">
                    <div class="inner-text">VERY GOOD</div>
                    <div class="inner-stars">★★★★☆</div>
                  </div>
               </div>
-            </div>
-            <div class="progress-remark">
-               Good progress! Keep practising regularly and continue working on areas that need improvement.
+              <div class="progress-remark">
+                 Strong consistency and active engagement across recitation and revision sessions.
+              </div>
             </div>
           </div>
         </div>
@@ -854,22 +983,22 @@
           </table>
         </div>
 
-        <div class="report-section-box">
-          <h3 class="section-title">3. TOPICS COVERED THIS MONTH</h3>
-          <div class="topics-grid" id="vTopicsList">
-             <div class="topic-item"><span class="topic-bullet">&bull;</span> <span id="vTopics">—</span></div>
-          </div>
-        </div>
-
         <div class="report-grid-2">
+          <div class="report-section-box">
+            <h3 class="section-title">3. TOPICS COVERED</h3>
+            <div class="topics-grid" id="vTopicsList">
+               <div class="topic-item"><span class="topic-bullet">&bull;</span> <span id="vTopics">—</span></div>
+            </div>
+          </div>
           <div class="report-section-box">
             <h3 class="section-title">4. MENTOR'S OBSERVATION</h3>
             <div class="obs-text" id="vRemarks">—</div>
           </div>
-          <div class="report-section-box">
-            <h3 class="section-title">5. RECOMMENDATION TO PARENTS</h3>
-            <div class="obs-text" id="vRecommendations">—</div>
-          </div>
+        </div>
+
+        <div class="report-section-box">
+          <h3 class="section-title">5. RECOMMENDATION TO PARENTS</h3>
+          <div class="obs-text" id="vRecommendations">—</div>
         </div>
 
       </div>
