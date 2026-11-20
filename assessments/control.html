@@ -7,6 +7,23 @@
   <link rel="icon" type="image/png" href="../icon.png">
   <link rel="stylesheet" href="../css/style.css">
   <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .ctrl-input {
+      width: 110px;
+      padding: 0.4rem 0.6rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #0f172a;
+      background: #ffffff;
+    }
+    .ctrl-input:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 2px rgba(8, 122, 66, 0.12);
+    }
+  </style>
 </head>
 <body>
   <div class="app-container">
@@ -72,51 +89,56 @@
             </div>
           </div>
         </div>
+        <div class="header-right">
+          <button type="button" class="btn btn-primary" id="saveAllControlBtn">
+            <i data-lucide="save" style="width: 16px; height: 16px;"></i> Save All
+          </button>
+        </div>
       </header>
 
       <div class="page-content">
         <section class="page-hero" style="margin-bottom: 1.25rem;">
           <div class="page-hero-content">
-            <h2 class="page-hero-title"><i data-lucide="sliders-horizontal" style="width: 22px; height: 22px;"></i> Assessment Rules &amp; Cycle Control</h2>
-            <p class="page-hero-sub">Configure assessment intervals, warning thresholds, and passing criteria.</p>
+            <h2 class="page-hero-title"><i data-lucide="sliders-horizontal" style="width: 22px; height: 22px;"></i> Student Assessment Control</h2>
+            <p class="page-hero-sub">Set the month duration and number of assessments per student, then click Save.</p>
           </div>
           <div class="page-hero-actions">
             <a href="assessments.html" class="btn-glass"><i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i> Assessment Tracker</a>
           </div>
         </section>
 
-        <div class="card" style="max-width: 720px;">
-          <form id="controlForm" style="display: flex; flex-direction: column; gap: 1.15rem;">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-              <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" for="cycleDays">Assessment Cycle (Days)</label>
-                <input type="number" id="cycleDays" class="form-control" min="7" max="365" value="90" required>
-              </div>
-              <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" for="warningDays">Due Soon Warning (Days Before)</label>
-                <input type="number" id="warningDays" class="form-control" min="1" max="30" value="7" required>
-              </div>
-              <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" for="passPercent">Minimum Passing Score (%)</label>
-                <input type="number" id="passPercent" class="form-control" min="1" max="100" value="60" required>
-              </div>
-              <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" for="defaultMaxMarks">Default Max Marks</label>
-                <input type="number" id="defaultMaxMarks" class="form-control" min="1" value="100" required>
-              </div>
-            </div>
+        <!-- Search & Filter Bar -->
+        <div class="card" style="margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
+          <div style="position: relative; flex: 1; min-width: 240px; max-width: 360px;">
+            <i data-lucide="search" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: #94a3b8;"></i>
+            <input type="text" id="controlSearch" class="form-control" placeholder="Search by student name, ID, or course..." style="padding-left: 2.2rem;">
+          </div>
+          <div style="font-size: 0.85rem; color: #64748b; font-weight: 600;">
+            Showing <span id="controlCount" style="color: #0f172a;">0</span> active students
+          </div>
+        </div>
 
-            <label style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.9rem; font-weight: 500; color: #334155; background: #f8fafc; padding: 0.85rem 1rem; border-radius: 10px; border: 1px solid var(--color-border); cursor: pointer;">
-              <input type="checkbox" id="allowTutorEntry" checked style="width: 17px; height: 17px; accent-color: var(--color-primary);">
-              <span>Enable assessment entry &amp; tracking across all active divisions</span>
-            </label>
-
-            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; padding-top: 0.5rem;">
-              <button type="submit" class="btn btn-primary" id="saveControlBtn">
-                <i data-lucide="save" style="width: 16px; height: 16px;"></i> Save Settings
-              </button>
-            </div>
-          </form>
+        <!-- Students Control Table -->
+        <div class="card" style="padding: 0; overflow: hidden;">
+          <div class="table-responsive">
+            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Student Name</th>
+                  <th>Courses</th>
+                  <th>Count of Month</th>
+                  <th>How Many Assessments</th>
+                  <th style="text-align: right;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="controlTableBody">
+                <tr>
+                  <td colspan="6" style="padding: 2.5rem; text-align: center; color: #64748b;">Loading students...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </main>
@@ -126,52 +148,158 @@
   <script type="module" src="../js/layout.js"></script>
   <script type="module">
     import { db } from '../js/firebase-config.js';
-    import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { collection, getDocs, doc, updateDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
     import { toast } from '../js/toast.js';
 
     document.addEventListener('DOMContentLoaded', async () => {
-      const cycleInp = document.getElementById('cycleDays');
-      const warnInp = document.getElementById('warningDays');
-      const passInp = document.getElementById('passPercent');
-      const maxInp = document.getElementById('defaultMaxMarks');
-      const allowInp = document.getElementById('allowTutorEntry');
+      const tbody = document.getElementById('controlTableBody');
+      const searchInp = document.getElementById('controlSearch');
+      const countEl = document.getElementById('controlCount');
+      const saveAllBtn = document.getElementById('saveAllControlBtn');
 
-      try {
-        const snap = await getDoc(doc(db, 'settings', 'assessments'));
-        if (snap.exists()) {
-          const d = snap.data();
-          if (d.cycleDays) cycleInp.value = d.cycleDays;
-          if (d.warningDays) warnInp.value = d.warningDays;
-          if (d.passPercent) passInp.value = d.passPercent;
-          if (d.defaultMaxMarks) maxInp.value = d.defaultMaxMarks;
-          if (typeof d.allowTutorEntry === 'boolean') allowInp.checked = d.allowTutorEntry;
-        }
-      } catch (err) {
-        console.warn('Could not load assessment settings:', err);
-      }
+      let allStudents = [];
 
-      document.getElementById('controlForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const btn = document.getElementById('saveControlBtn');
-        btn.disabled = true;
+      async function loadStudents() {
+        tbody.innerHTML = '<tr><td colspan="6" style="padding: 2.5rem; text-align: center; color: #64748b;">Loading students...</td></tr>';
         try {
-          const payload = {
-            cycleDays: parseInt(cycleInp.value, 10) || 90,
-            warningDays: parseInt(warnInp.value, 10) || 7,
-            passPercent: parseInt(passInp.value, 10) || 60,
-            defaultMaxMarks: parseInt(maxInp.value, 10) || 100,
-            allowTutorEntry: allowInp.checked,
-            updatedAt: serverTimestamp()
-          };
-          await setDoc(doc(db, 'settings', 'assessments'), payload, { merge: true });
-          toast.success('Assessment control settings saved!');
+          const snap = await getDocs(collection(db, 'students'));
+          allStudents = [];
+          snap.forEach(d => {
+            const s = d.data();
+            if (String(s.status || '').trim().toLowerCase() === 'active') {
+              allStudents.push({ id: d.id, ...s });
+            }
+          });
+          allStudents.sort((a, b) =>
+            String(a.studentId || '').localeCompare(String(b.studentId || ''), undefined, { numeric: true, sensitivity: 'base' })
+          );
+          render();
         } catch (err) {
           console.error(err);
-          toast.error('Failed to save settings: ' + err.message);
+          tbody.innerHTML = '<tr><td colspan="6" style="padding: 2rem; text-align: center; color: #ef4444;">Failed to load students.</td></tr>';
+        }
+      }
+
+      function render() {
+        const q = searchInp.value.trim().toLowerCase();
+        const filtered = allStudents.filter(s => {
+          if (!q) return true;
+          return String(s.name || '').toLowerCase().includes(q) ||
+                 String(s.studentId || '').toLowerCase().includes(q) ||
+                 String(s.course || s.courseType || '').toLowerCase().includes(q);
+        });
+
+        countEl.textContent = filtered.length;
+
+        if (filtered.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" style="padding: 2.5rem; text-align: center; color: #64748b;">No active students found.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = filtered.map(s => `
+          <tr data-id="${s.id}" style="border-bottom: 1px solid var(--color-border);">
+            <td style="padding: 0.85rem 1rem; font-family: monospace; color: #64748b;">${s.studentId || '-'}</td>
+            <td style="padding: 0.85rem 1rem; font-weight: 600; color: #0f172a;">${s.name || '-'}</td>
+            <td style="padding: 0.85rem 1rem; color: #334155;">${s.course || s.courseType || '-'}</td>
+            <td style="padding: 0.85rem 1rem;">
+              <input type="number" class="ctrl-input inp-months" min="1" placeholder="e.g. 12" value="${s.assessmentMonths || ''}">
+            </td>
+            <td style="padding: 0.85rem 1rem;">
+              <input type="number" class="ctrl-input inp-count" min="1" placeholder="e.g. 4" value="${s.assessmentCount || ''}">
+            </td>
+            <td style="padding: 0.85rem 1rem; text-align: right;">
+              <button type="button" class="btn btn-primary btn-save-row" data-id="${s.id}" style="padding: 0.4rem 0.9rem; font-size: 0.8rem;">
+                Save
+              </button>
+            </td>
+          </tr>
+        `).join('');
+      }
+
+      tbody.addEventListener('click', async (e) => {
+        const btn = e.target.closest('.btn-save-row');
+        if (!btn) return;
+        const row = btn.closest('tr');
+        const id = btn.getAttribute('data-id');
+        const monthsVal = parseInt(row.querySelector('.inp-months').value, 10);
+        const countVal = parseInt(row.querySelector('.inp-count').value, 10);
+
+        if (!monthsVal || monthsVal < 1 || !countVal || countVal < 1) {
+          toast.error('Please enter valid numbers for Count of Month and How Many Assessments.');
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+        try {
+          await updateDoc(doc(db, 'students', id), {
+            assessmentMonths: monthsVal,
+            assessmentCount: countVal
+          });
+          const st = allStudents.find(x => x.id === id);
+          if (st) {
+            st.assessmentMonths = monthsVal;
+            st.assessmentCount = countVal;
+          }
+          toast.success('Saved!');
+        } catch (err) {
+          console.error(err);
+          toast.error('Failed to save: ' + err.message);
         } finally {
           btn.disabled = false;
+          btn.textContent = 'Save';
         }
       });
+
+      saveAllBtn.addEventListener('click', async () => {
+        const rows = Array.from(tbody.querySelectorAll('tr[data-id]'));
+        const toUpdate = [];
+        rows.forEach(row => {
+          const id = row.getAttribute('data-id');
+          const m = parseInt(row.querySelector('.inp-months').value, 10);
+          const c = parseInt(row.querySelector('.inp-count').value, 10);
+          if (m > 0 && c > 0) {
+            toUpdate.push({ id, m, c });
+          }
+        });
+
+        if (toUpdate.length === 0) {
+          toast.error('Enter Month Count and Assessment Count for at least one student.');
+          return;
+        }
+
+        saveAllBtn.disabled = true;
+        const origHtml = saveAllBtn.innerHTML;
+        saveAllBtn.textContent = 'Saving...';
+        try {
+          for (let i = 0; i < toUpdate.length; i += 450) {
+            const batch = writeBatch(db);
+            toUpdate.slice(i, i + 450).forEach(u => {
+              batch.update(doc(db, 'students', u.id), {
+                assessmentMonths: u.m,
+                assessmentCount: u.c
+              });
+              const st = allStudents.find(x => x.id === u.id);
+              if (st) {
+                st.assessmentMonths = u.m;
+                st.assessmentCount = u.c;
+              }
+            });
+            await batch.commit();
+          }
+          toast.success(`Saved ${toUpdate.length} student(s)!`);
+        } catch (err) {
+          console.error(err);
+          toast.error('Failed to save all: ' + err.message);
+        } finally {
+          saveAllBtn.disabled = false;
+          saveAllBtn.innerHTML = origHtml;
+          if (window.lucide) lucide.createIcons();
+        }
+      });
+
+      searchInp.addEventListener('input', render);
+      loadStudents();
     });
   </script>
 </body>

@@ -108,8 +108,14 @@ document.addEventListener('DOMContentLoaded', () => {
           let statusCategory = 'safe';
           
           if (baseDateObj && !isNaN(baseDateObj.getTime())) {
-            nextAssessmentDate = new Date(baseDateObj.getTime() + CYCLE_DAYS * 24 * 60 * 60 * 1000);
-            const totalPeriodDuration = CYCLE_DAYS * 24 * 60 * 60 * 1000;
+            const studentMonths = parseFloat(data.assessmentMonths);
+            const studentCount = parseFloat(data.assessmentCount);
+            const studentCycleDays = (studentMonths > 0 && studentCount > 0)
+              ? Math.max(1, Math.round((studentMonths * 30) / studentCount))
+              : CYCLE_DAYS;
+
+            nextAssessmentDate = new Date(baseDateObj.getTime() + studentCycleDays * 24 * 60 * 60 * 1000);
+            const totalPeriodDuration = studentCycleDays * 24 * 60 * 60 * 1000;
             const timePassed = now.getTime() - baseDateObj.getTime();
             
             progressPercent = Math.min(100, Math.max(0, (timePassed / totalPeriodDuration) * 100));
