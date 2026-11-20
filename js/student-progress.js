@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             <div class="report-card-header">
               <div>
                 <div class="report-month">${monthName}</div>
-                <span class="report-sub-badge">${isIndiv ? '1-on-1 Individual' : 'Monthly Report'}</span>
+                <span class="report-sub-badge">Monthly Report</span>
               </div>
               <div class="report-card-icon">
                 <i data-lucide="file-check-2" style="width: 20px; height: 20px;"></i>
