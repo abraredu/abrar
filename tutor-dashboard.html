@@ -849,16 +849,22 @@
               </div>
 
               <div class="tp-section">
-                <h4 class="tp-section-head">
-                  <span class="tp-section-icon"><i data-lucide="calendar-check" style="width: 16px; height: 16px;"></i></span>
-                  1. Attendance
+                <h4 class="tp-section-head" style="justify-content: space-between;">
+                  <span style="display: inline-flex; align-items: center; gap: 0.55rem;">
+                    <span class="tp-section-icon"><i data-lucide="calendar-check" style="width: 16px; height: 16px;"></i></span>
+                    1. Attendance
+                  </span>
+                  <label style="display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.825rem; font-weight: 600; color: #334155; cursor: pointer; background: #ffffff; border: 1px solid #cbd5e1; padding: 0.3rem 0.7rem; border-radius: 8px; user-select: none;">
+                    <input type="checkbox" id="individualAttendanceToggle" style="width: 15px; height: 15px; accent-color: #087A42; cursor: pointer; margin: 0;">
+                    <span>Individual</span>
+                  </label>
                 </h4>
-                <div class="tp-grid-2">
+                <div class="tp-grid-2" id="attendanceGrid">
                   <div class="form-group" style="margin-bottom: 0;">
                     <label class="form-label">Classes Conducted</label>
                     <input type="number" id="classesConducted" class="form-control" min="0" required placeholder="e.g. 20" style="background: #ffffff;">
                   </div>
-                  <div class="form-group" style="margin-bottom: 0;">
+                  <div class="form-group" id="classesAttendedGroup" style="margin-bottom: 0;">
                     <label class="form-label">Classes Attended</label>
                     <input type="number" id="classesAttended" class="form-control" min="0" required placeholder="e.g. 18" style="background: #ffffff;">
                   </div>
@@ -1108,6 +1114,31 @@
         overlay.addEventListener('click', () => {
           sidebar.classList.remove('open');
           overlay.classList.remove('active');
+        });
+      }
+
+      const indivToggle = document.getElementById('individualAttendanceToggle');
+      const attGrid = document.getElementById('attendanceGrid');
+      const attGroup = document.getElementById('classesAttendedGroup');
+      const conductedInp = document.getElementById('classesConducted');
+      const attendedInp = document.getElementById('classesAttended');
+
+      if (indivToggle && attGrid && attGroup && conductedInp && attendedInp) {
+        const syncIndividualMode = () => {
+          const isIndividual = indivToggle.checked;
+          attGroup.style.display = isIndividual ? 'none' : '';
+          attGrid.style.gridTemplateColumns = isIndividual ? '1fr' : '';
+          attendedInp.required = !isIndividual;
+          if (isIndividual) {
+            attendedInp.value = conductedInp.value || 0;
+          }
+        };
+
+        indivToggle.addEventListener('change', syncIndividualMode);
+        conductedInp.addEventListener('input', () => {
+          if (indivToggle.checked) {
+            attendedInp.value = conductedInp.value || 0;
+          }
         });
       }
     });
