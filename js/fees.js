@@ -313,7 +313,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (studentPayments.length > 0) {
         generateReceiptBtn.style.display = 'inline-flex';
         const latestPay = studentPayments[studentPayments.length - 1];
-        generateReceiptBtn.onclick = () => openFeeReceiptModal(student, latestPay, actualPaid, waivedTotal, cycleLabel);
+        generateReceiptBtn.onclick = () => openFeeReceiptModal(student, latestPay, actualPaid, waived, cycleLabel);
       } else {
         generateReceiptBtn.style.display = 'none';
         generateReceiptBtn.onclick = null;
