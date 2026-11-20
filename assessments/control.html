@@ -9,14 +9,25 @@
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     .ctrl-input {
-      width: 110px;
-      padding: 0.4rem 0.6rem;
+      width: 90px;
+      padding: 0.4rem 0.55rem;
       border: 1px solid #cbd5e1;
       border-radius: 8px;
       font-size: 0.85rem;
       font-weight: 600;
       color: #0f172a;
       background: #ffffff;
+    }
+    .ctrl-table-wrap {
+      width: 100%;
+      overflow-x: auto;
+    }
+    .ctrl-table th {
+      padding: 0.85rem 0.9rem;
+      white-space: nowrap;
+    }
+    .ctrl-table td {
+      padding: 0.75rem 0.9rem;
     }
     .ctrl-input:focus {
       outline: none;
@@ -120,8 +131,8 @@
 
         <!-- Students Control Table -->
         <div class="card" style="padding: 0; overflow: hidden;">
-          <div class="table-responsive">
-            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+          <div class="ctrl-table-wrap">
+            <table class="ctrl-table" style="width: 100%; border-collapse: collapse; text-align: left;">
               <thead>
                 <tr>
                   <th>ID</th>
@@ -198,16 +209,16 @@
 
         tbody.innerHTML = filtered.map(s => `
           <tr data-id="${s.id}" style="border-bottom: 1px solid var(--color-border);">
-            <td style="padding: 0.85rem 1rem; font-family: monospace; color: #64748b;">${s.studentId || '-'}</td>
-            <td style="padding: 0.85rem 1rem; font-weight: 600; color: #0f172a;">${s.name || '-'}</td>
-            <td style="padding: 0.85rem 1rem; color: #334155;">${s.course || s.courseType || '-'}</td>
-            <td style="padding: 0.85rem 1rem;">
+            <td style="font-family: monospace; color: #64748b; white-space: nowrap;">${s.studentId || '-'}</td>
+            <td style="font-weight: 600; color: #0f172a;">${s.name || '-'}</td>
+            <td style="color: #334155;">${s.course || s.courseType || '-'}</td>
+            <td>
               <input type="number" class="ctrl-input inp-months" min="1" placeholder="e.g. 12" value="${s.assessmentMonths || ''}">
             </td>
-            <td style="padding: 0.85rem 1rem;">
+            <td>
               <input type="number" class="ctrl-input inp-count" min="1" placeholder="e.g. 4" value="${s.assessmentCount || ''}">
             </td>
-            <td style="padding: 0.85rem 1rem; text-align: right;">
+            <td style="text-align: right; white-space: nowrap;">
               <button type="button" class="btn btn-primary btn-save-row" data-id="${s.id}" style="padding: 0.4rem 0.9rem; font-size: 0.8rem;">
                 Save
               </button>
