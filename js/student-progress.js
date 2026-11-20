@@ -85,10 +85,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('vReportMonth').textContent = formattedMonth;
         
         const conducted = parseInt(report.attendance?.conducted || 0);
-        const attended = parseInt(report.attendance?.attended || 0);
+        const isIndiv = Boolean(report.attendance?.isIndividual);
+        const attended = isIndiv ? conducted : parseInt(report.attendance?.attended || 0);
         document.getElementById('vClassesConducted').textContent = conducted;
-        document.getElementById('vClassesAttended').textContent = attended;
-        document.getElementById('vAttendancePct').textContent = conducted > 0 ? Math.round((attended/conducted)*100) + '%' : '-';
+        const attEl = document.getElementById('vClassesAttended');
+        const pctEl = document.getElementById('vAttendancePct');
+        attEl.textContent = attended;
+        pctEl.textContent = conducted > 0 ? Math.round((attended/conducted)*100) + '%' : '-';
+        const attBox = attEl.closest('.att-box');
+        const pctBox = pctEl.closest('.att-box');
+        const attWrap = attEl.closest('.attendance-boxes');
+        if (attBox) attBox.style.display = isIndiv ? 'none' : '';
+        if (pctBox) pctBox.style.display = isIndiv ? 'none' : '';
+        if (attWrap) attWrap.style.gridTemplateColumns = isIndiv ? '1fr' : '';
         
         const getStarsAndRemark = (rating) => {
           rating = (rating || '').toLowerCase();

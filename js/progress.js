@@ -105,11 +105,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('vReportMonth').innerText = monthName;
     
     const conducted = parseInt(report.attendance?.conducted || 0);
-    const attended = parseInt(report.attendance?.attended || 0);
+    const isIndiv = Boolean(report.attendance?.isIndividual);
+    const attended = isIndiv ? conducted : parseInt(report.attendance?.attended || 0);
     document.getElementById('vClassesConducted').innerText = conducted;
-    document.getElementById('vClassesAttended').innerText = attended;
+    const attEl = document.getElementById('vClassesAttended');
     const pctEl = document.getElementById('vAttendancePct');
+    attEl.innerText = attended;
     if(pctEl) pctEl.innerText = conducted > 0 ? Math.round((attended/conducted)*100) + '%' : '-';
+    const attBox = attEl.closest('.att-box');
+    const pctBox = pctEl ? pctEl.closest('.att-box') : null;
+    const attWrap = attEl.closest('.attendance-boxes');
+    if (attBox) attBox.style.display = isIndiv ? 'none' : '';
+    if (pctBox) pctBox.style.display = isIndiv ? 'none' : '';
+    if (attWrap) attWrap.style.gridTemplateColumns = isIndiv ? '1fr' : '';
     
     const getStarsAndRemark = (rating) => {
       rating = (rating || '').toLowerCase();

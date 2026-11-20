@@ -74,14 +74,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         if(document.getElementById('vCourse')) document.getElementById('vCourse').innerText = report.courseName || report.course || '-';
         if(document.getElementById('vMentor')) document.getElementById('vMentor').innerText = report.tutorName || '-';
         if(document.getElementById('vReportMonth')) document.getElementById('vReportMonth').innerText = report.reportMonth || '-';
-        if(document.getElementById('vClassesConducted')) document.getElementById('vClassesConducted').innerText = report.classesConducted || '0';
-        if(document.getElementById('vClassesAttended')) document.getElementById('vClassesAttended').innerText = report.classesAttended || '0';
+        const conductedVal = report.attendance?.conducted ?? report.classesConducted ?? 0;
+        const isIndiv = Boolean(report.attendance?.isIndividual);
+        const attendedVal = isIndiv ? conductedVal : (report.attendance?.attended ?? report.classesAttended ?? 0);
+        if(document.getElementById('vClassesConducted')) document.getElementById('vClassesConducted').innerText = conductedVal;
+        const attEl = document.getElementById('vClassesAttended');
+        const pctEl = document.getElementById('vAttendancePct');
+        if(attEl) attEl.innerText = attendedVal;
         
         let pct = 0;
-        if (report.classesConducted > 0) {
-          pct = Math.round((report.classesAttended / report.classesConducted) * 100);
+        if (conductedVal > 0) {
+          pct = Math.round((attendedVal / conductedVal) * 100);
         }
-        if(document.getElementById('vAttendancePct')) document.getElementById('vAttendancePct').innerText = pct + '%';
+        if(pctEl) pctEl.innerText = pct + '%';
+        const attBox = attEl ? attEl.closest('.att-box') : null;
+        const pctBox = pctEl ? pctEl.closest('.att-box') : null;
+        const attWrap = attEl ? attEl.closest('.attendance-boxes') : null;
+        if (attBox) attBox.style.display = isIndiv ? 'none' : '';
+        if (pctBox) pctBox.style.display = isIndiv ? 'none' : '';
+        if (attWrap) attWrap.style.gridTemplateColumns = isIndiv ? '1fr' : '';
         
         const setRow = (id, val) => {
           if (document.getElementById(id)) document.getElementById(id).innerText = val || '-';

@@ -237,6 +237,11 @@ document.addEventListener('DOMContentLoaded', async () => {
           editingReportId = report.id;
           document.getElementById('classesConducted').value = report.attendance?.conducted || '';
           document.getElementById('classesAttended').value = report.attendance?.attended || '';
+          const indivEl = document.getElementById('individualAttendanceToggle');
+          if (indivEl) {
+            indivEl.checked = Boolean(report.attendance?.isIndividual);
+            indivEl.dispatchEvent(new Event('change'));
+          }
           const setRadio = (name, val) => {
             if (!val) return;
             const r = document.querySelector(`input[name="${name}"][value="${val}"]`);
@@ -253,6 +258,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('printBtn').style.display = 'inline-flex';
       } else {
         editingReportId = null;
+        const indivEl = document.getElementById('individualAttendanceToggle');
+        if (indivEl) {
+          indivEl.checked = false;
+          indivEl.dispatchEvent(new Event('change'));
+        }
         document.getElementById('printBtn').style.display = 'none';
       }
 
@@ -295,7 +305,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         attendance: {
           conducted: parseInt(document.getElementById('classesConducted').value),
-          attended: parseInt(document.getElementById('classesAttended').value)
+          attended: parseInt(document.getElementById('individualAttendanceToggle')?.checked
+            ? document.getElementById('classesConducted').value
+            : document.getElementById('classesAttended').value),
+          isIndividual: Boolean(document.getElementById('individualAttendanceToggle')?.checked)
         },
         ratings: {
           liveClassPerformance: document.querySelector('input[name="liveClassPerf"]:checked')?.value || '',
@@ -354,11 +367,19 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('vReportMonth').innerText = document.getElementById('reportMonth').value || '-';
       
       const conducted = parseInt(document.getElementById('classesConducted').value || 0);
-      const attended = parseInt(document.getElementById('classesAttended').value || 0);
+      const isIndiv = Boolean(document.getElementById('individualAttendanceToggle')?.checked);
+      const attended = isIndiv ? conducted : parseInt(document.getElementById('classesAttended').value || 0);
       document.getElementById('vClassesConducted').innerText = conducted;
-      document.getElementById('vClassesAttended').innerText = attended;
+      const attEl = document.getElementById('vClassesAttended');
       const pctEl = document.getElementById('vAttendancePct');
+      attEl.innerText = attended;
       if(pctEl) pctEl.innerText = conducted > 0 ? Math.round((attended/conducted)*100) + '%' : '-';
+      const attBox = attEl.closest('.att-box');
+      const pctBox = pctEl ? pctEl.closest('.att-box') : null;
+      const attWrap = attEl.closest('.attendance-boxes');
+      if (attBox) attBox.style.display = isIndiv ? 'none' : '';
+      if (pctBox) pctBox.style.display = isIndiv ? 'none' : '';
+      if (attWrap) attWrap.style.gridTemplateColumns = isIndiv ? '1fr' : '';
       
       const getStarsAndRemark = (rating) => {
         rating = (rating || '').toLowerCase();
