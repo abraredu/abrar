@@ -2,7 +2,7 @@ import { toast } from './toast.js';
 // js/salaries.js
 import { db, auth } from './firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { collection, getDocs, getDoc, query, where, doc, runTransaction, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { collection, getDocs, getDoc, query, where, doc, setDoc, runTransaction, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 function initSalariesPage() {
   const monthSelector = document.getElementById('monthSelector');
@@ -520,6 +520,295 @@ function initSalariesPage() {
       btn.textContent = 'Confirm Payment';
     }
   });
+
+  // --- Manual Tutor Salary Modal Logic ---
+  const manualSalaryModal = document.getElementById('manualSalaryModal');
+  const openManualSalaryBtn = document.getElementById('openManualSalaryBtn');
+  const closeManualSalaryBtn = document.getElementById('closeManualSalaryBtn');
+  const closeManualSalaryTopBtn = document.getElementById('closeManualSalaryTopBtn');
+  const manualSalaryForm = document.getElementById('manualSalaryForm');
+  const manualMentorSearch = document.getElementById('manualMentorSearch');
+  const manualMentorList = document.getElementById('manualMentorList');
+  const manualSelectedTutorId = document.getElementById('manualSelectedTutorId');
+  const manualSelectedMentorBadge = document.getElementById('manualSelectedMentorBadge');
+  const manualSelectedMentorText = document.getElementById('manualSelectedMentorText');
+  const manualClearMentorBtn = document.getElementById('manualClearMentorBtn');
+  const manualStudentsSection = document.getElementById('manualStudentsSection');
+  const manualStudentsList = document.getElementById('manualStudentsList');
+  const manualSelectAllStudents = document.getElementById('manualSelectAllStudents');
+  const manualDefaultAmount = document.getElementById('manualDefaultAmount');
+  const manualApplyDefaultAmtBtn = document.getElementById('manualApplyDefaultAmtBtn');
+  const saveManualSalaryBtn = document.getElementById('saveManualSalaryBtn');
+
+  function getConfigSource(config) {
+    return (config && config.source) ? config.source : 'fees';
+  }
+
+  function isStudentAssignedToTutor(student, tutorDocId) {
+    if (!student || !tutorDocId) return false;
+    if (student.courseTutors && Object.values(student.courseTutors).includes(tutorDocId)) return true;
+    if (Array.isArray(student.tutorIds) && student.tutorIds.includes(tutorDocId)) return true;
+    if (student.tutorId === tutorDocId) return true;
+    return false;
+  }
+
+  function updateManualSaveButtonState() {
+    if (!saveManualSalaryBtn) return;
+    const checked = document.querySelectorAll('.manual-student-cb:checked:not(:disabled)').length;
+    saveManualSalaryBtn.disabled = !manualSelectedTutorId.value || checked === 0;
+  }
+
+  function renderMentorDropdown(filterText = '') {
+    if (!manualMentorList) return;
+    const term = filterText.trim().toLowerCase();
+    const matches = currentTutors.filter(t => {
+      const name = (t.name || '').toLowerCase();
+      const tid = (t.tutorId || '').toLowerCase();
+      return !term || name.includes(term) || tid.includes(term);
+    });
+
+    if (matches.length === 0) {
+      manualMentorList.innerHTML = `<div style="padding: 0.75rem; font-size: 0.85rem; color: #64748b; text-align: center;">No matching mentors found.</div>`;
+    } else {
+      manualMentorList.innerHTML = matches.map(t => `
+        <div class="manual-mentor-option" data-id="${t.id}" style="padding: 0.6rem 0.85rem; cursor: pointer; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-weight: 600; font-size: 0.875rem; color: #0f172a;">${t.name || '-'}</span>
+          <span style="font-size: 0.75rem; color: #64748b;">${t.tutorId || ''}</span>
+        </div>
+      `).join('');
+    }
+    manualMentorList.style.display = 'block';
+  }
+
+  function selectManualMentor(tutorDocId) {
+    const tutor = currentTutors.find(t => t.id === tutorDocId);
+    if (!tutor) return;
+
+    manualSelectedTutorId.value = tutor.id;
+    manualSelectedMentorText.textContent = `${tutor.name || '-'} (${tutor.tutorId || ''})`;
+    manualSelectedMentorBadge.style.display = 'flex';
+    manualMentorSearch.style.display = 'none';
+    manualMentorList.style.display = 'none';
+    manualStudentsSection.style.display = 'block';
+    manualSelectAllStudents.checked = false;
+    manualDefaultAmount.value = tutor.salaryRate > 0 ? tutor.salaryRate : '';
+
+    const assignedStudents = currentStudents.filter(s => isStudentAssignedToTutor(s, tutor.id));
+    const tutorPayments = currentSalaryPayments.filter(p => p.tutorId === tutor.id);
+    const paidConfigIds = new Set();
+    tutorPayments.forEach(p => {
+      if (Array.isArray(p.paidConfigIds)) {
+        p.paidConfigIds.forEach(id => paidConfigIds.add(id));
+      }
+    });
+
+    if (assignedStudents.length === 0) {
+      manualStudentsList.innerHTML = `<div style="padding: 1.25rem; text-align: center; font-size: 0.85rem; color: #64748b; background: #f8fafc; border-radius: 8px;">No active students assigned to this mentor.</div>`;
+      updateManualSaveButtonState();
+      return;
+    }
+
+    manualStudentsList.innerHTML = assignedStudents.map(student => {
+      const existingConfig = currentSalaryConfigs.find(c => c.tutorId === tutor.id && c.studentId === student.id);
+      const source = existingConfig ? getConfigSource(existingConfig) : null;
+      const isFromFees = existingConfig && source === 'fees';
+      const isAlreadyPaid = existingConfig && paidConfigIds.has(existingConfig.id);
+      const isLocked = isFromFees || isAlreadyPaid;
+
+      let statusBadge = '';
+      if (isAlreadyPaid) {
+        statusBadge = `<span style="font-size: 0.7rem; font-weight: 600; background: #dcfce7; color: #15803d; padding: 0.15rem 0.5rem; border-radius: 99px;">Paid (${formatter.format(existingConfig.amount || 0)})</span>`;
+      } else if (isFromFees) {
+        statusBadge = `<span style="font-size: 0.7rem; font-weight: 600; background: #fef3c7; color: #b45309; padding: 0.15rem 0.5rem; border-radius: 99px;">Set from Fees (${formatter.format(existingConfig.amount || 0)})</span>`;
+      } else if (existingConfig && source === 'manual') {
+        statusBadge = `<span style="font-size: 0.7rem; font-weight: 600; background: #e0f2fe; color: #0369a1; padding: 0.15rem 0.5rem; border-radius: 99px;">Manual Saved</span>`;
+      }
+
+      const defaultAmt = existingConfig ? existingConfig.amount : (tutor.salaryRate > 0 ? tutor.salaryRate : '');
+
+      return `
+        <div class="manual-student-row" data-student-id="${student.id}" data-config-id="${existingConfig && !isLocked ? existingConfig.id : ''}" style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.65rem 0.85rem; border: 1px solid #e2e8f0; border-radius: 8px; background: ${isLocked ? '#f8fafc' : '#ffffff'}; opacity: ${isLocked ? '0.75' : '1'};">
+          <label style="display: flex; align-items: center; gap: 0.6rem; flex: 1; cursor: ${isLocked ? 'not-allowed' : 'pointer'}; margin: 0;">
+            <input type="checkbox" class="manual-student-cb" value="${student.id}" ${isLocked ? 'disabled' : (existingConfig && source === 'manual' ? 'checked' : '')}>
+            <div>
+              <div style="font-weight: 600; font-size: 0.875rem; color: #0f172a;">${student.name || '-'}</div>
+              <div style="font-size: 0.75rem; color: #64748b;">${student.studentId || ''} ${statusBadge}</div>
+            </div>
+          </label>
+          <input type="number" class="form-control manual-student-amt" value="${defaultAmt}" placeholder="₹" min="1" step="0.01" style="width: 110px; height: 34px; font-size: 0.85rem;" ${isLocked ? 'disabled' : ''}>
+        </div>
+      `;
+    }).join('');
+
+    updateManualSaveButtonState();
+  }
+
+  function resetManualMentorSelection() {
+    manualSelectedTutorId.value = '';
+    manualSelectedMentorBadge.style.display = 'none';
+    manualMentorSearch.style.display = 'block';
+    manualMentorSearch.value = '';
+    manualStudentsSection.style.display = 'none';
+    manualStudentsList.innerHTML = '';
+    manualSelectAllStudents.checked = false;
+    updateManualSaveButtonState();
+  }
+
+  function closeManualModal() {
+    if (manualSalaryModal) manualSalaryModal.style.display = 'none';
+    resetManualMentorSelection();
+  }
+
+  if (openManualSalaryBtn) {
+    openManualSalaryBtn.addEventListener('click', () => {
+      resetManualMentorSelection();
+      if (manualSalaryModal) manualSalaryModal.style.display = 'flex';
+      if (manualMentorSearch) {
+        renderMentorDropdown('');
+        manualMentorSearch.focus();
+      }
+    });
+  }
+
+  if (closeManualSalaryBtn) closeManualSalaryBtn.addEventListener('click', closeManualModal);
+  if (closeManualSalaryTopBtn) closeManualSalaryTopBtn.addEventListener('click', closeManualModal);
+  if (manualSalaryModal) {
+    manualSalaryModal.addEventListener('click', (e) => {
+      if (e.target === manualSalaryModal) closeManualModal();
+    });
+  }
+
+  if (manualMentorSearch) {
+    manualMentorSearch.addEventListener('focus', () => renderMentorDropdown(manualMentorSearch.value));
+    manualMentorSearch.addEventListener('input', () => renderMentorDropdown(manualMentorSearch.value));
+  }
+
+  if (manualMentorList) {
+    manualMentorList.addEventListener('click', (e) => {
+      const opt = e.target.closest('.manual-mentor-option');
+      if (opt) {
+        selectManualMentor(opt.getAttribute('data-id'));
+      }
+    });
+  }
+
+  if (manualClearMentorBtn) {
+    manualClearMentorBtn.addEventListener('click', () => {
+      resetManualMentorSelection();
+      renderMentorDropdown('');
+      manualMentorSearch.focus();
+    });
+  }
+
+  if (manualSelectAllStudents) {
+    manualSelectAllStudents.addEventListener('change', () => {
+      const checked = manualSelectAllStudents.checked;
+      document.querySelectorAll('.manual-student-cb:not(:disabled)').forEach(cb => {
+        cb.checked = checked;
+      });
+      updateManualSaveButtonState();
+    });
+  }
+
+  if (manualStudentsList) {
+    manualStudentsList.addEventListener('change', (e) => {
+      if (e.target.classList.contains('manual-student-cb')) {
+        updateManualSaveButtonState();
+      }
+    });
+  }
+
+  if (manualApplyDefaultAmtBtn) {
+    manualApplyDefaultAmtBtn.addEventListener('click', () => {
+      const val = parseFloat(manualDefaultAmount.value);
+      if (!val || val <= 0) {
+        toast.error('Enter a valid default amount');
+        return;
+      }
+      document.querySelectorAll('.manual-student-row').forEach(row => {
+        const cb = row.querySelector('.manual-student-cb');
+        const amtInput = row.querySelector('.manual-student-amt');
+        if (cb && cb.checked && !cb.disabled && amtInput) {
+          amtInput.value = val;
+        }
+      });
+    });
+  }
+
+  if (manualSalaryForm) {
+    manualSalaryForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const tutorDocId = manualSelectedTutorId.value;
+      const month = monthSelector.value;
+      if (!tutorDocId) {
+        toast.error('Please select a mentor');
+        return;
+      }
+
+      const selectedRows = [];
+      let invalidAmount = false;
+      document.querySelectorAll('.manual-student-row').forEach(row => {
+        const cb = row.querySelector('.manual-student-cb');
+        const amtInput = row.querySelector('.manual-student-amt');
+        if (cb && cb.checked && !cb.disabled) {
+          const amt = parseFloat(amtInput.value);
+          if (!amt || amt <= 0) {
+            invalidAmount = true;
+          } else {
+            selectedRows.push({
+              studentId: row.getAttribute('data-student-id'),
+              configId: row.getAttribute('data-config-id') || '',
+              amount: amt
+            });
+          }
+        }
+      });
+
+      if (invalidAmount) {
+        toast.error('Please enter a valid amount (> 0) for all selected students');
+        return;
+      }
+      if (selectedRows.length === 0) {
+        toast.error('Please select at least one student');
+        return;
+      }
+
+      saveManualSalaryBtn.disabled = true;
+      saveManualSalaryBtn.textContent = 'Saving...';
+
+      try {
+        await Promise.all(selectedRows.map(item => {
+          // Double-check one-side-only rule: never overwrite a Fees-sourced config
+          const existing = currentSalaryConfigs.find(c => c.tutorId === tutorDocId && c.studentId === item.studentId);
+          if (existing && getConfigSource(existing) === 'fees') {
+            return Promise.resolve();
+          }
+          const docRef = item.configId
+            ? doc(db, 'tutorSalaryConfigs', item.configId)
+            : doc(collection(db, 'tutorSalaryConfigs'));
+          return setDoc(docRef, {
+            tutorId: tutorDocId,
+            studentId: item.studentId,
+            month: month,
+            amount: item.amount,
+            source: 'manual',
+            updatedAt: serverTimestamp(),
+            updatedBy: auth.currentUser ? auth.currentUser.uid : 'system'
+          }, { merge: true });
+        }));
+
+        toast.success(`Saved salary to pay for ${selectedRows.length} student(s)!`);
+        closeManualModal();
+        await loadSalaryData();
+      } catch (err) {
+        console.error('Failed to save manual salary:', err);
+        toast.error('Failed to save manual salary: ' + err.message);
+      } finally {
+        saveManualSalaryBtn.disabled = false;
+        saveManualSalaryBtn.textContent = 'Save to Pay';
+      }
+    });
+  }
 
   onAuthStateChanged(auth, (user) => {
     if (user) {

@@ -107,7 +107,10 @@
             <h2 class="page-hero-title"><i data-lucide="banknote" style="width: 22px; height: 22px;"></i> Tutor Salaries</h2>
             <p class="page-hero-sub">Track calculated monthly payouts, settled salaries, and pending tutor balances.</p>
           </div>
-          <div class="page-hero-actions">
+          <div class="page-hero-actions" style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+            <button type="button" id="openManualSalaryBtn" class="btn-glass" style="cursor: pointer; border: 1px solid rgba(255,255,255,0.35);">
+              <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i> Manual Salary
+            </button>
             <a href="accounts.html" class="btn-glass"><i data-lucide="wallet" style="width: 16px; height: 16px;"></i> Accounts Ledger</a>
           </div>
         </section>
@@ -246,6 +249,58 @@
       <div style="padding: 0.75rem 1.25rem; background: #fafbfc; border-top: 1px solid var(--color-border); display: flex; justify-content: flex-end;">
         <button type="button" id="closeHistoryModalFooterBtn" class="btn btn-outline" style="padding: 0.4rem 1rem;">Close</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Manual Salary Modal -->
+  <div id="manualSalaryModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 65; align-items: center; justify-content: center; backdrop-filter: blur(2px);">
+    <div class="card" style="width: 100%; max-width: 620px; margin: 1rem; position: relative; padding: 0; overflow: hidden; border-radius: 12px; background: white; max-height: 90vh; display: flex; flex-direction: column;">
+      <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; background: #fafbfc;">
+        <div>
+          <h3 style="margin: 0; font-size: 1.1rem; color: #0f172a;">Manual Tutor Salary</h3>
+          <p style="margin: 0; font-size: 0.75rem; color: #64748b;">Search &amp; select a mentor, pick students, and save salary to pay.</p>
+        </div>
+        <button type="button" id="closeManualSalaryTopBtn" style="background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px; display: flex; align-items: center;">
+          <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+        </button>
+      </div>
+
+      <form id="manualSalaryForm" style="padding: 1.25rem 1.5rem; overflow-y: auto; flex: 1;">
+        <input type="hidden" id="manualSelectedTutorId">
+
+        <!-- Step 1: Mentor Search & Select -->
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label class="form-label" style="font-weight: 600;">1. Select Mentor (Tutor) *</label>
+          <input type="text" id="manualMentorSearch" class="form-control" placeholder="Search mentor by name or ID..." autocomplete="off">
+          <div id="manualMentorList" style="margin-top: 0.4rem; max-height: 150px; overflow-y: auto; border: 1px solid var(--color-border); border-radius: 8px; background: #fff; display: none;"></div>
+          <div id="manualSelectedMentorBadge" style="display: none; margin-top: 0.5rem; padding: 0.55rem 0.85rem; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; justify-content: space-between; align-items: center;">
+            <span id="manualSelectedMentorText" style="font-weight: 600; color: #065f46; font-size: 0.875rem;"></span>
+            <button type="button" id="manualClearMentorBtn" style="background: none; border: none; color: #059669; font-size: 0.75rem; font-weight: 600; cursor: pointer;">Change</button>
+          </div>
+        </div>
+
+        <!-- Step 2: Students of Selected Mentor -->
+        <div id="manualStudentsSection" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.6rem;">
+            <label class="form-label" style="margin: 0; font-weight: 600;">2. Select Students &amp; Amount (₹)</label>
+            <label style="display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; font-weight: 600; color: #334155; cursor: pointer;">
+              <input type="checkbox" id="manualSelectAllStudents"> Select All
+            </label>
+          </div>
+
+          <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.75rem; background: #f8fafc; padding: 0.6rem 0.75rem; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <input type="number" id="manualDefaultAmount" class="form-control" placeholder="Default amount for selected (₹)" min="1" step="0.01" style="height: 34px; font-size: 0.85rem;">
+            <button type="button" id="manualApplyDefaultAmtBtn" class="btn btn-outline" style="height: 34px; padding: 0 0.85rem; font-size: 0.8rem; white-space: nowrap;">Apply to Selected</button>
+          </div>
+
+          <div id="manualStudentsList" style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 250px; overflow-y: auto; padding-right: 0.25rem;"></div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--color-border);">
+          <button type="button" id="closeManualSalaryBtn" class="btn btn-outline">Cancel</button>
+          <button type="submit" id="saveManualSalaryBtn" class="btn btn-primary" disabled>Save to Pay</button>
+        </div>
+      </form>
     </div>
   </div>
 

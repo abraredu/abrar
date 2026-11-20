@@ -387,12 +387,15 @@ document.addEventListener('DOMContentLoaded', async () => {
        
        const existingConfig = currentSalaryConfigs.find(c => c.tutorId === tutor.id && c.studentId === student.id);
        const configAmount = existingConfig ? existingConfig.amount : 0;
+       const isManualConfig = existingConfig && existingConfig.source === 'manual';
        
        const courseLabel = tutor.assignedCourse ? `<br><small style="color:var(--color-primary);">${tutor.assignedCourse}</small>` : '';
        const tr = document.createElement('tr');
        
        let actionBtns = '';
-       if (existingConfig) {
+       if (isManualConfig) {
+         actionBtns = `<span style="font-size: 0.75rem; font-weight: 600; color: #0369a1; background: #e0f2fe; padding: 0.25rem 0.65rem; border-radius: 99px;">Set via Manual Salary</span>`;
+       } else if (existingConfig) {
          actionBtns = `
            <button class="btn btn-primary set-salary-btn" data-tutor="${tutor.id}" data-config="${existingConfig.id}" style="padding: 0.25rem 0.75rem; font-size: 0.875rem;" ${!canPayTutor ? 'disabled title="Fee must be accepted first"' : ''}>Update</button>
            <button class="btn btn-outline unset-salary-btn" data-config="${existingConfig.id}" style="padding: 0.25rem 0.75rem; font-size: 0.875rem; border-color: var(--color-danger); color: var(--color-danger);" ${!canPayTutor ? 'disabled' : ''}>Unset</button>
@@ -404,7 +407,7 @@ document.addEventListener('DOMContentLoaded', async () => {
        tr.innerHTML = `
          <td style="padding: 0.75rem;">${tutor.name} <br><small style="color:gray;">${tutor.tutorId}</small>${courseLabel}</td>
          <td style="padding: 0.75rem; color: var(--color-success);">${formatter.format(paidSoFar)}</td>
-         <td style="padding: 0.75rem;"><input type="number" class="form-control salary-input" data-tutor="${tutor.id}" value="${configAmount}" min="0" step="0.01" style="width: 120px;" ${!canPayTutor ? 'disabled' : ''}></td>
+         <td style="padding: 0.75rem;"><input type="number" class="form-control salary-input" data-tutor="${tutor.id}" value="${configAmount}" min="0" step="0.01" style="width: 120px;" ${(!canPayTutor || isManualConfig) ? 'disabled' : ''}></td>
          <td style="padding: 0.75rem; display: flex; gap: 0.5rem;">${actionBtns}</td>
        `;
        tbody.appendChild(tr);
@@ -745,6 +748,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   async function processSalary(tutorDocId, amount, btnEl, student, configId) {
+    const existing = currentSalaryConfigs.find(c => c.tutorId === tutorDocId && c.studentId === student.id);
+    if (existing && existing.source === 'manual') {
+      toast.error('This tutor salary is already set via Manual Salary.');
+      return;
+    }
+
     btnEl.disabled = true;
     btnEl.textContent = 'Saving...';
     const month = monthSelector.value;
@@ -759,6 +768,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         month: month,
         billingCycle: billingCycle,
         amount: amount,
+        source: 'fees',
         updatedAt: serverTimestamp(),
         updatedBy: auth.currentUser ? auth.currentUser.uid : 'system'
       }, { merge: true });
