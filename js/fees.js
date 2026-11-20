@@ -519,6 +519,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
   }
 
+  // Find smallest unused receipt number starting from 001 (fills gaps if a receipt was deleted)
+  async function getNextAvailableReceiptNumber() {
+    const usedNums = new Set();
+    const snap = await getDocs(collection(db, 'payments'));
+    snap.forEach(d => {
+      const rcp = String(d.data().receiptNumber || '');
+      const m = rcp.match(/(\d+)$/);
+      if (m) usedNums.add(parseInt(m[1], 10));
+    });
+    let nextNum = 1;
+    while (usedNums.has(nextNum)) nextNum++;
+    return { nextNum, receiptNumber: `ABR-RCP-${String(nextNum).padStart(3, '0')}` };
+  }
+
   async function processHolidayFee(student, payAmount, expected, reason, payDate, payMethod, billingCycle) {
     const studentDocId = student.id;
     const submitBtn = document.getElementById('submitHolidayBtn');
@@ -530,17 +544,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const waivedAmount = Math.max(0, expected - payAmount);
 
     try {
+      const { nextNum, receiptNumber } = await getNextAvailableReceiptNumber();
       const counterRef = doc(db, 'counters', 'receipts');
       await runTransaction(db, async (tx) => {
-        const counterDoc = await tx.get(counterRef);
-        let newCount = 1;
-        if (counterDoc.exists()) {
-          newCount = (counterDoc.data().count || 0) + 1;
-          tx.update(counterRef, { count: newCount });
-        } else {
-          tx.set(counterRef, { count: newCount });
-        }
-        const receiptNumber = `ABR-RCP-${newCount.toString().padStart(6, '0')}`;
+        tx.set(counterRef, { count: nextNum }, { merge: true });
         
         const paymentRef = doc(collection(db, 'payments'));
         const transRef = doc(collection(db, 'transactions'));
@@ -702,17 +709,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const descText = customDesc || `Fee payment for ${student.name} (${billingCycle})`;
     
     try {
+      const { nextNum, receiptNumber } = await getNextAvailableReceiptNumber();
       const counterRef = doc(db, 'counters', 'receipts');
       await runTransaction(db, async (tx) => {
-        const counterDoc = await tx.get(counterRef);
-        let newCount = 1;
-        if (counterDoc.exists()) {
-          newCount = (counterDoc.data().count || 0) + 1;
-          tx.update(counterRef, { count: newCount });
-        } else {
-          tx.set(counterRef, { count: newCount });
-        }
-        const receiptNumber = `ABR-RCP-${newCount.toString().padStart(6, '0')}`;
+        tx.set(counterRef, { count: nextNum }, { merge: true });
         
         const paymentRef = doc(collection(db, 'payments'));
         const transRef = doc(collection(db, 'transactions'));
