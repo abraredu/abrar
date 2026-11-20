@@ -305,7 +305,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                   </div>
                   <div>
-                    <div style="font-size: 0.78rem; font-weight: 600; color: #334155;">${timerText}</div>
+                    <div class="card-timer-row">
+                      <div style="font-size: 0.78rem; font-weight: 600; color: #334155;">${timerText}</div>
+                      ${(() => {
+                        const pieColor = barClass === 'danger' ? '#ef4444' : (barClass === 'warning' ? '#f59e0b' : (barClass === 'safe' ? '#10b981' : '#cbd5e1'));
+                        return `
+                          <div class="card-timer-pie" style="background: conic-gradient(${pieColor} 0% ${barWidth}%, #e2e8f0 ${barWidth}% 100%);" title="${barWidth}% of cycle elapsed">
+                            <div class="card-timer-pie-inner">${barWidth}%</div>
+                          </div>
+                        `;
+                      })()}
+                    </div>
                     ${(() => {
                       const doneCnt = data.completedCount || 0;
                       const targetCnt = Math.max(parseInt(data.assessmentCount, 10) || 1, doneCnt + 1);
