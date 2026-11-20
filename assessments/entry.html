@@ -155,6 +155,10 @@
         list.sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
         selectEl.innerHTML = '<option value="">-- Select Student --</option>' +
           list.map(s => `<option value="${s.id}">${s.name || 'Unnamed'} (${s.studentId || s.regNo || '-'})</option>`).join('');
+        const preSid = new URLSearchParams(window.location.search).get('studentId');
+        if (preSid && studentsMap[preSid]) {
+          selectEl.value = preSid;
+        }
       } catch (err) {
         console.error(err);
         selectEl.innerHTML = '<option value="">Error loading students</option>';

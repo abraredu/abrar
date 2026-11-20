@@ -301,6 +301,11 @@ document.addEventListener('DOMContentLoaded', () => {
                       <div class="timer-bar ${barClass}" style="width: ${barWidth}%"></div>
                     </div>
                   </div>
+                  <div class="assess-footer">
+                    ${(data.assessmentMonths > 0 && data.assessmentCount > 0)
+                      ? `<a href="entry.html?studentId=${data.id}" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 0.45rem 0.75rem; font-size: 0.8rem;">Record Assessment (${data.assessmentCount}/${data.assessmentMonths}m)</a>`
+                      : `<a href="control.html" class="btn btn-outline" style="width: 100%; justify-content: center; padding: 0.45rem 0.75rem; font-size: 0.8rem;">Set Cycle in Control</a>`}
+                  </div>
                 </div>
               `;
             }).join('');
