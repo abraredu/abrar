@@ -47,7 +47,76 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const formatter = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' });
         const searchInput = document.getElementById('searchInput');
-        const courseFilter = document.getElementById('courseFilter');
+        const studentsCourseTabs = document.getElementById('studentsCourseTabs');
+        let activeCourseId = 'all';
+
+        const normalizeCourseKey = (val) => {
+          const norm = String(val || '')
+            .trim()
+            .toLowerCase()
+            .replace(/[_-]+/g, ' ')
+            .replace(/\bmadrass+a\b/g, 'madrasa')
+            .replace(/\bshool\b/g, 'school')
+            .replace(/\s+/g, ' ');
+          if (norm === 'madrasa individual') return 'madrasa one to one';
+          if (norm === 'quran recitation') return 'tarteel';
+          return norm;
+        };
+
+        let managedCourses = [];
+        try {
+          const cSnap = await getDocs(query(collection(db, "managed_courses"), orderBy("serialNo")));
+          cSnap.forEach(d => managedCourses.push({ id: d.id, ...d.data() }));
+        } catch (e) {
+          const cSnap = await getDocs(collection(db, "managed_courses"));
+          cSnap.forEach(d => managedCourses.push({ id: d.id, ...d.data() }));
+        }
+
+        const studentMatchesCourse = (student, course) => {
+          if (!course) return true;
+          const sCourse = normalizeCourseKey(student.course);
+          const sCourseType = normalizeCourseKey(student.courseType);
+          const cName = normalizeCourseKey(course.courseName);
+          const cSerial = normalizeCourseKey(course.serialNo);
+          return (sCourse && (sCourse === cName || sCourse === cSerial)) ||
+                 (sCourseType && (sCourseType === cName || sCourseType === cSerial)) ||
+                 student.courseId === course.id;
+        };
+
+        const renderCourseTabs = () => {
+          if (!studentsCourseTabs) return;
+          studentsCourseTabs.innerHTML = '';
+
+          const addTab = (id, iconName, label, count) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = `course-tab-btn ${activeCourseId === id ? 'active' : ''}`;
+            btn.innerHTML = `<i data-lucide="${iconName}" style="width:15px;height:15px;"></i><span>${label}</span><span class="tab-badge">${count}</span>`;
+            btn.addEventListener('click', () => {
+              activeCourseId = id;
+              renderCourseTabs();
+              filterData();
+            });
+            studentsCourseTabs.appendChild(btn);
+          };
+
+          addTab('all', 'layers', 'All Courses', allStudents.length);
+
+          managedCourses.forEach(c => {
+            const cnt = allStudents.filter(s => studentMatchesCourse(s, c)).length;
+            const prefixLabel = c.serialNo ? `${c.serialNo} &bull; ` : '';
+            addTab(c.id, 'book-open', `${prefixLabel}${c.courseName || 'Course'}`, cnt);
+          });
+
+          const otherCount = allStudents.filter(s => !managedCourses.some(c => studentMatchesCourse(s, c))).length;
+          if (otherCount > 0) {
+            addTab('other', 'help-circle', 'Other / Unassigned', otherCount);
+          }
+
+          if (window.lucide) lucide.createIcons();
+        };
+
+        renderCourseTabs();
         
         let currentStatusFilter = '';
         const statusTabs = document.getElementById('statusTabs');
@@ -154,7 +223,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const filterData = () => {
           const searchTerm = (searchInput ? searchInput.value : '').toLowerCase();
-          const course = courseFilter ? courseFilter.value : '';
           const status = currentStatusFilter;
 
           const filtered = allStudents.filter(student => {
@@ -163,7 +231,14 @@ document.addEventListener('DOMContentLoaded', () => {
               (student.studentId && student.studentId.toLowerCase().includes(searchTerm)) || 
               (student.phone && student.phone.toLowerCase().includes(searchTerm));
             
-            const matchesCourse = !course || student.courseType === course;
+            let matchesCourse = true;
+            if (activeCourseId === 'other') {
+              matchesCourse = !managedCourses.some(c => studentMatchesCourse(student, c));
+            } else if (activeCourseId !== 'all') {
+              const selectedCourse = managedCourses.find(c => c.id === activeCourseId);
+              matchesCourse = studentMatchesCourse(student, selectedCourse);
+            }
+
             const matchesStatus = !status || (status === 'inactive' ? !isStudentActive(student) : isStudentActive(student));
 
             return matchesSearch && matchesCourse && matchesStatus;
@@ -173,7 +248,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         if (searchInput) searchInput.addEventListener('input', filterData);
-        if (courseFilter) courseFilter.addEventListener('change', filterData);
 
         renderTable(allStudents);
 
