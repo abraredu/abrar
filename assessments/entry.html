@@ -92,6 +92,86 @@
       flex-wrap: wrap;
       gap: 0.5rem;
     }
+    .assess-stepper-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 0.9rem 1.1rem;
+      display: none;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .assess-stepper-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .assess-stepper-badge {
+      background: #ecfdf5;
+      color: #087A42;
+      border: 1px solid #a7f3d0;
+      font-size: 0.74rem;
+      font-weight: 700;
+      padding: 0.2rem 0.65rem;
+      border-radius: 999px;
+    }
+    .assess-stepper-track {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      overflow-x: auto;
+      padding: 0.2rem 0;
+    }
+    .step-node {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.3rem;
+      flex-shrink: 0;
+    }
+    .step-dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      border: 2px solid #cbd5e1;
+      background: #ffffff;
+      color: #64748b;
+    }
+    .step-dot.done {
+      background: #087A42;
+      border-color: #087A42;
+      color: #ffffff;
+    }
+    .step-dot.current {
+      background: #ecfdf5;
+      border-color: #087A42;
+      color: #087A42;
+      box-shadow: 0 0 0 3px rgba(8, 122, 66, 0.16);
+    }
+    .step-lbl {
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: #64748b;
+      white-space: nowrap;
+    }
+    .step-line {
+      flex: 1;
+      min-width: 24px;
+      height: 3px;
+      background: #e2e8f0;
+      margin: 0 0.35rem 1.1rem;
+      border-radius: 99px;
+    }
+    .step-line.done {
+      background: #087A42;
+    }
     @media (max-width: 768px) {
       .subject-row {
         grid-template-columns: 1fr 1fr;
@@ -197,6 +277,15 @@
               </div>
             </div>
 
+            <!-- Assessment Count Stepper (Line & Dot & Line) -->
+            <div class="assess-stepper-box" id="assessStepperBox">
+              <div class="assess-stepper-head">
+                <span style="font-size: 0.8rem; font-weight: 700; color: #334155;">Assessment Progress</span>
+                <span class="assess-stepper-badge" id="assessStepperBadge">Assessment 1 of 1</span>
+              </div>
+              <div class="assess-stepper-track" id="assessStepperTrack"></div>
+            </div>
+
             <!-- Multiple Subjects Section -->
             <div>
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.65rem;">
@@ -248,7 +337,44 @@
       dateInp.value = new Date().toISOString().split('T')[0];
 
       const studentsMap = {};
+      const completedByStudent = {};
       let studentsList = [];
+
+      const renderStepper = (sid) => {
+        const box = document.getElementById('assessStepperBox');
+        const badge = document.getElementById('assessStepperBadge');
+        const track = document.getElementById('assessStepperTrack');
+        const s = studentsMap[sid];
+        if (!s) {
+          box.style.display = 'none';
+          return;
+        }
+        const doneCount = completedByStudent[sid] || completedByStudent[s.studentId] || 0;
+        const totalTarget = Math.max(parseInt(s.assessmentCount, 10) || 1, doneCount + 1);
+        const currentStep = Math.min(totalTarget, doneCount + 1);
+
+        badge.textContent = s.assessmentCount > 0
+          ? `Assessment ${currentStep} of ${s.assessmentCount} (${doneCount} completed)`
+          : `${doneCount} completed • Entering #${currentStep}`;
+
+        let html = '';
+        for (let i = 1; i <= totalTarget; i++) {
+          const isDone = i <= doneCount;
+          const isCurr = i === currentStep;
+          const cls = isDone ? 'done' : (isCurr ? 'current' : '');
+          html += `
+            <div class="step-node">
+              <div class="step-dot ${cls}">${isDone ? '✓' : i}</div>
+              <div class="step-lbl">A${i}</div>
+            </div>
+          `;
+          if (i < totalTarget) {
+            html += `<div class="step-line ${i <= doneCount ? 'done' : ''}"></div>`;
+          }
+        }
+        track.innerHTML = html;
+        box.style.display = 'flex';
+      };
 
       const renderDropdown = (queryStr = '') => {
         const q = queryStr.trim().toLowerCase();
@@ -277,6 +403,7 @@
         hiddenSid.value = id;
         searchInp.value = `${s.name || 'Unnamed'} (${s.studentId || s.regNo || '-'})`;
         dropdown.classList.remove('open');
+        renderStepper(id);
       };
 
       searchInp.addEventListener('focus', () => {
@@ -355,9 +482,19 @@
       addSubjectBtn.addEventListener('click', () => addSubjectRow());
       addSubjectRow();
 
-      // Load Students
+      // Load Students & Assessment Counts
       try {
-        const snap = await getDocs(collection(db, 'students'));
+        const [snap, assessSnap] = await Promise.all([
+          getDocs(collection(db, 'students')),
+          getDocs(collection(db, 'assessments'))
+        ]);
+        assessSnap.forEach(aDoc => {
+          const a = aDoc.data();
+          const k1 = a.studentDocId;
+          const k2 = a.studentId;
+          if (k1) completedByStudent[k1] = (completedByStudent[k1] || 0) + 1;
+          if (k2 && k2 !== k1) completedByStudent[k2] = (completedByStudent[k2] || 0) + 1;
+        });
         studentsList = [];
         snap.forEach(d => {
           const s = d.data();
@@ -428,8 +565,10 @@
             createdAt: serverTimestamp()
           });
           toast.success('Assessment entry saved!');
+          completedByStudent[sid] = (completedByStudent[sid] || 0) + 1;
           document.getElementById('entryForm').reset();
           hiddenSid.value = '';
+          renderStepper('');
           subjectsContainer.innerHTML = '';
           addSubjectRow();
           dateInp.value = new Date().toISOString().split('T')[0];
