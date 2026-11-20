@@ -307,6 +307,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     const acceptBtn = document.getElementById('acceptFeeBtn');
+    const generateReceiptBtn = document.getElementById('generateReceiptBtn');
+
+    if (generateReceiptBtn) {
+      if (studentPayments.length > 0) {
+        generateReceiptBtn.style.display = 'inline-flex';
+        const latestPay = studentPayments[studentPayments.length - 1];
+        generateReceiptBtn.onclick = () => openFeeReceiptModal(student, latestPay, actualPaid, waivedTotal, cycleLabel);
+      } else {
+        generateReceiptBtn.style.display = 'none';
+        generateReceiptBtn.onclick = null;
+      }
+    }
 
     function updateAcceptButtonUI() {
       if (holidayCheckbox && holidayCheckbox.checked) {
@@ -325,7 +337,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else {
           acceptBtn.disabled = false;
           acceptBtn.textContent = `Accept Outstanding Fee (${formatter.format(outstanding)})`;
-          acceptBtn.onclick = () => processFee(student, outstanding, monthlyFee, cycleLabel);
+          acceptBtn.onclick = () => openFeePayModal(student, outstanding, monthlyFee, cycleLabel);
         }
       }
     }
@@ -439,14 +451,36 @@ document.addEventListener('DOMContentLoaded', async () => {
     const targetAmount = outstanding > 0 ? outstanding : monthlyFee;
     document.getElementById('holidayCurrentOutstanding').textContent = formatter.format(targetAmount);
 
+    const priceGroup = document.getElementById('holidayPriceGroup');
     const priceInput = document.getElementById('holidayPriceInput');
     const reasonInput = document.getElementById('holidayReasonInput');
     const dateInput = document.getElementById('holidayDateInput');
     const waiveNote = document.getElementById('holidayWaiveNote');
+    const modeRadios = document.querySelectorAll('input[name="holidayModeToggle"]');
 
     reasonInput.value = '';
     priceInput.value = '0';
     dateInput.value = todayStr;
+
+    const applyHolidayMode = () => {
+      const selectedMode = document.querySelector('input[name="holidayModeToggle"]:checked')?.value || 'pass';
+      if (selectedMode === 'pass') {
+        if (priceGroup) priceGroup.style.display = 'none';
+        priceInput.value = '0';
+        priceInput.required = false;
+      } else {
+        if (priceGroup) priceGroup.style.display = 'block';
+        priceInput.required = true;
+        if (priceInput.value === '0') priceInput.value = '';
+        setTimeout(() => priceInput.focus(), 50);
+      }
+      updateWaiveNote();
+    };
+
+    modeRadios.forEach(r => {
+      r.checked = r.value === 'pass';
+      r.onchange = applyHolidayMode;
+    });
 
     function updateWaiveNote() {
       const enteredPrice = parseFloat(priceInput.value) || 0;
@@ -455,7 +489,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     priceInput.oninput = updateWaiveNote;
-    updateWaiveNote();
+    applyHolidayMode();
 
     holidayModal.style.display = 'flex';
     if (window.lucide) lucide.createIcons();
@@ -561,7 +595,100 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  async function processFee(student, payAmount, expected, billingCycleParam) {
+  function openFeePayModal(student, outstanding, monthlyFee, cycleLabel) {
+    const payModal = document.getElementById('feePayModal');
+    const payForm = document.getElementById('feePayForm');
+    const closeBtn = document.getElementById('closeFeePayModalBtn');
+    const cancelBtn = document.getElementById('cancelFeePayBtn');
+    const amtInp = document.getElementById('payFeeAmountInput');
+    const descInp = document.getElementById('payFeeDescInput');
+    const dateInp = document.getElementById('payFeeDateInput');
+    const methodSel = document.getElementById('payFeeMethodInput');
+    const subEl = document.getElementById('feePaySubtitle');
+
+    if (!payModal || !payForm) {
+      processFee(student, outstanding, monthlyFee, cycleLabel);
+      return;
+    }
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    if (subEl) subEl.textContent = `${student.name} (${student.studentId || '-'}) • ${cycleLabel}`;
+    amtInp.value = outstanding;
+    amtInp.max = outstanding;
+    descInp.value = `Fee payment for ${student.name} (${cycleLabel})`;
+    dateInp.value = todayStr;
+
+    const closePayModal = () => { payModal.style.display = 'none'; };
+    if (closeBtn) closeBtn.onclick = closePayModal;
+    if (cancelBtn) cancelBtn.onclick = closePayModal;
+    payModal.onclick = (e) => { if (e.target === payModal) closePayModal(); };
+
+    payModal.style.display = 'flex';
+    if (window.lucide) lucide.createIcons();
+
+    payForm.onsubmit = async (e) => {
+      e.preventDefault();
+      const payAmt = parseFloat(amtInp.value);
+      const desc = descInp.value.trim() || `Fee payment for ${student.name} (${cycleLabel})`;
+      if (isNaN(payAmt) || payAmt <= 0) {
+        toast.error('Please enter a valid payment amount.');
+        return;
+      }
+      closePayModal();
+      await processFee(student, payAmt, monthlyFee, cycleLabel, desc, dateInp.value || todayStr, methodSel.value || 'Cash');
+    };
+  }
+
+  function openFeeReceiptModal(student, latestPay, totalPaid, totalWaived, cycleLabel) {
+    const rcpModal = document.getElementById('feeReceiptModal');
+    const closeBtn = document.getElementById('closeFeeReceiptBtn');
+    const dlBtn = document.getElementById('downloadReceiptImgBtn');
+    if (!rcpModal) return;
+
+    document.getElementById('rcpNumber').textContent = latestPay?.receiptNumber || 'ABR-RCP-000001';
+    document.getElementById('rcpStudentName').textContent = student.name || '-';
+    document.getElementById('rcpStudentId').textContent = student.studentId || '-';
+    document.getElementById('rcpCycle').textContent = cycleLabel || latestPay?.billingCycle || '-';
+    document.getElementById('rcpDate').textContent = latestPay?.paymentDate || '-';
+    document.getElementById('rcpMethod').textContent = latestPay?.paymentMethod || 'Cash';
+    document.getElementById('rcpDesc').textContent = latestPay?.description || latestPay?.holidayReason || `Fee payment (${cycleLabel})`;
+    document.getElementById('rcpWaived').textContent = formatter.format(totalWaived || 0);
+    document.getElementById('rcpPaid').textContent = formatter.format(totalPaid || 0);
+
+    if (closeBtn) closeBtn.onclick = () => { rcpModal.style.display = 'none'; };
+    rcpModal.onclick = (e) => { if (e.target === rcpModal) rcpModal.style.display = 'none'; };
+
+    if (dlBtn) {
+      dlBtn.onclick = async () => {
+        const sheet = document.getElementById('feeReceiptPrintable');
+        const noPrints = sheet.querySelectorAll('.no-print');
+        dlBtn.disabled = true;
+        dlBtn.textContent = 'Generating...';
+        try {
+          noPrints.forEach(el => el.style.display = 'none');
+          const canvas = await window.html2canvas(sheet, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false });
+          noPrints.forEach(el => el.style.display = '');
+          const link = document.createElement('a');
+          link.download = `Receipt_${(student.name || 'Student').trim().replace(/\s+/g, '_')}.png`;
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+        } catch (err) {
+          noPrints.forEach(el => el.style.display = '');
+          console.error(err);
+          toast.error('Failed to generate receipt image.');
+        } finally {
+          dlBtn.disabled = false;
+          dlBtn.innerHTML = '<i data-lucide="image" style="width: 16px; height: 16px;"></i> Download Receipt Image';
+          if (window.lucide) lucide.createIcons();
+        }
+      };
+    }
+
+    rcpModal.style.display = 'flex';
+    if (window.lucide) lucide.createIcons();
+  }
+
+  async function processFee(student, payAmount, expected, billingCycleParam, customDesc, customDate, customMethod) {
     const studentDocId = student.id;
     const btn = document.getElementById('acceptFeeBtn');
     btn.disabled = true;
@@ -570,7 +697,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const billingMonth = monthSelector.value;
     const cycleDateStr = getCycleDateString(student, billingMonth);
     const billingCycle = billingCycleParam || formatBillingCycle(student, billingMonth, cycleDateStr);
-    const payDate = new Date().toISOString().split('T')[0];
+    const payDate = customDate || new Date().toISOString().split('T')[0];
+    const payMethod = customMethod || 'Cash';
+    const descText = customDesc || `Fee payment for ${student.name} (${billingCycle})`;
     
     try {
       const counterRef = doc(db, 'counters', 'receipts');
@@ -591,14 +720,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         tx.set(paymentRef, {
           receiptNumber, studentId: studentDocId, billingMonth, billingCycle,
           expectedAmount: expected, paidAmount: payAmount, waivedAmount: 0,
-          isVacationLeave: false, isHoliday: false, paymentMethod: 'Cash', paymentDate: payDate,
+          description: descText,
+          isVacationLeave: false, isHoliday: false, paymentMethod: payMethod, paymentDate: payDate,
           transactionId: transRef.id,
           createdAt: serverTimestamp(), createdBy: auth.currentUser ? auth.currentUser.uid : 'system'
         });
 
         tx.set(transRef, {
           date: payDate, type: 'income', category: 'Student Fee',
-          description: `Fee payment for ${student.name} (${billingCycle})`, amount: payAmount,
+          description: descText, amount: payAmount,
           studentId: studentDocId, paymentId: paymentRef.id, referenceNumber: receiptNumber,
           createdBy: auth.currentUser ? auth.currentUser.uid : 'system', createdAt: serverTimestamp()
         });
