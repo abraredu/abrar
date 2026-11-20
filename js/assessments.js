@@ -45,15 +45,21 @@ document.addEventListener('DOMContentLoaded', () => {
           console.warn("Using default assessment settings:", e);
         }
 
-        // Fetch recorded assessments to find each student's latest evaluation date
+        // Fetch recorded assessments to find each student's latest evaluation date & completed count
         const lastAssessmentByStudent = {};
+        const completedCountByStudent = {};
         try {
           const assessSnap = await getDocs(collection(db, "assessments"));
           assessSnap.forEach(aDoc => {
             const a = aDoc.data();
+            const k1 = a.studentDocId;
+            const k2 = a.studentId;
+            if (k1) completedCountByStudent[k1] = (completedCountByStudent[k1] || 0) + 1;
+            if (k2 && k2 !== k1) completedCountByStudent[k2] = (completedCountByStudent[k2] || 0) + 1;
+
             const d = a.date ? new Date(a.date) : null;
             if (d && !isNaN(d.getTime())) {
-              const key = a.studentDocId || a.studentId;
+              const key = k1 || k2;
               if (key && (!lastAssessmentByStudent[key] || d > lastAssessmentByStudent[key])) {
                 lastAssessmentByStudent[key] = d;
               }
@@ -133,9 +139,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
           }
 
+          const completedCount = completedCountByStudent[docSnap.id] || completedCountByStudent[data.studentId] || 0;
+
           allStudents.push({ 
             id: docSnap.id, 
             ...data, 
+            completedCount,
             nextAssessmentDate, 
             daysLeft, 
             progressPercent, 
@@ -296,10 +305,47 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                   </div>
                   <div>
-                    <div style="font-size: 0.8rem; font-weight: 600; color: #334155;">${timerText}</div>
-                    <div class="timer-container">
-                      <div class="timer-bar ${barClass}" style="width: ${barWidth}%"></div>
-                    </div>
+                    <div style="font-size: 0.78rem; font-weight: 600; color: #334155;">${timerText}</div>
+                    ${(() => {
+                      const doneCnt = data.completedCount || 0;
+                      const targetCnt = Math.max(parseInt(data.assessmentCount, 10) || 1, doneCnt + 1);
+                      const currStep = Math.min(targetCnt, doneCnt + 1);
+                      let trackHtml = '';
+                      for (let i = 1; i <= targetCnt; i++) {
+                        const isDone = i <= doneCnt;
+                        const isCurr = i === currStep;
+                        const dotCls = isDone ? 'done' : (isCurr ? `current ${barClass}` : '');
+                        trackHtml += `
+                          <div class="card-step-node">
+                            <div class="card-step-dot ${dotCls}">${isDone ? '✓' : i}</div>
+                            <div class="card-step-lbl">A${i}</div>
+                          </div>
+                        `;
+                        if (i < targetCnt) {
+                          const lineIsDone = i < currStep;
+                          const lineIsCurr = i === currStep - 1 || (currStep === 1 && i === 1);
+                          const fillPct = lineIsDone ? 100 : (i === currStep - 1 || (currStep === 1 && i === 1) ? barWidth : 0);
+                          const fillCls = lineIsDone ? 'done' : (fillPct > 0 ? barClass : '');
+                          trackHtml += `
+                            <div class="card-step-line">
+                              <div class="card-step-fill ${fillCls}" style="width: ${fillPct}%;"></div>
+                            </div>
+                          `;
+                        }
+                      }
+                      if (targetCnt === 1) {
+                        trackHtml = `
+                          <div class="card-step-node">
+                            <div class="card-step-dot ${doneCnt >= 1 ? 'done' : `current ${barClass}`}">${doneCnt >= 1 ? '✓' : '1'}</div>
+                            <div class="card-step-lbl">A1</div>
+                          </div>
+                          <div class="card-step-line">
+                            <div class="card-step-fill ${doneCnt >= 1 ? 'done' : barClass}" style="width: ${doneCnt >= 1 ? 100 : barWidth}%;"></div>
+                          </div>
+                        `;
+                      }
+                      return `<div class="card-stepper-track">${trackHtml}</div>`;
+                    })()}
                   </div>
                   <div class="assess-footer">
                     ${(data.assessmentMonths > 0 && data.assessmentCount > 0)

@@ -250,6 +250,80 @@
       gap: 0.75rem;
       padding-top: 0.25rem;
     }
+
+    /* Card Assessment Line-Dot-Progress Stepper */
+    .card-stepper-track {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      margin-top: 0.55rem;
+    }
+    .card-step-node {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      flex-shrink: 0;
+    }
+    .card-step-dot {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      font-weight: 800;
+      border: 2px solid #cbd5e1;
+      background: #ffffff;
+      color: #64748b;
+    }
+    .card-step-dot.done {
+      background: #087A42;
+      border-color: #087A42;
+      color: #ffffff;
+    }
+    .card-step-dot.current.safe {
+      background: #ecfdf5;
+      border-color: #10b981;
+      color: #047857;
+      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+    }
+    .card-step-dot.current.warning {
+      background: #fffbeb;
+      border-color: #f59e0b;
+      color: #b45309;
+      box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.22);
+    }
+    .card-step-dot.current.danger {
+      background: #fef2f2;
+      border-color: #ef4444;
+      color: #dc2626;
+      box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.22);
+    }
+    .card-step-lbl {
+      font-size: 0.62rem;
+      font-weight: 700;
+      color: #64748b;
+    }
+    .card-step-line {
+      flex: 1;
+      height: 5px;
+      background: #e2e8f0;
+      border-radius: 99px;
+      margin: 0 0.3rem 0.9rem;
+      overflow: hidden;
+      min-width: 14px;
+    }
+    .card-step-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width 0.3s ease;
+    }
+    .card-step-fill.done { background: #087A42; width: 100%; }
+    .card-step-fill.safe { background: #10b981; }
+    .card-step-fill.warning { background: #f59e0b; }
+    .card-step-fill.danger { background: #ef4444; }
   </style>
 </head>
 <body>
