@@ -135,7 +135,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           daysAway: diffDays
         };
 
-        if (diffDays >= 0 && diffDays <= 7) {
+        if (diffDays >= 0 && diffDays <= 3) {
           allUpcoming.push(notifyData);
         } 
         else if (diffDays < 0 && diffDays > -30) {
@@ -178,7 +178,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function renderTable(container, dataList, type) {
     if (dataList.length === 0) {
-      const msg = type === 'upcoming' ? 'No upcoming payments in the next 7 days.' : 'No overdue payments this month!';
+      const msg = type === 'upcoming' ? 'No upcoming payments in the next 3 days.' : 'No overdue payments this month!';
       container.innerHTML = `<div style="text-align: center; padding: 2.5rem 1rem; color: #64748b; font-size: 0.875rem;">${msg}</div>`;
       return;
     }
