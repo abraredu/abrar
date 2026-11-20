@@ -42,6 +42,7 @@ function initSalariesPage() {
   let currentTutors = [];
   let currentStudents = [];
   let currentSalaryPayments = [];
+  let currentFeePayments = [];
   let currentMonthlyClasses = {};
   let currentSalaryConfigs = [];
 
@@ -58,10 +59,11 @@ function initSalariesPage() {
     const selectedMonth = monthSelector.value;
     
     try {
-      const [tutorsSnap, studentsSnap, paymentsSnap, classesSnap, configsSnap] = await Promise.all([
+      const [tutorsSnap, studentsSnap, paymentsSnap, feePaymentsSnap, classesSnap, configsSnap] = await Promise.all([
         getDocs(query(collection(db, "tutors"), where("status", "==", "active"))),
         getDocs(query(collection(db, "students"), where("status", "==", "active"))),
         getDocs(query(collection(db, "salaryPayments"), where("month", "==", selectedMonth))),
+        getDocs(query(collection(db, "feePayments"), where("month", "==", selectedMonth))),
         getDocs(query(collection(db, "tutorMonthlyClasses"), where("month", "==", selectedMonth))),
         getDocs(query(collection(db, "tutorSalaryConfigs"), where("month", "==", selectedMonth)))
       ]);
@@ -74,6 +76,9 @@ function initSalariesPage() {
 
       currentSalaryPayments = [];
       paymentsSnap.forEach(doc => currentSalaryPayments.push({ id: doc.id, ...doc.data() }));
+
+      currentFeePayments = [];
+      feePaymentsSnap.forEach(doc => currentFeePayments.push({ id: doc.id, ...doc.data() }));
 
       currentMonthlyClasses = {};
       classesSnap.forEach(doc => {
@@ -549,20 +554,24 @@ function initSalariesPage() {
 
   let manualModalConfigs = [];
   let manualModalPayments = [];
+  let manualModalFeePayments = [];
 
   async function loadManualModalMonthData(targetMonth) {
     if (!targetMonth) return;
     if (targetMonth === monthSelector.value) {
       manualModalConfigs = [...currentSalaryConfigs];
       manualModalPayments = [...currentSalaryPayments];
+      manualModalFeePayments = [...currentFeePayments];
       return;
     }
-    const [cfgSnap, paySnap] = await Promise.all([
+    const [cfgSnap, paySnap, feeSnap] = await Promise.all([
       getDocs(query(collection(db, "tutorSalaryConfigs"), where("month", "==", targetMonth))),
-      getDocs(query(collection(db, "salaryPayments"), where("month", "==", targetMonth)))
+      getDocs(query(collection(db, "salaryPayments"), where("month", "==", targetMonth))),
+      getDocs(query(collection(db, "feePayments"), where("month", "==", targetMonth)))
     ]);
     manualModalConfigs = cfgSnap.docs.map(d => ({ id: d.id, ...d.data() }));
     manualModalPayments = paySnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    manualModalFeePayments = feeSnap.docs.map(d => ({ id: d.id, ...d.data() }));
   }
 
   function getConfigSource(config) {
@@ -636,14 +645,22 @@ function initSalariesPage() {
     manualStudentsList.innerHTML = assignedStudents.map(student => {
       const existingConfig = manualModalConfigs.find(c => c.tutorId === tutor.id && c.studentId === student.id);
       const feeConfigForStudent = manualModalConfigs.find(c => c.studentId === student.id && getConfigSource(c) === 'fees');
+      const studentFeePayments = manualModalFeePayments.filter(p => p.studentId === student.id);
+      const totalWaived = studentFeePayments.reduce((sum, p) => sum + (p.waivedAmount || 0), 0);
+      const isHolidayWaived = studentFeePayments.some(p => p.isHoliday || p.isVacationLeave);
+      const isWaived = totalWaived > 0 || isHolidayWaived;
+
       const source = existingConfig ? getConfigSource(existingConfig) : null;
       const isFromFees = Boolean(feeConfigForStudent) || (existingConfig && source === 'fees');
       const isAlreadyPaid = existingConfig && paidConfigIds.has(existingConfig.id);
-      const isLocked = isFromFees || isAlreadyPaid;
+      const isLocked = isFromFees || isAlreadyPaid || isWaived;
 
       let statusBadge = '';
       if (isAlreadyPaid) {
         statusBadge = `<span style="font-size: 0.7rem; font-weight: 600; background: #dcfce7; color: #15803d; padding: 0.15rem 0.5rem; border-radius: 99px;">Paid (${formatter.format(existingConfig.amount || 0)})</span>`;
+      } else if (isWaived) {
+        const waivedLabel = totalWaived > 0 ? `Waived (${formatter.format(totalWaived)})` : 'Waived / Leave';
+        statusBadge = `<span style="font-size: 0.7rem; font-weight: 600; background: #ede9fe; color: #6d28d9; padding: 0.15rem 0.5rem; border-radius: 99px;">${waivedLabel}</span>`;
       } else if (isFromFees) {
         const feeAmt = feeConfigForStudent ? feeConfigForStudent.amount : (existingConfig ? existingConfig.amount : 0);
         statusBadge = `<span style="font-size: 0.7rem; font-weight: 600; background: #fef3c7; color: #b45309; padding: 0.15rem 0.5rem; border-radius: 99px;">Set from Fees (${formatter.format(feeAmt || 0)})</span>`;
@@ -826,9 +843,11 @@ function initSalariesPage() {
 
       try {
         await Promise.all(selectedRows.map(item => {
-          // Double-check one-side-only rule per student per month cycle
+          // Double-check one-side-only and waived-cycle rules per student per month cycle
           const existingFeeForStudent = manualModalConfigs.find(c => c.studentId === item.studentId && getConfigSource(c) === 'fees');
-          if (existingFeeForStudent) {
+          const studentFeePays = manualModalFeePayments.filter(p => p.studentId === item.studentId);
+          const isWaivedForCycle = studentFeePays.some(p => (p.waivedAmount || 0) > 0 || p.isHoliday || p.isVacationLeave);
+          if (existingFeeForStudent || isWaivedForCycle) {
             return Promise.resolve();
           }
           const docRef = item.configId
