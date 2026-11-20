@@ -1,5 +1,5 @@
 import { db } from './firebase-config.js';
-import { collection, getDocs, query, orderBy, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { collection, getDocs, query, orderBy, getDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 document.addEventListener('DOMContentLoaded', async () => {
   const dataGrid = document.getElementById('dataGrid');
@@ -39,10 +39,31 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   let currentReportStudent = "Student";
 
-  // Handle View Button Clicks
-  dataGrid.addEventListener('click', (e) => {
+  // Handle View & Delete Button Clicks
+  dataGrid.addEventListener('click', async (e) => {
+    const delBtn = e.target.closest('.delete-report-btn');
+    if (delBtn) {
+      e.preventDefault();
+      const reportId = delBtn.getAttribute('data-id');
+      const report = allReports.find(r => r.id === reportId);
+      const label = report ? `${report.studentName || 'this student'} (${report.reportMonth || ''})` : 'this report';
+      if (!confirm(`Delete progress report for ${label}?`)) return;
+      try {
+        delBtn.disabled = true;
+        await deleteDoc(doc(db, 'progress_reports', reportId));
+        allReports = allReports.filter(r => r.id !== reportId);
+        renderTable();
+      } catch (err) {
+        console.error('Error deleting report:', err);
+        alert('Failed to delete report: ' + err.message);
+        delBtn.disabled = false;
+      }
+      return;
+    }
+
     const viewBtn = e.target.closest('.view-btn');
     if (viewBtn) {
+      e.preventDefault();
       const reportId = viewBtn.getAttribute('data-id');
       const report = allReports.find(r => r.id === reportId);
       if (report) {
@@ -195,9 +216,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             <span>Tutor: <span style="text-transform: uppercase;">${report.tutorName || '-'}</span></span>
           </div>
           
-          <a href="#" class="view-btn" data-id="${report.id}" style="color: #0d9488; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 0.25rem;">
-            View Report <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i>
-          </a>
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;">
+            <a href="#" class="view-btn" data-id="${report.id}" style="color: #0d9488; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 0.25rem;">
+              View Report <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i>
+            </a>
+            <button type="button" class="delete-report-btn" data-id="${report.id}" title="Delete Report" style="background: #fef2f2; color: #ef4444; border: 1px solid #fecaca; border-radius: 8px; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s;">
+              <i data-lucide="trash-2" style="width: 15px; height: 15px;"></i>
+            </button>
+          </div>
         </div>
       `;
     });
