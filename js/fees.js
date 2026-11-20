@@ -350,23 +350,47 @@ document.addEventListener('DOMContentLoaded', async () => {
     const tbody = document.getElementById('tutorsListBody');
     tbody.innerHTML = '';
     
+    const findTutorsByVal = (val) => {
+      if (!val) return [];
+      const parts = String(val).split(',').map(p => p.trim().toLowerCase()).filter(Boolean);
+      const matched = [];
+      parts.forEach(token => {
+        const t = allTutors.find(tutor => {
+          const docId = String(tutor.id || '').trim().toLowerCase();
+          const code = String(tutor.tutorId || '').trim().toLowerCase();
+          const name = String(tutor.name || '').trim().toLowerCase();
+          return (docId && docId === token) || (code && code === token) || (name && name === token);
+        });
+        if (t && !matched.some(m => m.id === t.id)) {
+          matched.push(t);
+        }
+      });
+      return matched;
+    };
+
     let studentTutors = [];
-    if (student.courseTutors) {
-       for (const [courseName, tid] of Object.entries(student.courseTutors)) {
-          const t = allTutors.find(t => t.id === tid);
-          if (t && !studentTutors.some(existing => existing.id === t.id)) {
-             t.assignedCourse = courseName;
-             studentTutors.push(t);
-          }
-       }
-    } else if (student.tutorIds && Array.isArray(student.tutorIds)) {
-       student.tutorIds.forEach(tid => {
-          const t = allTutors.find(t => t.id === tid);
-          if (t) studentTutors.push(t);
-       });
-    } else if (student.tutorId) {
-       const t = allTutors.find(t => t.id === student.tutorId);
-       if (t) studentTutors.push(t);
+    const addMatchedTutor = (t, courseName = '') => {
+      if (!t) return;
+      const existing = studentTutors.find(x => x.id === t.id);
+      if (!existing) {
+        studentTutors.push({ ...t, assignedCourse: courseName || t.assignedCourse || '' });
+      } else if (courseName && !existing.assignedCourse) {
+        existing.assignedCourse = courseName;
+      }
+    };
+
+    if (student.courseTutors && typeof student.courseTutors === 'object') {
+      for (const [courseName, tid] of Object.entries(student.courseTutors)) {
+        findTutorsByVal(tid).forEach(t => addMatchedTutor(t, courseName));
+      }
+    }
+    if (Array.isArray(student.tutorIds)) {
+      student.tutorIds.forEach(tid => {
+        findTutorsByVal(tid).forEach(t => addMatchedTutor(t));
+      });
+    }
+    if (student.tutorId) {
+      findTutorsByVal(student.tutorId).forEach(t => addMatchedTutor(t));
     }
     
     if(studentTutors.length === 0) {
