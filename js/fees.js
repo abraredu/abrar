@@ -387,7 +387,7 @@ document.addEventListener('DOMContentLoaded', async () => {
        
        const existingConfig = currentSalaryConfigs.find(c => c.tutorId === tutor.id && c.studentId === student.id);
        const configAmount = existingConfig ? existingConfig.amount : 0;
-       const isManualConfig = existingConfig && existingConfig.source === 'manual';
+       const isManualConfig = currentSalaryConfigs.some(c => c.studentId === student.id && c.source === 'manual');
        
        const courseLabel = tutor.assignedCourse ? `<br><small style="color:var(--color-primary);">${tutor.assignedCourse}</small>` : '';
        const tr = document.createElement('tr');
@@ -748,9 +748,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   async function processSalary(tutorDocId, amount, btnEl, student, configId) {
-    const existing = currentSalaryConfigs.find(c => c.tutorId === tutorDocId && c.studentId === student.id);
-    if (existing && existing.source === 'manual') {
-      toast.error('This tutor salary is already set via Manual Salary.');
+    const existingManual = currentSalaryConfigs.find(c => c.studentId === student.id && c.source === 'manual');
+    if (existingManual) {
+      toast.error('This student salary is already set via Manual Salary for this month cycle.');
       return;
     }
 
