@@ -578,11 +578,26 @@ function initSalariesPage() {
     return (config && config.source) ? config.source : 'fees';
   }
 
-  function isStudentAssignedToTutor(student, tutorDocId) {
-    if (!student || !tutorDocId) return false;
-    if (student.courseTutors && Object.values(student.courseTutors).includes(tutorDocId)) return true;
-    if (Array.isArray(student.tutorIds) && student.tutorIds.includes(tutorDocId)) return true;
-    if (student.tutorId === tutorDocId) return true;
+  function isStudentAssignedToTutor(student, tutor) {
+    if (!student || !tutor) return false;
+    const docId = String(tutor.id || '').trim().toLowerCase();
+    const code = String(tutor.tutorId || '').trim().toLowerCase();
+    const name = String(tutor.name || '').trim().toLowerCase();
+
+    const matchesToken = (val) => {
+      if (!val) return false;
+      const str = String(val).trim().toLowerCase();
+      if (!str) return false;
+      const parts = str.split(',').map(p => p.trim()).filter(Boolean);
+      if (docId && (str === docId || parts.includes(docId))) return true;
+      if (code && (str === code || parts.includes(code))) return true;
+      if (name && (str === name || parts.includes(name) || str.includes(name))) return true;
+      return false;
+    };
+
+    if (student.courseTutors && Object.values(student.courseTutors).some(matchesToken)) return true;
+    if (Array.isArray(student.tutorIds) && student.tutorIds.some(matchesToken)) return true;
+    if (matchesToken(student.tutorId)) return true;
     return false;
   }
 
@@ -627,7 +642,7 @@ function initSalariesPage() {
     manualSelectAllStudents.checked = false;
     manualDefaultAmount.value = tutor.salaryRate > 0 ? tutor.salaryRate : '';
 
-    const assignedStudents = currentStudents.filter(s => isStudentAssignedToTutor(s, tutor.id));
+    const assignedStudents = currentStudents.filter(s => isStudentAssignedToTutor(s, tutor));
     const tutorPayments = manualModalPayments.filter(p => p.tutorId === tutor.id);
     const paidConfigIds = new Set();
     tutorPayments.forEach(p => {
