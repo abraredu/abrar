@@ -109,22 +109,40 @@
           </div>
         </section>
 
-        <!-- Notifications: Overdue & 2-Day Reminders -->
-        <div id="leaveAlertsContainer" style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.25rem;">
-          <div id="overdueAlertBox" style="display: none; background: #fef2f2; border: 1px solid #fecaca; border-left: 4px solid #dc2626; border-radius: 10px; padding: 1rem 1.25rem;">
-            <div style="display: flex; align-items: center; gap: 0.5rem; font-weight: 700; color: #991b1b; margin-bottom: 0.5rem;">
-              <i data-lucide="alert-octagon" style="width: 18px; height: 18px;"></i>
-              <span id="overdueAlertTitle">Overdue Leave Notifications</span>
+        <!-- Notifications: Overdue & 2-Day Reminders (Side-by-Side Cards) -->
+        <div id="leaveAlertsContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-bottom: 1.25rem;">
+          <!-- Overdue Card -->
+          <div id="overdueAlertBox" style="background: #ffffff; border: 1px solid #fecaca; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);">
+            <div style="background: #fef2f2; padding: 0.9rem 1.25rem; border-bottom: 1px solid #fecaca; display: flex; justify-content: space-between; align-items: center; gap: 0.75rem;">
+              <div>
+                <div style="display: flex; align-items: center; gap: 0.45rem; font-weight: 700; font-size: 0.95rem; color: #b91c1c;">
+                  <i data-lucide="alert-triangle" style="width: 17px; height: 17px;"></i>
+                  <span>Overdue Leave</span>
+                </div>
+                <div style="font-size: 0.75rem; color: #dc2626; margin-top: 0.15rem;">Passed leave return date</div>
+              </div>
+              <span id="overdueAlertCount" style="background: #fee2e2; color: #b91c1c; font-weight: 700; font-size: 0.78rem; padding: 0.2rem 0.65rem; border-radius: 99px; min-width: 28px; text-align: center;">0</span>
             </div>
-            <div id="overdueAlertList" style="display: flex; flex-direction: column; gap: 0.45rem;"></div>
+            <div id="overdueAlertList" style="padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: 0.5rem; max-height: 220px; overflow-y: auto;">
+              <div style="text-align: center; color: #94a3b8; font-size: 0.85rem; padding: 0.75rem 0;">Loading...</div>
+            </div>
           </div>
 
-          <div id="twoDayAlertBox" style="display: none; background: #fffbeb; border: 1px solid #fde68a; border-left: 4px solid #d97706; border-radius: 10px; padding: 1rem 1.25rem;">
-            <div style="display: flex; align-items: center; gap: 0.5rem; font-weight: 700; color: #92400e; margin-bottom: 0.5rem;">
-              <i data-lucide="clock" style="width: 18px; height: 18px;"></i>
-              <span id="twoDayAlertTitle">Leave Ending Within 2 Days</span>
+          <!-- Ending Within 2 Days Card -->
+          <div id="twoDayAlertBox" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);">
+            <div style="background: #f8fafc; padding: 0.9rem 1.25rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; gap: 0.75rem;">
+              <div>
+                <div style="display: flex; align-items: center; gap: 0.45rem; font-weight: 700; font-size: 0.95rem; color: #0f172a;">
+                  <i data-lucide="clock" style="width: 17px; height: 17px; color: #0284c7;"></i>
+                  <span>Ending Soon (Next 2 Days)</span>
+                </div>
+                <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.15rem;">Leave ending today or within 2 days</div>
+              </div>
+              <span id="twoDayAlertCount" style="background: #e0f2fe; color: #0369a1; font-weight: 700; font-size: 0.78rem; padding: 0.2rem 0.65rem; border-radius: 99px; min-width: 28px; text-align: center;">0</span>
             </div>
-            <div id="twoDayAlertList" style="display: flex; flex-direction: column; gap: 0.45rem;"></div>
+            <div id="twoDayAlertList" style="padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: 0.5rem; max-height: 220px; overflow-y: auto;">
+              <div style="text-align: center; color: #94a3b8; font-size: 0.85rem; padding: 0.75rem 0;">Loading...</div>
+            </div>
           </div>
         </div>
 

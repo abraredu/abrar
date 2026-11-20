@@ -25,11 +25,9 @@ function initLeavePage() {
   const statusFilter = document.getElementById('statusFilter');
   const leavesTableBody = document.getElementById('leavesTableBody');
 
-  const overdueAlertBox = document.getElementById('overdueAlertBox');
-  const overdueAlertTitle = document.getElementById('overdueAlertTitle');
+  const overdueAlertCount = document.getElementById('overdueAlertCount');
   const overdueAlertList = document.getElementById('overdueAlertList');
-  const twoDayAlertBox = document.getElementById('twoDayAlertBox');
-  const twoDayAlertTitle = document.getElementById('twoDayAlertTitle');
+  const twoDayAlertCount = document.getElementById('twoDayAlertCount');
   const twoDayAlertList = document.getElementById('twoDayAlertList');
 
   let allStudents = [];
@@ -237,15 +235,14 @@ function initLeavePage() {
     document.getElementById('statTwoDayLeaves').textContent = twoDayItems.length;
     document.getElementById('statOverdueLeaves').textContent = overdueItems.length;
 
+    if (overdueAlertCount) overdueAlertCount.textContent = overdueItems.length;
     if (overdueItems.length > 0) {
-      overdueAlertBox.style.display = 'block';
-      overdueAlertTitle.textContent = `Overdue Leave Notifications (${overdueItems.length})`;
       overdueAlertList.innerHTML = overdueItems.map(({ leave, info }) => `
-        <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap; background: rgba(255,255,255,0.75); padding: 0.5rem 0.75rem; border-radius: 6px; font-size: 0.85rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap; background: #fef2f2; border: 1px solid #fecaca; padding: 0.55rem 0.75rem; border-radius: 8px; font-size: 0.85rem;">
           <div>
             <strong style="color: #991b1b;">${leave.studentName || '-'}</strong>
-            <span style="color: #64748b;">(${leave.studentCode || ''})</span> —
-            <span style="color: #dc2626; font-weight: 600;">${info.detail}</span>
+            <span style="color: #64748b;">(${leave.studentCode || ''})</span><br>
+            <span style="color: #dc2626; font-size: 0.78rem; font-weight: 600;">${info.detail}</span>
           </div>
           <div style="display: flex; gap: 0.4rem;">
             <button type="button" class="btn btn-outline alert-edit-btn" data-id="${leave.id}" style="padding: 0.2rem 0.55rem; font-size: 0.75rem;">Edit</button>
@@ -254,18 +251,17 @@ function initLeavePage() {
         </div>
       `).join('');
     } else {
-      overdueAlertBox.style.display = 'none';
+      overdueAlertList.innerHTML = '<div style="text-align: center; color: #94a3b8; font-size: 0.85rem; padding: 0.75rem 0;">No overdue leaves.</div>';
     }
 
+    if (twoDayAlertCount) twoDayAlertCount.textContent = twoDayItems.length;
     if (twoDayItems.length > 0) {
-      twoDayAlertBox.style.display = 'block';
-      twoDayAlertTitle.textContent = `Leave Ending Within 2 Days (${twoDayItems.length})`;
       twoDayAlertList.innerHTML = twoDayItems.map(({ leave, info }) => `
-        <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap; background: rgba(255,255,255,0.75); padding: 0.5rem 0.75rem; border-radius: 6px; font-size: 0.85rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap; background: #f8fafc; border: 1px solid #e2e8f0; padding: 0.55rem 0.75rem; border-radius: 8px; font-size: 0.85rem;">
           <div>
-            <strong style="color: #92400e;">${leave.studentName || '-'}</strong>
-            <span style="color: #64748b;">(${leave.studentCode || ''})</span> —
-            <span style="color: #b45309; font-weight: 600;">${info.detail}</span>
+            <strong style="color: #0f172a;">${leave.studentName || '-'}</strong>
+            <span style="color: #64748b;">(${leave.studentCode || ''})</span><br>
+            <span style="color: #0284c7; font-size: 0.78rem; font-weight: 600;">${info.detail}</span>
           </div>
           <div style="display: flex; gap: 0.4rem;">
             <button type="button" class="btn btn-outline alert-edit-btn" data-id="${leave.id}" style="padding: 0.2rem 0.55rem; font-size: 0.75rem;">Edit</button>
@@ -274,7 +270,7 @@ function initLeavePage() {
         </div>
       `).join('');
     } else {
-      twoDayAlertBox.style.display = 'none';
+      twoDayAlertList.innerHTML = '<div style="text-align: center; color: #94a3b8; font-size: 0.85rem; padding: 0.75rem 0;">No leaves ending within 2 days.</div>';
     }
   }
 
