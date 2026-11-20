@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assessment Entry - ABRAR Management System</title>
+  <link rel="icon" type="image/png" href="../icon.png">
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <img src="../logo.png" alt="ABRAR Logo" style="height: 32px; width: auto;">
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="../dashboard.html" class="nav-item"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+        <a href="../students/students.html" class="nav-item"><i data-lucide="users"></i> Students</a>
+        <div class="submenu"><a href="../students/admission.html" class="submenu-item">Admission</a></div>
+        <a href="../courses/classes.html" class="nav-item"><i data-lucide="library"></i> Courses</a>
+        <div class="submenu">
+          <a href="../courses/manage.html" class="submenu-item">Manage</a>
+          <a href="../courses/upgrade.html" class="submenu-item">Upgrade</a>
+        </div>
+        <a href="../tutors/tutors.html" class="nav-item"><i data-lucide="graduation-cap"></i> Tutors</a>
+        <a href="../finance/accounts.html" class="nav-item"><i data-lucide="wallet"></i> Finance</a>
+        <div class="submenu">
+          <a href="../finance/fees.html" class="submenu-item">Fees</a>
+          <a href="../finance/salaries.html" class="submenu-item">Salary</a>
+          <a href="../finance/accounts.html" class="submenu-item">Account</a>
+        </div>
+        <a href="../reports/progress.html" class="nav-item"><i data-lucide="line-chart"></i> Progress</a>
+        <div class="submenu">
+          <a href="../reports/data.html" class="submenu-item">Data</a>
+          <a href="../reports/template.html" class="submenu-item">Template</a>
+          <a href="../reports/schedule.html" class="submenu-item">Schedule</a>
+        </div>
+        <a href="../assessments/assessments.html" class="nav-item active"><i data-lucide="clipboard-check"></i> Assessments</a>
+        <div class="submenu">
+          <a href="../assessments/control.html" class="submenu-item">Control</a>
+          <a href="../assessments/entry.html" class="submenu-item active">Entry</a>
+          <a href="../assessments/data.html" class="submenu-item">Data</a>
+        </div>
+        <a href="../reports/reports.html" class="nav-item"><i data-lucide="bar-chart-3"></i> Reports</a>
+        <a href="../notifications/notifications.html" class="nav-item"><i data-lucide="bell"></i> Notifications</a>
+        <a href="../messages/messages.html" class="nav-item"><i data-lucide="mail"></i> Messages</a>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="../settings.html" class="nav-item"><i data-lucide="settings"></i> Settings</a>
+        <a href="#" id="logoutBtn" class="nav-item text-danger"><i data-lucide="log-out"></i> Logout</a>
+      </div>
+    </aside>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <main class="main-content">
+      <header class="top-header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobileMenuBtn"><i data-lucide="menu"></i></button>
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div style="width: 40px; height: 40px; background-color: #ecfdf5; color: var(--color-primary); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <i data-lucide="file-plus-2"></i>
+            </div>
+            <div>
+              <div style="font-size: 0.75rem; line-height: 1.2; color: var(--color-text-secondary); margin-bottom: 2px;">
+                <a href="assessments.html" style="color: inherit;">Assessments</a> / Entry
+              </div>
+              <h1 class="page-title" style="line-height: 1.2;">Assessment Entry</h1>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <section class="page-hero" style="margin-bottom: 1.25rem;">
+          <div class="page-hero-content">
+            <h2 class="page-hero-title"><i data-lucide="file-plus-2" style="width: 22px; height: 22px;"></i> Record Student Assessment</h2>
+            <p class="page-hero-sub">Enter exam or evaluation marks and remarks for any enrolled student.</p>
+          </div>
+          <div class="page-hero-actions">
+            <a href="data.html" class="btn-glass"><i data-lucide="database" style="width: 16px; height: 16px;"></i> View Assessment Data</a>
+          </div>
+        </section>
+
+        <div class="card" style="max-width: 760px;">
+          <form id="entryForm" style="display: flex; flex-direction: column; gap: 1rem;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" for="studentSelect">Student</label>
+                <select id="studentSelect" class="form-control" required>
+                  <option value="">Loading students...</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" for="assessDate">Assessment Date</label>
+                <input type="date" id="assessDate" class="form-control" required>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 1rem;">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" for="assessTitle">Assessment Title / Subject</label>
+                <input type="text" id="assessTitle" class="form-control" required placeholder="e.g. Juz 30 Hifz Evaluation">
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" for="marksObtained">Marks Obtained</label>
+                <input type="number" id="marksObtained" class="form-control" min="0" required placeholder="e.g. 85">
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" for="maxMarks">Max Marks</label>
+                <input type="number" id="maxMarks" class="form-control" min="1" value="100" required>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" for="assessRemarks">Examiner Remarks</label>
+              <textarea id="assessRemarks" class="form-control" rows="3" placeholder="Optional feedback on recitation, fluency, or areas to improve..."></textarea>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; padding-top: 0.5rem;">
+              <button type="submit" class="btn btn-primary" id="saveEntryBtn">
+                <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i> Save Assessment
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="../js/firebase-config.js"></script>
+  <script type="module" src="../js/layout.js"></script>
+  <script type="module">
+    import { db } from '../js/firebase-config.js';
+    import { collection, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { toast } from '../js/toast.js';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const selectEl = document.getElementById('studentSelect');
+      const dateInp = document.getElementById('assessDate');
+      dateInp.value = new Date().toISOString().split('T')[0];
+
+      const studentsMap = {};
+      try {
+        const snap = await getDocs(collection(db, 'students'));
+        const list = [];
+        snap.forEach(d => {
+          const s = d.data();
+          studentsMap[d.id] = s;
+          list.push({ id: d.id, ...s });
+        });
+        list.sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
+        selectEl.innerHTML = '<option value="">-- Select Student --</option>' +
+          list.map(s => `<option value="${s.id}">${s.name || 'Unnamed'} (${s.studentId || s.regNo || '-'})</option>`).join('');
+      } catch (err) {
+        console.error(err);
+        selectEl.innerHTML = '<option value="">Error loading students</option>';
+      }
+
+      document.getElementById('entryForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const sid = selectEl.value;
+        const s = studentsMap[sid];
+        if (!s) return;
+
+        const btn = document.getElementById('saveEntryBtn');
+        btn.disabled = true;
+        try {
+          const obtained = parseFloat(document.getElementById('marksObtained').value) || 0;
+          const max = parseFloat(document.getElementById('maxMarks').value) || 100;
+          const pct = max > 0 ? Math.round((obtained / max) * 100) : 0;
+
+          await addDoc(collection(db, 'assessments'), {
+            studentDocId: sid,
+            studentId: s.studentId || s.regNo || '-',
+            studentName: s.name || '-',
+            course: s.course || s.courseType || '-',
+            division: s.division || '-',
+            title: document.getElementById('assessTitle').value.trim(),
+            date: dateInp.value,
+            marksObtained: obtained,
+            maxMarks: max,
+            percentage: pct,
+            status: pct >= 60 ? 'Passed' : 'Needs Review',
+            remarks: document.getElementById('assessRemarks').value.trim(),
+            createdAt: serverTimestamp()
+          });
+          toast.success('Assessment entry saved!');
+          document.getElementById('entryForm').reset();
+          dateInp.value = new Date().toISOString().split('T')[0];
+        } catch (err) {
+          console.error(err);
+          toast.error('Failed to save assessment: ' + err.message);
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    });
+  </script>
+</body>
+</html>
