@@ -1,9 +1,10 @@
 import { toast } from './toast.js';
 // js/salaries.js
 import { db, auth } from './firebase-config.js';
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { collection, getDocs, getDoc, query, where, doc, runTransaction, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-document.addEventListener('DOMContentLoaded', async () => {
+function initSalariesPage() {
   const monthSelector = document.getElementById('monthSelector');
   const tbody = document.getElementById('salariesTableBody');
   const searchInput = document.getElementById('searchInput');
@@ -57,43 +58,36 @@ document.addEventListener('DOMContentLoaded', async () => {
     const selectedMonth = monthSelector.value;
     
     try {
-      // Fetch Tutors
-      const tutorsQ = query(collection(db, "tutors"), where("status", "==", "active"));
-      const tutorsSnap = await getDocs(tutorsQ);
+      const [tutorsSnap, studentsSnap, paymentsSnap, classesSnap, configsSnap] = await Promise.all([
+        getDocs(query(collection(db, "tutors"), where("status", "==", "active"))),
+        getDocs(query(collection(db, "students"), where("status", "==", "active"))),
+        getDocs(query(collection(db, "salaryPayments"), where("month", "==", selectedMonth))),
+        getDocs(query(collection(db, "tutorMonthlyClasses"), where("month", "==", selectedMonth))),
+        getDocs(query(collection(db, "tutorSalaryConfigs"), where("month", "==", selectedMonth)))
+      ]);
+
       currentTutors = [];
       tutorsSnap.forEach(doc => currentTutors.push({ id: doc.id, ...doc.data() }));
 
-      // Fetch Students (Active) to calculate per_student if needed
-      const studentsQ = query(collection(db, "students"), where("status", "==", "active"));
-      const studentsSnap = await getDocs(studentsQ);
       currentStudents = [];
       studentsSnap.forEach(doc => currentStudents.push({ id: doc.id, ...doc.data() }));
 
-      // Fetch Salary Payments for this month
-      const paymentsQ = query(collection(db, "salaryPayments"), where("month", "==", selectedMonth));
-      const paymentsSnap = await getDocs(paymentsQ);
       currentSalaryPayments = [];
       paymentsSnap.forEach(doc => currentSalaryPayments.push({ id: doc.id, ...doc.data() }));
 
-      // Fetch Monthly Classes for this month
-      const classesQ = query(collection(db, "tutorMonthlyClasses"), where("month", "==", selectedMonth));
-      const classesSnap = await getDocs(classesQ);
       currentMonthlyClasses = {};
       classesSnap.forEach(doc => {
         const data = doc.data();
         currentMonthlyClasses[data.tutorId] = data;
       });
 
-      // Fetch tutorSalaryConfigs
-      const configsQ = query(collection(db, "tutorSalaryConfigs"), where("month", "==", selectedMonth));
-      const configsSnap = await getDocs(configsQ);
       currentSalaryConfigs = [];
       configsSnap.forEach(doc => currentSalaryConfigs.push({ id: doc.id, ...doc.data() }));
 
       renderTable();
     } catch (error) {
       console.error("Error loading salary data:", error);
-      tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 2rem; color: var(--color-danger);">Error: ${error.message}</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 2rem; color: var(--color-danger);">Error: ${error.message}</td></tr>`;
     }
   }
 
@@ -149,7 +143,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       totalCalculated += finalAmount;
       totalPaid += alreadyPaid;
 
-      if (searchTerm && !tutor.name.toLowerCase().includes(searchTerm) && !tutor.tutorId.toLowerCase().includes(searchTerm)) return '';
+      if (searchTerm && !(tutor.name || '').toLowerCase().includes(searchTerm) && !(tutor.tutorId || '').toLowerCase().includes(searchTerm)) return '';
 
       const statusBadge = status === 'Paid' 
         ? `<span style="background: var(--color-sidebar-active); color: var(--color-success); padding: 0.25rem 0.5rem; border-radius: 99px; font-size: 0.75rem; font-weight: 500;">Paid</span>`
@@ -527,5 +521,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  loadSalaryData();
-});
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      loadSalaryData();
+    }
+  });
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initSalariesPage);
+} else {
+  initSalariesPage();
+}
