@@ -49,18 +49,40 @@ document.addEventListener('DOMContentLoaded', async () => {
       const dateObj = new Date(report.reportMonth + '-01');
       const monthName = dateObj.toLocaleString('default', { month: 'long', year: 'numeric' });
       
+      const conducted = parseInt(report.attendance?.conducted || 0, 10);
+      const attended = parseInt(report.attendance?.attended || 0, 10);
+      const isIndiv = Boolean(report.attendance?.isIndividual);
+      const attSummary = isIndiv
+        ? `${conducted} Classes Conducted`
+        : `${attended}/${conducted} Attended (${conducted > 0 ? Math.round((attended / conducted) * 100) : 0}%)`;
+
       html += `
         <div class="report-card" data-index="${index}">
-          <div class="report-card-header">
-            <div class="report-month">${monthName}</div>
-            <i data-lucide="file-text" style="color: var(--color-primary);"></i>
-          </div>
-          <div class="report-tutor">
-            <i data-lucide="user" style="width: 14px; height: 14px;"></i>
-            Tutor: ${report.tutorName || '-'}
-          </div>
-          <div style="margin-top: auto; color: var(--color-primary); font-size: 0.875rem; font-weight: 500; display: flex; align-items: center; gap: 0.25rem;">
-            View Report <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
+          <div class="report-card-accent"></div>
+          <div class="report-card-body">
+            <div class="report-card-header">
+              <div>
+                <div class="report-month">${monthName}</div>
+                <span class="report-sub-badge">${isIndiv ? '1-on-1 Individual' : 'Monthly Report'}</span>
+              </div>
+              <div class="report-card-icon">
+                <i data-lucide="file-check-2" style="width: 20px; height: 20px;"></i>
+              </div>
+            </div>
+            <div class="report-meta-strip">
+              <div class="report-tutor">
+                <i data-lucide="user" style="width: 14px; height: 14px; color: #087A42;"></i>
+                <span>Tutor: ${report.tutorName || '-'}</span>
+              </div>
+              <div class="report-tutor" style="color: #64748b; font-weight: 500;">
+                <i data-lucide="calendar-check" style="width: 14px; height: 14px; color: #087A42;"></i>
+                <span>${attSummary}</span>
+              </div>
+            </div>
+            <div class="report-card-cta">
+              <span>View Progress Report</span>
+              <i data-lucide="arrow-right" style="width: 15px; height: 15px;"></i>
+            </div>
           </div>
         </div>
       `;

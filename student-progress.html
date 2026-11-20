@@ -12,34 +12,101 @@
       background: white;
       border: 1px solid var(--color-border);
       border-radius: 12px;
-      padding: 1.5rem;
+      padding: 0;
+      border-radius: 16px;
+      border: 1px solid #e2e8f0;
+      background: #ffffff;
       cursor: pointer;
       transition: all 0.2s ease;
       display: flex;
       flex-direction: column;
-      gap: 1rem;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
     }
     .report-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-      border-color: var(--color-primary);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 24px -8px rgba(8, 122, 66, 0.16);
+      border-color: rgba(8, 122, 66, 0.45);
+    }
+    .report-card-accent {
+      height: 4px;
+      background: linear-gradient(90deg, #054E2A 0%, #087A42 60%, #10b981 100%);
+    }
+    .report-card-body {
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+      flex: 1;
     }
     .report-card-header {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
+      align-items: center;
+      gap: 0.75rem;
     }
-    .report-month {
-      font-size: 1.25rem;
-      font-weight: 600;
-      color: var(--color-text);
-    }
-    .report-tutor {
-      font-size: 0.875rem;
-      color: var(--color-text-secondary);
+    .report-card-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 11px;
+      background: #ecfdf5;
+      color: #087A42;
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .report-month {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #0f172a;
+      line-height: 1.2;
+    }
+    .report-sub-badge {
+      display: inline-block;
+      margin-top: 3px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #087A42;
+      background: #ecfdf5;
+      border: 1px solid #d1fae5;
+      padding: 0.12rem 0.55rem;
+      border-radius: 999px;
+    }
+    .report-meta-strip {
+      background: #f8fafc;
+      border-radius: 10px;
+      padding: 0.65rem 0.8rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    .report-tutor {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #334155;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+    .report-card-cta {
+      margin-top: auto;
+      background: #ecfdf5;
+      color: #087A42;
+      border: 1px solid #d1fae5;
+      border-radius: 9px;
+      padding: 0.52rem 0.85rem;
+      font-size: 0.82rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.15s ease;
+    }
+    .report-card:hover .report-card-cta {
+      background: #087A42;
+      color: #ffffff;
+      border-color: #087A42;
     }
     
     /* Colorful Report Formatting Styles for LKG/UKG */
