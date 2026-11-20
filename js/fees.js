@@ -20,8 +20,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   let customCycleDate = null;
 
   const now = new Date();
+  const FEE_START_MONTH = '2026-12';
   const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-  monthSelector.value = currentMonthStr;
+  monthSelector.min = FEE_START_MONTH;
+  monthSelector.value = currentMonthStr < FEE_START_MONTH ? FEE_START_MONTH : currentMonthStr;
   if (headerDateSelector) {
     headerDateSelector.value = `${currentMonthStr}-${String(now.getDate()).padStart(2, '0')}`;
   }

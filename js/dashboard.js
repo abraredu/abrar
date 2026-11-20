@@ -72,8 +72,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const tutorsSnap = await getDocs(tutorsQ);
         if (activeTutorsEl) activeTutorsEl.textContent = tutorsSnap.size;
 
-        // 3. Fetch Payments for this month (for pending/overdue calc)
-        const paymentsQ = query(collection(db, "payments"), where("billingMonth", "==", currentMonth));
+        // 3. Fetch Payments for active fee cycle (starts December 2026: Nov-Dec)
+        const FEE_START_MONTH = '2026-12';
+        const effectiveFeeMonth = currentMonth < FEE_START_MONTH ? FEE_START_MONTH : currentMonth;
+        const paymentsQ = query(collection(db, "payments"), where("billingMonth", "==", effectiveFeeMonth));
         const paymentsSnap = await getDocs(paymentsQ);
         const currentPayments = [];
         paymentsSnap.forEach(doc => currentPayments.push(doc.data()));
@@ -104,21 +106,23 @@ document.addEventListener('DOMContentLoaded', () => {
             totalPending += balance;
             pendingStudentsCount++;
             
-            // Check if overdue
-            const baseDateStr = student.classStartingDate || student.admissionDate;
-            if (baseDateStr) {
-              const baseDate = new Date(baseDateStr);
-              if (!isNaN(baseDate.getTime())) {
-                const daysSinceJoined = (today.getTime() - baseDate.getTime()) / (1000 * 3600 * 24);
-                if (daysSinceJoined >= 28) {
-                  const dueDay = baseDate.getDate();
-                  const currentMonthDueDate = new Date(currYear, currMonthIdx, dueDay);
-                  const diffTime = currentMonthDueDate.getTime() - today.getTime();
-                  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                  
-                  if (diffDays < 0) {
-                    totalOverdue += balance;
-                    overdueStudentsCount++;
+            // Check if overdue (only active from December 2026 cycle onwards)
+            if (currentMonth >= FEE_START_MONTH) {
+              const baseDateStr = student.classStartingDate || student.admissionDate;
+              if (baseDateStr) {
+                const baseDate = new Date(baseDateStr);
+                if (!isNaN(baseDate.getTime())) {
+                  const daysSinceJoined = (today.getTime() - baseDate.getTime()) / (1000 * 3600 * 24);
+                  if (daysSinceJoined >= 28) {
+                    const dueDay = baseDate.getDate();
+                    const currentMonthDueDate = new Date(currYear, currMonthIdx, dueDay);
+                    const diffTime = currentMonthDueDate.getTime() - today.getTime();
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    
+                    if (diffDays < 0) {
+                      totalOverdue += balance;
+                      overdueStudentsCount++;
+                    }
                   }
                 }
               }

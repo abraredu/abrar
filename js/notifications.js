@@ -103,14 +103,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (currentMonthDueDate.getTime() <= joinedDate.getTime()) {
             currentMonthDueDate = new Date(currentYear, currentMonth + 1, dueDay);
         }
+
+        // Fee accounting starts from December 2026 cycle (Nov-Dec)
+        const FEE_START_MONTH = '2026-12';
+        let dueYearStr = currentMonthDueDate.getFullYear();
+        let dueMonthIdx = currentMonthDueDate.getMonth() + 1;
+        let targetBillingMonth = `${dueYearStr}-${String(dueMonthIdx).padStart(2, '0')}`;
+        if (targetBillingMonth < FEE_START_MONTH) {
+          currentMonthDueDate = new Date(2026, 11, Math.min(dueDay, 31));
+          dueYearStr = currentMonthDueDate.getFullYear();
+          dueMonthIdx = currentMonthDueDate.getMonth() + 1;
+          targetBillingMonth = `${dueYearStr}-${String(dueMonthIdx).padStart(2, '0')}`;
+        }
         
         const diffTime = currentMonthDueDate.getTime() - today.getTime();
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
-        // Check if student has already paid for this calculated billing month
-        const dueYearStr = currentMonthDueDate.getFullYear();
-        const dueMonthIdx = currentMonthDueDate.getMonth() + 1;
-        const targetBillingMonth = `${dueYearStr}-${String(dueMonthIdx).padStart(2, '0')}`;
         
         const monthlyFee = data.monthlyFee || 0;
         
