@@ -1123,7 +1123,7 @@
 
       <div style="display: flex; justify-content: flex-end; gap: 1rem; margin: 1.5rem; position: relative; z-index: 10;" class="no-print">
         <button type="button" class="btn btn-primary" id="downloadPdfBtn">
-          <i data-lucide="download"></i> Download / Print
+          <i data-lucide="image"></i> Download Image
         </button>
       </div>
     </div>
@@ -1153,66 +1153,35 @@
     document.getElementById('downloadPdfBtn').addEventListener('click', async () => {
       const btn = document.getElementById('downloadPdfBtn');
       btn.disabled = true;
-      btn.textContent = 'Generating PDF...';
+      btn.textContent = 'Generating Image...';
 
       try {
         const reportEl = document.getElementById('printableReport');
-
-        // Hide no-print elements
         const noPrintEls = reportEl.querySelectorAll('.no-print');
         noPrintEls.forEach(el => el.style.display = 'none');
-
-        // Apply pdf-export class for clean styling
         reportEl.classList.add('exporting-pdf');
 
         const canvas = await html2canvas(reportEl, {
           scale: 2,
           useCORS: true,
-          backgroundColor: '#E6F4EA',
+          backgroundColor: '#ffffff',
           logging: false
         });
 
-        // Restore
         reportEl.classList.remove('exporting-pdf');
         noPrintEls.forEach(el => el.style.display = '');
 
-        const imgData = canvas.toDataURL('image/png');
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-
-        const pageWidth = pdf.internal.pageSize.getWidth();
-        const pageHeight = pdf.internal.pageSize.getHeight();
-        const margin = 10;
-        const contentWidth = pageWidth - margin * 2;
-        const contentHeight = (canvas.height * contentWidth) / canvas.width;
-
-        // Split across multiple pages if content is taller than one page
-        let yOffset = 0;
-        let remainingHeight = contentHeight;
-        let isFirstPage = true;
-
-        while (remainingHeight > 0) {
-          if (!isFirstPage) pdf.addPage();
-          const sliceHeight = Math.min(remainingHeight, pageHeight - margin * 2);
-          pdf.addImage(
-            imgData, 'PNG',
-            margin,
-            margin - yOffset,
-            contentWidth,
-            contentHeight
-          );
-          yOffset += (pageHeight - margin * 2);
-          remainingHeight -= (pageHeight - margin * 2);
-          isFirstPage = false;
-        }
-
-        pdf.save('Progress_Report.pdf');
+        const studentName = (document.getElementById('vStudentName')?.innerText || 'Student').trim().replace(/\s+/g, '_');
+        const link = document.createElement('a');
+        link.download = `Progress_Report_${studentName}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
       } catch (error) {
-        console.error('PDF generation failed:', error);
-        alert('Failed to generate PDF. Please try again.');
+        console.error('Image generation failed:', error);
+        alert('Failed to generate image. Please try again.');
       } finally {
         btn.disabled = false;
-        btn.innerHTML = '<i data-lucide="download"></i> Download PDF';
+        btn.innerHTML = '<i data-lucide="image"></i> Download Image';
         if (window.lucide) lucide.createIcons();
       }
     });
