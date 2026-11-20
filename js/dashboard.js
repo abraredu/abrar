@@ -83,6 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let totalPending = 0;
         let totalOverdue = 0;
         let totalExpectedMonthly = 0;
+        let totalCollectedFromPayments = 0;
         let pendingStudentsCount = 0;
         let overdueStudentsCount = 0;
         
@@ -99,6 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const actualPaid = studentPayments.reduce((sum, p) => sum + (p.paidAmount || 0), 0);
           const waived = studentPayments.reduce((sum, p) => sum + (p.waivedAmount || 0), 0);
           const totalCredited = actualPaid + waived;
+          totalCollectedFromPayments += actualPaid;
           
           const balance = Math.max(0, monthlyFee - totalCredited);
           
@@ -152,18 +154,17 @@ document.addEventListener('DOMContentLoaded', () => {
           dashStudentsBadgeEl.textContent = `${activeStudents.length} Enrolled`;
         }
 
-        // 5. Month Collection & Recent Income Transactions
+        // 5. Month Collection & Recent Income Transactions (from December 2026 cycle onwards)
         const txQ = query(collection(db, "transactions")); 
         const txSnap = await getDocs(txQ);
-        let collectedThisMonth = 0;
+        let collectedThisMonth = totalCollectedFromPayments;
         const incomeTransactions = [];
         
         txSnap.forEach(docSnap => {
           const t = docSnap.data();
           if (t.type === 'income') {
-            incomeTransactions.push(t);
-            if (t.date && t.date.startsWith(currentMonth)) {
-              collectedThisMonth += (t.amount || 0);
+            if (currentMonth >= FEE_START_MONTH || (t.date && t.date >= `${FEE_START_MONTH}-01`)) {
+              incomeTransactions.push(t);
             }
           }
         });
