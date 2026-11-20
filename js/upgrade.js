@@ -1,6 +1,6 @@
 // js/upgrade.js
 import { db, auth } from './firebase-config.js';
-import { collection, getDocs, doc, updateDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { collection, getDocs, getDoc, doc, updateDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { toast } from './toast.js';
 
@@ -53,6 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let assessmentsByStudent = {};
   let completedAssessByStudentDiv = {};
   let lastAssessDateByStudentDiv = {};
+  let defaultAssessCycleDays = 30;
   let selectedStudentIds = new Set();
   let activeCourseId = 'all';     // 'all' or course.id or 'other'
   let activeDivision = 'all';     // 'all' or specific division name
@@ -247,12 +248,19 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       });
 
-      // 3. Fetch Assessments for Mark List lookup & round / overdue check
+      // 3. Fetch Assessments & Control Settings for Mark List / Overdue check
       assessmentsByStudent = {};
       completedAssessByStudentDiv = {};
       lastAssessDateByStudentDiv = {};
+      defaultAssessCycleDays = 30;
       try {
-        const assessSnap = await getDocs(collection(db, "assessments"));
+        const [assessSnap, ctrlSnap] = await Promise.all([
+          getDocs(collection(db, "assessments")),
+          getDoc(doc(db, "settings", "assessments")).catch(() => null)
+        ]);
+        if (ctrlSnap && ctrlSnap.exists && ctrlSnap.exists() && ctrlSnap.data().cycleDays > 0) {
+          defaultAssessCycleDays = parseInt(ctrlSnap.data().cycleDays, 10);
+        }
         assessSnap.forEach(aDoc => {
           const a = { id: aDoc.id, ...aDoc.data() };
           const aDiv = String(a.division || '').trim().toLowerCase() || '_any_';
@@ -641,19 +649,37 @@ document.addEventListener('DOMContentLoaded', () => {
       const divCounts = completedAssessByStudentDiv[student.id] || completedAssessByStudentDiv[student.studentId] || {};
       const completedInDiv = (divCounts[curDivKey] || 0) + (curDivKey !== '_any_' ? (divCounts['_any_'] || 0) + (divCounts['-'] || 0) : 0);
       const isRoundLocked = targetAssessCount > 0 && completedInDiv < targetAssessCount;
+      const isRoundComplete = targetAssessCount > 0 && completedInDiv >= targetAssessCount;
+
+      const parseFlexDate = (raw) => {
+        if (!raw) return null;
+        const str = String(raw).trim();
+        const dmy = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+        if (dmy) {
+          const d = new Date(parseInt(dmy[3], 10), parseInt(dmy[2], 10) - 1, parseInt(dmy[1], 10));
+          return isNaN(d.getTime()) ? null : d;
+        }
+        const ymd = str.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+        if (ymd) {
+          const d = new Date(parseInt(ymd[1], 10), parseInt(ymd[2], 10) - 1, parseInt(ymd[3], 10));
+          return isNaN(d.getTime()) ? null : d;
+        }
+        const fb = new Date(str);
+        return isNaN(fb.getTime()) ? null : fb;
+      };
 
       let isAssessOverdue = false;
-      if (isRoundLocked) {
+      if (!isRoundComplete) {
         const divDates = lastAssessDateByStudentDiv[student.id] || lastAssessDateByStudentDiv[student.studentId] || {};
         const lastAssessDate = divDates[curDivKey] || divDates['_any_'] || divDates['-'] || null;
-        const baseStr = student.classStartingDate || student.admissionDate;
-        const baseDate = lastAssessDate || (baseStr ? new Date(baseStr) : null);
+        const baseDate = lastAssessDate || parseFlexDate(student.classStartingDate) || parseFlexDate(student.admissionDate);
         if (baseDate && !isNaN(baseDate.getTime())) {
           const cycleDays = (targetAssessMonths > 0 && targetAssessCount > 0)
             ? Math.max(1, Math.round((targetAssessMonths * 30) / targetAssessCount))
-            : 30;
+            : defaultAssessCycleDays;
           const nextDue = new Date(baseDate.getTime() + cycleDays * 24 * 60 * 60 * 1000);
-          if (new Date() > nextDue) {
+          const daysLeft = Math.ceil((nextDue.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+          if (daysLeft < 0) {
             isAssessOverdue = true;
           }
         }
@@ -691,17 +717,21 @@ document.addEventListener('DOMContentLoaded', () => {
             <span class="cand-meta-label">Division</span>
             <div class="cand-div-wrap">
               <span class="cand-div-pill">${currentDiv}</span>
-              <button type="button" class="cand-dots-btn" data-id="${student.id}" title="Options">
-                <i data-lucide="more-vertical" style="width: 14px; height: 14px;"></i>
-              </button>
-              <div class="cand-dots-menu">
-                <button type="button" class="cand-dots-item open-marklist-btn" data-id="${student.id}">
-                  <i data-lucide="file-spreadsheet" style="width: 14px; height: 14px; color: #087A42;"></i> Mark List
-                </button>
-                <button type="button" class="cand-dots-item open-cert-btn" data-id="${student.id}">
-                  <i data-lucide="award" style="width: 14px; height: 14px; color: #d97706;"></i> Certificate
-                </button>
-              </div>
+              ${isAssessOverdue
+                ? `<button type="button" class="cand-dots-btn" disabled style="opacity: 0.45; cursor: not-allowed; color: #dc2626; border-color: #fecaca; background: #fef2f2;" title="Mark List & Certificate disabled while assessment is overdue">
+                    <i data-lucide="more-vertical" style="width: 14px; height: 14px;"></i>
+                  </button>`
+                : `<button type="button" class="cand-dots-btn" data-id="${student.id}" title="Options">
+                    <i data-lucide="more-vertical" style="width: 14px; height: 14px;"></i>
+                  </button>
+                  <div class="cand-dots-menu">
+                    <button type="button" class="cand-dots-item open-marklist-btn" data-id="${student.id}">
+                      <i data-lucide="file-spreadsheet" style="width: 14px; height: 14px; color: #087A42;"></i> Mark List
+                    </button>
+                    <button type="button" class="cand-dots-item open-cert-btn" data-id="${student.id}">
+                      <i data-lucide="award" style="width: 14px; height: 14px; color: #d97706;"></i> Certificate
+                    </button>
+                  </div>`}
             </div>
           </div>
         </div>
@@ -716,8 +746,8 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
           </div>
           ${isAssessOverdue
-            ? `<button type="button" class="btn single-upgrade-btn" disabled style="background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; cursor: not-allowed; box-shadow: none;" title="Assessment is overdue (${completedInDiv}/${targetAssessCount}) — record assessment to unlock">
-                <i data-lucide="alert-triangle" style="width: 14px; height: 14px;"></i> Assessment Overdue (${completedInDiv}/${targetAssessCount})
+            ? `<button type="button" class="btn single-upgrade-btn" disabled style="background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; cursor: not-allowed; box-shadow: none;" title="Assessment is overdue — record assessment to unlock">
+                <i data-lucide="alert-triangle" style="width: 14px; height: 14px;"></i> Assessment Overdue${targetAssessCount > 0 ? ` (${completedInDiv}/${targetAssessCount})` : ''}
               </button>`
             : isRoundLocked
             ? `<button type="button" class="btn btn-outline single-upgrade-btn" disabled style="opacity: 0.65; cursor: not-allowed; background: #f1f5f9; color: #64748b; border-color: #cbd5e1; box-shadow: none;" title="Complete ${targetAssessCount} assessments in ${currentDiv} to unlock upgrade">
